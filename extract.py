@@ -4,7 +4,8 @@ import time
 import re
 import json
 from const import *
-
+import pdftotext
+import pdfplumber
 
 def ocr(file_path, save_path):
     ocrmypdf.ocr(file_path, save_path)
@@ -14,6 +15,13 @@ def read_pdf(file_name, page_num):
     file_path = os.path.join("text", file_name.split(".")[0], f"{page_num}.txt")
     with open(file_path, "r") as f:
         return f.read()
+
+
+def read_pdfplumber(file_name, page_num):
+    with pdfplumber.open("data/NORTH_AMERICAN.pdf") as pdf:
+        page = pdf.pages[page_num-1]
+        page = page.extract_text()
+    return page
 
 
 """
@@ -73,19 +81,6 @@ def extract_ceva(page):
 
 def is_consignee(line):
     return line.startswith('Consignee') or line.endswith('Consignataire')
-"""
-
-North American
-    1st party (Amazon etc)
-    BOL # 
-    Consignee information
-    # PCS
-    DIMS
-    Special Services
-    
-"""
-def extract_north_american(page):
-    return {}
 
 
 def extract_info_ceva(lines, starting_num, is_shipper=True):
@@ -131,6 +126,46 @@ def extract_special_instructions(lines, starting_num):
 
     return entry.rstrip()
 
+
+"""
+
+North American
+    1st party 
+    BOL # 
+    Consignee information
+    # PCS
+    DIMS
+    Special Services
+
+"""
+
+def extract_north_american(page, page_2):
+    lines = page.splitlines()
+    north_american_list = {FIRST_PARTY: NORTH_AMERICAN}
+
+    for line in lines:
+        if "bol" in line.lower():
+            bol_num = line.split(" ")[-1]
+            if "bol" not in bol_num.lower():
+                insert_in_dict(north_american_list, BOL_NUM, line.split(" ")[-1])
+
+    lines = page_2.splitlines()
+    for index, line in enumerate(lines):
+        if "pkg" in line.lower() or "wt(lbs)" in line.lower():
+            dims = ' x '.join([re.findall("\d+\.\d+", x)[0] for x in lines[index+1].split(" ")[-3:]])
+            insert_in_dict(north_american_list, DIMS, dims)
+        if "pcs" in line.lower():
+            if index+1 != len(lines):
+                candidates = lines[index+1].split(" ")
+                for candidate in candidates:
+                    if candidate.isnumeric():
+                        insert_in_dict(north_american_list, NUM_PCS, candidate)
+                        break
+
+
+    return north_american_list
+
+
 def generate_doclist(_list):
     return {
         FIRST_PARTY: _list[FIRST_PARTY] if FIRST_PARTY in _list else "",
@@ -158,13 +193,13 @@ def generate_doclist(_list):
     }
 
 
-def extract(page):
+def extract(page, plumber_page=None):
     second_party = predict_second_party(page)
 
     if second_party == CEVA:
         return extract_ceva(page)
     elif second_party == NORTH_AMERICAN:
-        return extract_north_american(page)
+        return extract_north_american(page, plumber_page)
 
     return {}
 
@@ -201,9 +236,13 @@ if __name__ == "__main__":
     ceva_list = extract(ceva)
     ceva_doclist = generate_doclist(ceva_list)
     print(ceva_doclist)
-    # north_american = read_pdf("NORTH_AMERICAN.pdf", 1)
-    # north_american_list = extract(north_american)
-    # north_american_doclist = generate_doclist(north_american_list)
-    # print(north_american_doclist)
+
+    print()
+
+    north_american_1 = read_pdf("NORTH_AMERICAN.pdf", 1)
+    north_american_2 = read_pdfplumber("NORTH_AMERICAN.pdf", 1)
+    north_american_list = extract(north_american_1, plumber_page=north_american_2)
+    north_american_doclist = generate_doclist(north_american_list)
+    print(north_american_doclist)
 
     print(time.time()-start)

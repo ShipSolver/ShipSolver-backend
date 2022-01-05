@@ -8,7 +8,7 @@ import time
 if __name__ == "__main__":
     stat = time.time()
     pdf_document = Document(
-        document_path="data/CEVA-ocr.pdf",
+        document_path="data/NORTH_AMERICAN.pdf",
         language='eng'
     )
     pdf2text = PDF2Text(document=pdf_document)
@@ -16,7 +16,7 @@ if __name__ == "__main__":
     print(time.time()-stat)
 
     for page in content:
-        with open(f"text/{page['page_number']}.txt", "w") as f:
+        with open(f"text/NORTH_AMERICAN/{page['page_number']}.txt", "w") as f:
             f.write(page["text"])
 
 

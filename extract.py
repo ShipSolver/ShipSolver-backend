@@ -1,18 +1,19 @@
-import pdftotext
 import os
 import ocrmypdf
 import time
-
+import re
+import json
 from const import *
+
 
 def ocr(file_path, save_path):
     ocrmypdf.ocr(file_path, save_path)
 
 
-def read_pdf(file_name):
-    file_path = os.path.join("data", file_name)
-    with open(file_path, "rb") as f:
-        return list(pdftotext.PDF(f))
+def read_pdf(file_name, page_num):
+    file_path = os.path.join("text", file_name.split(".")[0], f"{page_num}.txt")
+    with open(file_path, "r") as f:
+        return f.read()
 
 
 """
@@ -28,19 +29,50 @@ CEVA
     Lbs
     # PCs
     Shipper
+    Special Instructions
 """
 def extract_ceva(page):
     lines = page.splitlines()
-    ceva_list = {}
-    for line in lines:
-        if "house" or "ref #" in line.lower():
+    ceva_list = {FIRST_PARTY: CEVA}
+    # barcode
+    matches = re.findall(BARCODE_REGEX, page)
+    if matches:
+        insert_in_dict(ceva_list, BARCODE, matches[0])
+    # NUM PCS
+    matches = re.findall(PCS_REGEX, page)
+    if matches:
+        insert_in_dict(ceva_list, NUM_PCS, matches[0])
+    # weight
+    matches = re.findall(LBS_REGEX, page)
+    if matches:
+        insert_in_dict(ceva_list, WEIGHT, f"{matches[0]} lbs")
+    # phone number
+    matches = re.findall(PHONE_NUMBER_REGEX, page)
+    consignee_phone_number = matches[0][0] if matches else ""
+
+    for line_num, line in enumerate(lines):
+        # house ref #
+        if "house" in line.lower() or "ref #" in line.lower():
             insert_in_dict(ceva_list, HOUSE_REF, line.split(" ")[-1])
+        # shipper
+        if line.lower().startswith('shipper') or line.lower().endswith('expéditeur'):
+            shipper = extract_info_ceva(lines, line_num)
+            insert_in_dict(ceva_list, SHIPPER, shipper)
 
-
-
+        #consignee
+        if is_consignee(line):
+            consignee = extract_info_ceva(lines, line_num, is_shipper=False)
+            insert_in_dict(consignee, PHONE_NUMBER, consignee_phone_number)
+            insert_in_dict(ceva_list, CONSIGNEE, consignee)
+        if "instructions" in line.lower():
+            special_instructions = extract_special_instructions(lines, line_num)
+            insert_in_dict(ceva_list, SPECIAL_INSTRUCTIONS, special_instructions)
 
     return ceva_list
 
+
+def is_consignee(line):
+    return line.startswith('Consignee') or line.endswith('Consignataire')
 """
 
 North American
@@ -53,33 +85,76 @@ North American
     
 """
 def extract_north_american(page):
-
     return {}
 
 
+def extract_info_ceva(lines, starting_num, is_shipper=True):
+
+    field_index = 0
+    curr_field_entry = ""
+    shipper_dict = {}
+    FIELDS = CEVA_SHIPPER_FIELDS if is_shipper else CEVA_CONSIGNEE_FIELDS
+    for index in range(starting_num+1, len(lines)):
+        if not lines[index]:
+            continue
+        # name or company
+        if field_index == 0:
+            if lines[index].split(" ")[0].isnumeric():
+                field_index += 1
+                shipper_dict[FIELDS[field_index-1]] = curr_field_entry.rstrip()
+                curr_field_entry = ""
+            else:
+                curr_field_entry += lines[index] + " "
+
+        if FIELDS[field_index] == ADDRESS:
+            curr_field_entry += lines[index] + " "
+            if is_consignee(lines[index]) or re.findall(POSTAL_CODE_REGEX_BOTH, lines[index]):
+                shipper_dict[ADDRESS] = curr_field_entry.rstrip()
+                break
+
+    for field in FIELDS:
+        if field not in shipper_dict:
+            shipper_dict[field] = ""
+    postal_code = extract_postal_code(shipper_dict[ADDRESS])
+    insert_in_dict(shipper_dict, POSTAL_CODE, postal_code)
+
+    return shipper_dict
+
+def extract_special_instructions(lines, starting_num):
+    entry = ""
+    for index in range(starting_num+1, len(lines)):
+        if not lines[index]:
+            continue
+        if "reference" in lines[index].lower():
+            break
+        entry += lines[index] + " "
+
+    return entry.rstrip()
+
 def generate_doclist(_list):
     return {
-        "first_party": _list["first_party"] if "first_party" in _list else "",
+        FIRST_PARTY: _list[FIRST_PARTY] if FIRST_PARTY in _list else "",
         HOUSE_REF: _list[HOUSE_REF] if HOUSE_REF in _list else "",
-        "barcode": _list["barcode"] if "barcode" in _list else "",
-        "num_pcs": _list["num_pcs"] if "num_pcs" in _list else "",
-        "weight": _list["weight"] if "weight" in _list else "",
-        "consignee": {
-            "name": _list["consignee"]["name"] if "consignee" in _list and "name" in _list["consignee"] else "",
-            "addr": _list["consignee"]["addr"] if "consignee" in _list and "addr" in _list["consignee"] else "",
-            "postal_code": _list["consignee"]["postal_code"] if "consignee" in _list and "postal_code" in _list["consignee"] else "",
-            "phone_number": _list["consignee"]["phone_numnber"] if "consignee" in _list and "phone_number" in _list["consignee"] else ""
+        BARCODE: _list[BARCODE] if BARCODE in _list else "",
+        NUM_PCS: _list[NUM_PCS] if NUM_PCS in _list else "",
+        WEIGHT: _list[WEIGHT] if WEIGHT in _list else "",
+        BOL_NUM: _list[BOL_NUM] if BOL_NUM in _list else "",
+        DIMS: _list[DIMS] if DIMS in _list else "",
+        SPECIAL_SERVICES: _list[SPECIAL_SERVICES] if SPECIAL_SERVICES in _list else [],
+        SPECIAL_INSTRUCTIONS: _list[SPECIAL_INSTRUCTIONS] if SPECIAL_INSTRUCTIONS in _list else [],
+        CONSIGNEE: {
+            NAME: _list[CONSIGNEE][NAME] if CONSIGNEE in _list and NAME in _list[CONSIGNEE] else "",
+            ADDRESS: _list[CONSIGNEE][ADDRESS] if CONSIGNEE in _list and ADDRESS in _list[CONSIGNEE] else "",
+            POSTAL_CODE: _list[CONSIGNEE][POSTAL_CODE] if CONSIGNEE in _list and POSTAL_CODE in _list[CONSIGNEE] else "",
+            PHONE_NUMBER: _list[CONSIGNEE][PHONE_NUMBER] if CONSIGNEE in _list and PHONE_NUMBER in _list[CONSIGNEE] else ""
         },
-        "shipper": {
-            "company": _list["shipper"]["company"] if "shipper" in _list and "company" in _list["shipper"] else "",
-            "name": _list["shipper"]["name"] if "shipper" in _list and "name" in _list["shipper"] else "",
-            "addr": _list["shipper"]["addr"] if "shipper" in _list and "addr" in _list["shipper"] else "",
-            "postal_code": _list["shipper"]["postal_code"] if "shipper" in _list and "postal_code" in _list["shipper"] else "",
-            "phone_number": _list["shipper"]["phone_numnber"] if "shipper" in _list and "phone_number" in _list["shipper"] else ""
-        },
-        "bol_num": _list["bol_num"] if "bol_num" in _list else "",
-        "dims": _list["dims"] if "dims" in _list else "",
-        "special_services": _list["special_services"] if "special_services" in _list else []
+        SHIPPER: {
+            COMPANY: _list[SHIPPER][COMPANY] if SHIPPER in _list and COMPANY in _list[SHIPPER] else "",
+            NAME: _list[SHIPPER][NAME] if SHIPPER in _list and NAME in _list[SHIPPER] else "",
+            ADDRESS: _list[SHIPPER][ADDRESS] if SHIPPER in _list and ADDRESS in _list[SHIPPER] else "",
+            POSTAL_CODE: _list[SHIPPER][POSTAL_CODE] if SHIPPER in _list and POSTAL_CODE in _list[SHIPPER] else "",
+            PHONE_NUMBER: _list[SHIPPER][PHONE_NUMBER] if SHIPPER in _list and PHONE_NUMBER in _list[SHIPPER] else ""
+        }
     }
 
 
@@ -106,17 +181,29 @@ def insert_in_dict(_dict, key, value):
         _dict[key] = value
 
 
+def extract_postal_code(address):
+    matches = re.findall(f"({POSTAL_CODE_REGEX_BOTH})", address)
+    if not matches:
+        return ""
+    postal_code = matches[0]
+
+    # correct Os to 0s
+    for i in [-3, -1, 1]:
+        if postal_code[i] == "O":
+            postal_code = list(postal_code)
+            postal_code[i] = "0"
+            postal_code = ''.join(postal_code)
+    return postal_code
+
 if __name__ == "__main__":
     start = time.time()
-
-    # ocr("data/CEVA.pdf", "data/CEVA-ocr.pdf")
-    ceva = read_pdf("CEVA-ocr.pdf")
-    ceva_list = extract(ceva[0])
+    ceva = read_pdf("CEVA-ocr.pdf", 1)
+    ceva_list = extract(ceva)
     ceva_doclist = generate_doclist(ceva_list)
     print(ceva_doclist)
-    north_american = read_pdf("NORTH_AMERICAN.pdf")
-    north_american_list = extract(ceva[0])
-    north_american_doclist = generate_doclist(ceva_list)
-    print(north_american_doclist)
+    # north_american = read_pdf("NORTH_AMERICAN.pdf", 1)
+    # north_american_list = extract(north_american)
+    # north_american_doclist = generate_doclist(north_american_list)
+    # print(north_american_doclist)
 
     print(time.time()-start)

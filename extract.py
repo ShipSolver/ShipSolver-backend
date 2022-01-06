@@ -73,14 +73,14 @@ def extract_ceva(page):
             insert_in_dict(consignee, PHONE_NUMBER, consignee_phone_number)
             insert_in_dict(ceva_list, CONSIGNEE, consignee)
         if "instructions" in line.lower():
-            special_instructions = extract_special_instructions(lines, line_num)
+            special_instructions = extract_special(lines, line_num, ["reference"])
             insert_in_dict(ceva_list, SPECIAL_INSTRUCTIONS, special_instructions)
 
     return ceva_list
 
 
 def is_consignee(line):
-    return line.startswith('Consignee') or line.endswith('Consignataire')
+    return line.lower().startswith('consignee') or line.lower().endswith('consignataire')
 
 
 def extract_info_ceva(lines, starting_num, is_shipper=True):
@@ -94,7 +94,7 @@ def extract_info_ceva(lines, starting_num, is_shipper=True):
             continue
         # name or company
         if field_index == 0:
-            if lines[index].split(" ")[0].isnumeric():
+            if starts_with_number(lines[index]):
                 field_index += 1
                 shipper_dict[FIELDS[field_index-1]] = curr_field_entry.rstrip()
                 curr_field_entry = ""
@@ -110,17 +110,28 @@ def extract_info_ceva(lines, starting_num, is_shipper=True):
     for field in FIELDS:
         if field not in shipper_dict:
             shipper_dict[field] = ""
+
     postal_code = extract_postal_code(shipper_dict[ADDRESS])
     insert_in_dict(shipper_dict, POSTAL_CODE, postal_code)
 
     return shipper_dict
 
-def extract_special_instructions(lines, starting_num):
+
+def starts_with_number(line):
+    return line.split(" ")[0].isnumeric()
+
+
+def extract_special(lines, starting_num, keywords):
     entry = ""
+    outer_break = False
     for index in range(starting_num+1, len(lines)):
         if not lines[index]:
             continue
-        if "reference" in lines[index].lower():
+        for keyword in keywords:
+            if keyword in lines[index].lower():
+                outer_break = True
+                break
+        if outer_break:
             break
         entry += lines[index] + " "
 
@@ -143,41 +154,134 @@ def extract_north_american(page, page_2):
     lines = page.splitlines()
     north_american_list = {FIRST_PARTY: NORTH_AMERICAN}
 
-    for line in lines:
+    # phone number
+    matches = re.findall(PHONE_COLON_REGEX, page)
+    shipper_phone_number = matches[0] if matches else ""
+    consignee_phone_number = matches[1] if len(matches) > 1 else ""
+
+    for line_num, line in enumerate(lines):
+        # ref #
+        if "ref#" in line.lower():
+            ref_num = line.split(" ")[-1]
+            if "ref" not in ref_num.lower():
+                insert_in_dict(north_american_list, HOUSE_REF, line.split(":")[-1].strip())
+        # BOL #
         if "bol" in line.lower():
             bol_num = line.split(" ")[-1]
             if "bol" not in bol_num.lower():
                 insert_in_dict(north_american_list, BOL_NUM, line.split(" ")[-1])
+        # shipper
+        if "shipper" in line.lower():
+            shipper = extract_info_north_american(lines, line_num)
+            insert_in_dict(shipper, PHONE_NUMBER, shipper_phone_number)
+            insert_in_dict(north_american_list, SHIPPER, shipper)
+        # consignee
+        if "consignee" in line.lower():
+            consignee = extract_info_north_american(lines, line_num, is_shipper=False)
+            insert_in_dict(consignee, PHONE_NUMBER, consignee_phone_number)
+            insert_in_dict(north_american_list, CONSIGNEE, consignee)
+        #special services
+        if "services" in line.lower():
+            special_services = extract_special(lines, line_num, ["question", "issue", "905-277-2000"])
+            insert_in_dict(north_american_list, SPECIAL_SERVICES, special_services)
 
     lines = page_2.splitlines()
-    for index, line in enumerate(lines):
+    for line_num, line in enumerate(lines):
         if "pkg" in line.lower() or "wt(lbs)" in line.lower():
-            dims = ' x '.join([re.findall("\d+\.\d+", x)[0] for x in lines[index+1].split(" ")[-3:]])
-            insert_in_dict(north_american_list, DIMS, dims)
-        if "pcs" in line.lower():
-            if index+1 != len(lines):
-                candidates = lines[index+1].split(" ")
-                for candidate in candidates:
-                    if candidate.isnumeric():
-                        insert_in_dict(north_american_list, NUM_PCS, candidate)
-                        break
+            pcs = extract_pcs(lines, line_num)
+            insert_in_dict(north_american_list, PCS, pcs)
 
 
     return north_american_list
 
+
+def extract_pcs(lines, starting_num):
+    pcs = []
+    num_pcs = 0
+    weight = 0
+    for index in range(starting_num+1, len(lines)):
+        if len(lines[index]) < 13:
+            _num_pcs, _weight = [float(x) for x in lines[index].split(" ")]
+            assert _num_pcs == num_pcs and _weight == weight
+            break
+        second_space = lines[index].find(" ", lines[index].find(" ") + 1)
+        dim_nums = [re.findall("\d+\.\d+", x)[0] for x in lines[index].split(" ")[-3:]]
+        pkg, wt = lines[index].split(" ")[:2]
+        num_pcs += 1
+        weight += float(wt)
+        commodity_description = lines[index][second_space:].split(dim_nums[0])[0].lstrip().rstrip()
+        dims = ' x '.join(dim_nums)
+        pcs.append({PKG: pkg, WT_LBS: wt, COMMODITY_DESCRIPTION: commodity_description, DIMS_IN: dims})
+
+    return pcs
+
+def extract_info_north_american(lines, starting_num, is_shipper=True):
+    field_index = 0
+    curr_field_entry = ""
+    shipper_dict = {}
+    FIELDS = NORTH_AMERICAN_SHIPPER_FIELDS if is_shipper else NORTH_AMERICAN_CONSIGNEE_FIELDS
+    company = False
+    company_1 = ""
+    name = ""
+    company_2 = ""
+    address = ""
+    for index in range(starting_num+1, len(lines)):
+        if not lines[index]:
+            continue
+        if field_index == 0:
+            if "contact" in lines[index].lower():
+                company = True
+                name = lines[index].split(": ")[-1]
+                company_1 = curr_field_entry.rstrip()
+                curr_field_entry = ""
+                field_index += 2
+                continue
+            curr_field_entry += lines[index] + " "
+        if company:
+            if starts_with_number(lines[index]):
+                company = False
+                field_index += 1
+                company_2 = curr_field_entry.rstrip()
+                curr_field_entry = ""
+            else:
+                curr_field_entry += lines[index] + " "
+
+
+        if FIELDS[field_index] == ADDRESS:
+            curr_field_entry += lines[index] + " "
+            if is_consignee(lines[index]) or re.findall(POSTAL_CODE_REGEX_BOTH, lines[index]):
+                address = curr_field_entry.rstrip()
+                break
+
+    if is_shipper:
+        shipper_dict[COMPANY] = company_2
+        shipper_dict[ADDRESS] = address
+    else:
+        shipper_dict[COMPANY] = company_1
+        shipper_dict[NAME] = name
+        shipper_dict[ADDRESS] = (company_2 + ", " if company_2 else "") + address
+
+    for field in FIELDS:
+        if field not in shipper_dict:
+            shipper_dict[field] = ""
+
+    postal_code = extract_postal_code(shipper_dict[ADDRESS])
+    insert_in_dict(shipper_dict, POSTAL_CODE, postal_code)
+    return shipper_dict
 
 def generate_doclist(_list):
     return {
         FIRST_PARTY: _list[FIRST_PARTY] if FIRST_PARTY in _list else "",
         HOUSE_REF: _list[HOUSE_REF] if HOUSE_REF in _list else "",
         BARCODE: _list[BARCODE] if BARCODE in _list else "",
+        PCS: _list[PCS] if PCS in _list else [],
         NUM_PCS: _list[NUM_PCS] if NUM_PCS in _list else "",
         WEIGHT: _list[WEIGHT] if WEIGHT in _list else "",
         BOL_NUM: _list[BOL_NUM] if BOL_NUM in _list else "",
-        DIMS: _list[DIMS] if DIMS in _list else "",
-        SPECIAL_SERVICES: _list[SPECIAL_SERVICES] if SPECIAL_SERVICES in _list else [],
-        SPECIAL_INSTRUCTIONS: _list[SPECIAL_INSTRUCTIONS] if SPECIAL_INSTRUCTIONS in _list else [],
+        SPECIAL_SERVICES: _list[SPECIAL_SERVICES] if SPECIAL_SERVICES in _list else "",
+        SPECIAL_INSTRUCTIONS: _list[SPECIAL_INSTRUCTIONS] if SPECIAL_INSTRUCTIONS in _list else "",
         CONSIGNEE: {
+            COMPANY: _list[CONSIGNEE][COMPANY] if CONSIGNEE in _list and COMPANY in _list[CONSIGNEE] else "",
             NAME: _list[CONSIGNEE][NAME] if CONSIGNEE in _list and NAME in _list[CONSIGNEE] else "",
             ADDRESS: _list[CONSIGNEE][ADDRESS] if CONSIGNEE in _list and ADDRESS in _list[CONSIGNEE] else "",
             POSTAL_CODE: _list[CONSIGNEE][POSTAL_CODE] if CONSIGNEE in _list and POSTAL_CODE in _list[CONSIGNEE] else "",

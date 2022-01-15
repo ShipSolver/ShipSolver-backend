@@ -2,9 +2,7 @@ import os
 import ocrmypdf
 import time
 import re
-import json
 from const import *
-import pdftotext
 import pdfplumber
 
 def ocr(file_path, save_path):
@@ -12,13 +10,13 @@ def ocr(file_path, save_path):
 
 
 def read_pdf(file_name, page_num):
-    file_path = os.path.join("text", file_name.split(".")[0], f"{page_num}.txt")
+    file_path = os.path.join("../text", file_name.split(".")[0], f"{page_num}.txt")
     with open(file_path, "r") as f:
         return f.read()
 
 
 def read_pdfplumber(file_name, page_num):
-    with pdfplumber.open("data/NORTH_AMERICAN.pdf") as pdf:
+    with pdfplumber.open("../data/NORTH_AMERICAN.pdf") as pdf:
         page = pdf.pages[page_num-1]
         page = page.extract_text()
     return page
@@ -333,6 +331,13 @@ def extract_postal_code(address):
             postal_code[i] = "0"
             postal_code = ''.join(postal_code)
     return postal_code
+
+
+def process_file(uuid):
+    pass
+
+
+
 
 if __name__ == "__main__":
     start = time.time()

@@ -8,7 +8,7 @@ import time
 if __name__ == "__main__":
     stat = time.time()
     pdf_document = Document(
-        document_path="data/NORTH_AMERICAN.pdf",
+        document_path="../data/NORTH_AMERICAN.pdf",
         language='eng'
     )
     pdf2text = PDF2Text(document=pdf_document)

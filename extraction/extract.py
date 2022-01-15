@@ -2,7 +2,7 @@ import os
 import ocrmypdf
 import time
 import re
-from const import *
+from extraction.const import *
 import pdfplumber
 
 def ocr(file_path, save_path):
@@ -331,12 +331,6 @@ def extract_postal_code(address):
             postal_code[i] = "0"
             postal_code = ''.join(postal_code)
     return postal_code
-
-
-def process_file(uuid):
-    pass
-
-
 
 
 if __name__ == "__main__":

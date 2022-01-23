@@ -1,12 +1,9 @@
+import os
 from flask import Flask, render_template, request, jsonify
 import PyPDF2
 import io
 from uuid import uuid4
-import os
-
-print(os.getcwd())
-import extraction.extract as e
-
+import extraction.app as e
 UPLOAD_FOLDER = "/home/dante/WLP/metadata-extraction/uploads"
 
 app = Flask(__name__)
@@ -26,13 +23,22 @@ def pdf_upload():
         res.status_code = 400
         return res
     if file and file.filename.split(".")[-1].lower() == "pdf":
-        file_uuid = uuid4()
+        folder_uuid = uuid4()
         with io.BytesIO(file.read()) as open_pdf_file:
             read_pdf = PyPDF2.PdfFileReader(open_pdf_file)
             num_pages = read_pdf.getNumPages()
-            print(num_pages)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], f"{file_uuid}.pdf"))
+            folder_dir = f"{app.config['UPLOAD_FOLDER']}/{folder_uuid}"
+            os.mkdir(folder_dir)
+            for i in range(num_pages):
+                output_pdf = PyPDF2.PdfFileWriter()
+                output_pdf.addPage(read_pdf.getPage(i))
+                file_uuid = uuid4()
+                f_dir = f"{folder_dir}/{file_uuid}"
+                os.mkdir(f_dir)
+                with open(f"{f_dir}/{file_uuid}.pdf", "wb") as f:
+                    output_pdf.write(f)
         file.close()
+        e.fan_out(folder_dir)
         resp = jsonify({'message': 'File successfully uploaded'})
         resp.status_code = 201
         return resp

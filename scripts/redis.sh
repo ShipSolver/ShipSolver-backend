@@ -1,1 +1,0 @@
-docker run --name redis-service -d redis

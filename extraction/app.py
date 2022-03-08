@@ -31,6 +31,7 @@ def work(folder_path):
 
     with open(f"{folder_path}/{pdf_uuid}.json", "w") as f:
         json.dump(extract_json, f, indent=2)
+    return extract_json
 
 if __name__ == '__main__':
     work("uploads/bf0c396f-dcc6-4d3f-8d7c-9180d2f0a322/cedc5b27-2a94-4e17-ac48-65c13e065102")

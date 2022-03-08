@@ -8,12 +8,10 @@ import pdfplumber
 def ocr(file_path, save_path):
     ocrmypdf.ocr(file_path, save_path)
 
-
 def read_pdf(file_name, page_num):
     file_path = os.path.join("../text", file_name.split(".")[0], f"{page_num}.txt")
     with open(file_path, "r") as f:
         return f.read()
-
 
 def read_pdfplumber(file_name, page_num):
     with pdfplumber.open("../data/NORTH_AMERICAN.pdf") as pdf:
@@ -349,3 +347,5 @@ if __name__ == "__main__":
     print(north_american_doclist)
 
     print(time.time()-start)
+
+

@@ -1,0 +1,1 @@
+docker network create --gateway 172.18.5.1 --subnet 172.18.5.0/24 my_network

@@ -1,0 +1,1 @@
+celery -A ../server/__init__ worker --loglevel=info

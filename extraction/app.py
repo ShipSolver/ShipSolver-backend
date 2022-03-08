@@ -4,7 +4,7 @@ from multilingual_pdf2text.models.document_model.document import Document
 import pdfplumber
 import extraction.extract as e
 import json
-import traceback
+
 
 def read_pdfplumber(file_name):
     with pdfplumber.open(file_name) as pdf:
@@ -12,15 +12,6 @@ def read_pdfplumber(file_name):
         page = page.extract_text()
     return page
 
-def fan_out(folder):
-    pdf_folders = os.listdir(folder)
-    for pdf_folder in pdf_folders:
-        pdf_file = f"{pdf_folder}.pdf"
-        try:
-            work(f"{folder}/{pdf_folder}")
-        except Exception as e:
-            print(f"file {pdf_folder}/{pdf_file} error. msg: {str(e)}")
-            print(traceback.format_exc())
 
 def work(folder_path):
     pdf_uuid = folder_path.split("/")[-1]
@@ -40,3 +31,6 @@ def work(folder_path):
 
     with open(f"{folder_path}/{pdf_uuid}.json", "w") as f:
         json.dump(extract_json, f, indent=2)
+
+if __name__ == '__main__':
+    work("uploads/bf0c396f-dcc6-4d3f-8d7c-9180d2f0a322/cedc5b27-2a94-4e17-ac48-65c13e065102")

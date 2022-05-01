@@ -134,7 +134,7 @@ class InventoryMilestones:
 
 class DeliveryMilestones:
     __tablename__ = "deliverymilestones"
-    milestoneId = Column(Integer, primary_key=True, autoincremenet=True)
+    milestoneId = Column(`Integer, primary_key=True, autoincremenet=True)
     timestamp = Column(Integer, nullable=False)
     ticketEventId = Column(Integer, default=int(time.time()))
     customerId = Column(Integer, ForeignKey(Customers.customerId))

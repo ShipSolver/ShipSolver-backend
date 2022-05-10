@@ -10,8 +10,7 @@ sys.path.insert(0, "../../")  # import parent folder
 
 import extraction.app as ex
 import traceback
-from servers.celery_client import client, logger
-from servers.tenant.tenant import pdf_bp
+from celery_client import client, logger
 
 FAILURE = -1
 SUCCESS = 0

@@ -2,7 +2,6 @@ sqlalchemy
 psycopg2-binary
 celery==5.2.3
 Flask==2.0.2
-PyPDF2==1.26.0
 Faker==13.7.0
 flask-restplus==0.13.0
 flask-sqlalchemy==2.4.4

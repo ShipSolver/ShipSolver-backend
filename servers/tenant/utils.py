@@ -15,6 +15,7 @@ class AlchemyEncoder(json.JSONEncoder):
 
 
 def alchemyConverter(object, res={}, visited=set({})):
+    visited.add(str(object.__class__))
     for field in [
         x
         for x in dir(object)
@@ -24,13 +25,15 @@ def alchemyConverter(object, res={}, visited=set({})):
 
         cls_name = str(object.__getattribute__(field).__class__)
 
-        visited.add(cls_name)
-
         if "models.models." in cls_name:
-            if cls_name not in visited:
-                res[field] = {}
-                print(visited)
-                alchemyConverter(getattr(object, field), res[field], visited=visited)
+            if cls_name in visited:
+                continue
+            else:
+                visited.add(cls_name)
+
+            res[field] = {}
+            alchemyConverter(getattr(object, field), res[field], visited=visited)
+            visited.remove(cls_name)
         elif "InstrumentedList" in cls_name:
             res[field] = []
 

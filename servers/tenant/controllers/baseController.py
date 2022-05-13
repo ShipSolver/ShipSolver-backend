@@ -19,6 +19,9 @@ class BaseController:
         self.session = session
         self.primary_key = inspect(self.model).primary_key[0].name
 
+    # create objects in bulk
+    # args_arr is an array of args_dicts
+    # args_dict is the input to models
     def _create_bulk(self, args_arr):  # this does not create objs (need to commit)
 
         assert isinstance(args_arr, list)
@@ -36,6 +39,8 @@ class BaseController:
 
         return prim_ids
 
+    # create objects in bulk
+    # args_dict is the input to models
     def _create(self, args_dict):  # this does not create objs (need to commit)
 
         assert isinstance(args_dict, dict)
@@ -45,6 +50,9 @@ class BaseController:
         self.session.commit()
         return obj
 
+    # update an object
+    # primary_key_val is the value of the primary key
+    # update_dict is a subset of the models args_dict
     def _modify(self, primary_key_val, update_dict):
 
         obj = (
@@ -56,6 +64,8 @@ class BaseController:
 
         session.commit()
 
+    # delete an object
+    # primary_key_val is the value of the primary key
     def _delete(self, primary_key_val):
 
         objs = (
@@ -76,7 +86,23 @@ class BaseTimeSeriesController(BaseController):
 
         self.model = model  # redudant
 
-    def _get_latest_objects(self, number_of_res):
+    # create an inital object
+    # args_dict is the input to models
+    def _create_base_event(self, args_dict):
+
+        id = random.randint(1, 2147483640)
+
+        args_dict[self.primary_key] = id
+        args_dict[self.model.non_prim_identifying_column_name] = id
+
+        obj = self.model(**args_dict)
+        self.session.add(obj)
+        self.session.commit()
+
+        return obj
+
+    # get up to 'number_of_res' last event objects
+    def _get_latest_event_objects(self, number_of_res):
 
         latest_objs = (
             self.session.query(self.model)
@@ -86,7 +112,7 @@ class BaseTimeSeriesController(BaseController):
 
         return latest_objs
 
-    def _get_latest_objects_in_range(self, start_datetime):
+    def _get_latest_event_objects_from_start_date(self, start_datetime):
 
         starttime = int(time.mktime(start_datetime).timetuple())
 
@@ -99,7 +125,7 @@ class BaseTimeSeriesController(BaseController):
 
         return latest_objs
 
-    def _get_events_history_date_range(self, datetime1, datetime2):
+    def _get_latest_event_objects_in_range(self, datetime1, datetime2):
 
         assert datetime1 <= datetime2
 
@@ -114,7 +140,9 @@ class BaseTimeSeriesController(BaseController):
 
         return results
 
-    def _get_latest_in_range(self, datetime1, datetime2, max_number_of_results=None):
+    def _get_latest_event_objects_in_range_with_limit(
+        self, datetime1, datetime2, max_number_of_results=None
+    ):
 
         assert datetime1 <= datetime2
 
@@ -177,19 +205,6 @@ class BaseTimeSeriesController(BaseController):
 
         obj = self.model(**row)
 
-        self.session.add(obj)
-        self.session.commit()
-
-        return obj
-
-    def _create_base_event(self, args_dict):
-
-        id = random.randint(1, 2147483640)
-
-        args_dict[self.primary_key] = id
-        args_dict[self.model.non_prim_identifying_column_name] = id
-
-        obj = self.model(**args_dict)
         self.session.add(obj)
         self.session.commit()
 

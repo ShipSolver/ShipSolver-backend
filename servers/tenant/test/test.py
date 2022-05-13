@@ -52,6 +52,8 @@ with app.app_context():
                     }
                 )
 
+                print(f"Generating {scale - n } Users")
+
         return user_controller._create_bulk(args_arr)
 
     def generate_customers(scale=100):
@@ -68,6 +70,8 @@ with app.app_context():
                 company_name = faker.company()
 
                 args_arr.append({"name": company_name})
+
+                print(f"Generating {scale - n } Customers")
 
         return customer_controller._create_bulk(args_arr)
 
@@ -135,6 +139,7 @@ with app.app_context():
                         },
                     )
 
+                    print("Created Shipper")
                     # created_ids.append(created_obj.shipperEventId)
 
     def generate_consignee_events(scale=20, users=[]):
@@ -149,7 +154,7 @@ with app.app_context():
         )
 
         if n < scale:
-            print(f"Generating {scale - n } Shippers")
+            print(f"Generating {scale - n } Consignee")
 
             for _ in range(scale - n):
                 consigneeId = random.randint(1, 2147483645)
@@ -302,38 +307,41 @@ with app.app_context():
             print(f"Generating {scale - n } Pieces")
 
             for _ in range(scale - n):
-                piecesId = random.randint(1, 2147483645)
+
                 ticketEventId = random.choice(ticketEvents).ticketEventId
-                customerId = random.choice(customers).customerId
-                userId = random.choice(users).userId
-                pieceDescription = ""
 
-                obj = pieces_events_controller._create_base_event(
-                    {
-                        "piecesId": piecesId,
-                        "ticketEventId": ticketEventId,
-                        "customerId": customerId,
-                        "userId": userId,
-                        "pieceDescription": pieceDescription,
-                    }
-                )
-
-                for i in range(random.randrange(1, 5)):
-
-                    ticketEventId = random.choice(ticketEvents).ticketEventId
+                for _ in range(1, 5):
+                    piecesId = random.randint(1, 2147483645)
                     customerId = random.choice(customers).customerId
                     userId = random.choice(users).userId
+                    pieceDescription = ""
 
-                    created_obj = pieces_events_controller._modify_object(
-                        getattr(obj, PiecesEvents.non_prim_identifying_column_name),
+                    obj = pieces_events_controller._create_base_event(
                         {
                             "piecesId": piecesId,
                             "ticketEventId": ticketEventId,
                             "customerId": customerId,
                             "userId": userId,
                             "pieceDescription": pieceDescription,
-                        },
+                        }
                     )
+
+                    for i in range(random.randrange(1, 3)):
+
+                        ticketEventId = random.choice(ticketEvents).ticketEventId
+                        customerId = random.choice(customers).customerId
+                        userId = random.choice(users).userId
+
+                        created_obj = pieces_events_controller._modify_object(
+                            getattr(obj, PiecesEvents.non_prim_identifying_column_name),
+                            {
+                                "piecesId": piecesId,
+                                "ticketEventId": ticketEventId,
+                                "customerId": customerId,
+                                "userId": userId,
+                                "pieceDescription": pieceDescription,
+                            },
+                        )
 
                 print("Created Piece")
 
@@ -493,3 +501,8 @@ with app.app_context():
     generate_inventory_milestones_events(scale=20, ticket_map=ticket_map, users=users)
 
     generate_delivery_milestones_events(scale=20, ticket_map=ticket_map, users=users)
+
+    ticketEvents = session.query(TicketEvents).filter(TicketEvents.ticketEventId).all()
+
+    res = alchemyConverter(random.choice(ticketEvents))
+    pprint(res)

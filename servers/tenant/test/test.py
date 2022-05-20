@@ -15,7 +15,17 @@ sys.path.insert(0, "..")  # import parent folder
 
 from models.__init__ import session
 from models.models import *
-from controllers.baseController import BaseController, BaseTimeSeriesController
+from controllers.controllerMapper import (
+    UserController,
+    CustomerController,
+    ShipperController,
+    ConsigneeController,
+    TicketController,
+    PieceController,
+    GenericMilestoneController,
+    InventoryMilestoneController,
+    DeliveryMilestoneController,
+)
 from utils import alchemyConverter
 from utils import AlchemyEncoder
 
@@ -26,7 +36,7 @@ with app.app_context():
 
     def generate_users(scale=100):
 
-        user_controller = BaseController(Users)
+        user_controller = UserController()
 
         n = len(session.query(Users).all())
 
@@ -58,7 +68,7 @@ with app.app_context():
 
     def generate_customers(scale=100):
 
-        customer_controller = BaseController(Customers)
+        customer_controller = CustomerController()
 
         n = len(session.query(Customers).all())
 
@@ -77,7 +87,7 @@ with app.app_context():
 
     def generate_shipper_events(scale=50, users=[]):
 
-        shipper_events_controller = BaseTimeSeriesController(ShipperEvents)
+        shipper_events_controller = ShipperController()
 
         n = len(
             session.query(ShipperEvents)
@@ -128,7 +138,7 @@ with app.app_context():
                     # postalCode = faker.zipcode()
                     # phoneNumber = faker.phone_number()
 
-                    created_obj = shipper_events_controller._modify_object(
+                    created_obj = shipper_events_controller._modify_latest_object(
                         getattr(obj, ShipperEvents.non_prim_identifying_column_name),
                         {
                             "userId": userId,
@@ -144,7 +154,7 @@ with app.app_context():
 
     def generate_consignee_events(scale=20, users=[]):
 
-        shipper_events_controller = BaseTimeSeriesController(ConsigneeEvents)
+        shipper_events_controller = ConsigneeController()
 
         n = len(
             session.query(ConsigneeEvents)
@@ -195,7 +205,7 @@ with app.app_context():
                     postalCode = faker.zipcode()
                     phoneNumber = faker.phone_number()
 
-                    created_obj = shipper_events_controller._modify_object(
+                    created_obj = shipper_events_controller._modify_latest_object(
                         getattr(obj, ConsigneeEvents.non_prim_identifying_column_name),
                         {
                             "userId": userId,
@@ -214,7 +224,7 @@ with app.app_context():
         scale=20, shipperEvents=[], consigneeEvents=[], users=[], customers=[]
     ):
 
-        ticket_events_controller = BaseTimeSeriesController(TicketEvents)
+        ticket_events_controller = TicketController()
 
         n = len(
             session.query(TicketEvents)
@@ -271,7 +281,7 @@ with app.app_context():
                     claimedNumberOfPieces = random.randrange(1, 5)
                     BOLNumber = random.randrange(100000000, 900000000)
 
-                    created_obj = ticket_events_controller._modify_object(
+                    created_obj = ticket_events_controller._modify_latest_object(
                         getattr(obj, TicketEvents.non_prim_identifying_column_name),
                         {
                             "ticketId": obj.ticketId,
@@ -294,11 +304,11 @@ with app.app_context():
 
     def generate_pieces_events(scale=20, ticketEvents=[], customers=[], users=[]):
 
-        pieces_events_controller = BaseTimeSeriesController(PiecesEvents)
+        pieces_events_controller = PieceController()
 
         n = len(
-            session.query(PiecesEvents)
-            .filter(PiecesEvents.piecesEventId == PiecesEvents.piecesId)
+            session.query(PieceEvents)
+            .filter(PieceEvents.piecesEventId == PieceEvents.piecesId)
             .distinct()
             .all()
         )
@@ -332,8 +342,8 @@ with app.app_context():
                         customerId = random.choice(customers).customerId
                         userId = random.choice(users).userId
 
-                        created_obj = pieces_events_controller._modify_object(
-                            getattr(obj, PiecesEvents.non_prim_identifying_column_name),
+                        created_obj = pieces_events_controller._modify_latest_object(
+                            getattr(obj, PieceEvents.non_prim_identifying_column_name),
                             {
                                 "piecesId": piecesId,
                                 "ticketEventId": ticketEventId,
@@ -347,7 +357,7 @@ with app.app_context():
 
     def generate_generic_milestones_events(scale=200, ticket_map=[], users=[]):
 
-        gen_milestone_controller = BaseController(GenericMilestones)
+        gen_milestone_controller = GenericMilestoneController()
 
         n = len(session.query(GenericMilestones).distinct().all())
         if n < scale:
@@ -381,7 +391,7 @@ with app.app_context():
 
     def generate_inventory_milestones_events(scale=200, ticket_map=[], users=[]):
 
-        gen_milestone_controller = BaseController(InventoryMilestones)
+        gen_milestone_controller = InventoryMilestoneController()
 
         n = len(session.query(InventoryMilestones).distinct().all())
 
@@ -421,7 +431,7 @@ with app.app_context():
 
     def generate_delivery_milestones_events(scale=200, ticket_map=[], users=[]):
 
-        gen_milestone_controller = BaseController(DeliveryMilestones)
+        gen_milestone_controller = DeliveryMilestoneController()
 
         n = len(session.query(DeliveryMilestones).distinct().all())
 

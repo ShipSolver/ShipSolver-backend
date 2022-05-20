@@ -11,6 +11,7 @@ sys.path.insert(0, "..")  # import parent folder
 
 from models.models import Users
 from models.__init__ import session
+from utils import convert_dict_to_alchemy_filters
 
 
 class BaseController:
@@ -18,6 +19,11 @@ class BaseController:
         self.model = model
         self.session = session
         self.primary_key = inspect(self.model).primary_key[0].name
+
+    def __new__(cls, *args, **kwargs):
+        if cls is BaseController:
+            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+        return object.__new__(cls, *args, **kwargs)
 
     # create objects in bulk
     # args_arr is an array of args_dicts
@@ -66,11 +72,11 @@ class BaseController:
 
     # delete an object
     # primary_key_val is the value of the primary key
-    def _delete(self, primary_key_val):
+    def _delete(self, filters=[]):
 
         objs = (
             session.query(self.model)
-            .filter(getattr(self.model, self.primary_key) == primary_key_val)
+            .filter(*convert_dict_to_alchemy_filters(filters))
             .all()
         )
 
@@ -79,6 +85,17 @@ class BaseController:
 
         self.session.commit()
 
+    def _get(self, filters=[]):
+
+        objects = (
+            self.session.query(self.model)
+            .filter(*convert_dict_to_alchemy_filters(filters))
+            .group_by(self.model.non_prim_identifying_column_name)
+            .order_by(self.model.timestamp)
+        )
+
+        return objects
+
 
 class BaseTimeSeriesController(BaseController):
     def __init__(self, model):
@@ -86,8 +103,15 @@ class BaseTimeSeriesController(BaseController):
 
         self.model = model  # redudant
 
-    # create an inital object
-    # args_dict is the input to models
+    def __new__(cls, *args, **kwargs):
+        if cls is BaseTimeSeriesController:
+            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+        return object.__new__(cls, *args, **kwargs)
+
+    """
+    Definition: create an inital object. "args_dict" is the input to models
+    """
+
     def _create_base_event(self, args_dict):
 
         id = random.randint(1, 2147483640)
@@ -101,47 +125,54 @@ class BaseTimeSeriesController(BaseController):
 
         return obj
 
-    # get up to 'number_of_res' last event objects
-    def _get_latest_event_objects(self, number_of_res):
+    def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
 
+        # get up to 'number_of_res' last event objects
         latest_objs = (
             self.session.query(self.model)
+            .filters(*convert_dict_to_alchemy_filters(filters))
             .group_by(self.model.non_prim_identifying_column_name)
             .order_by(self.model.timestamp)
-        ).limit(number_of_res)
+            .paginate(page, number_of_res)
+        )
 
         return latest_objs
 
-    def _get_latest_event_objects_from_start_date(self, start_datetime):
+    def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
 
         starttime = int(time.mktime(start_datetime).timetuple())
 
+        filters.append(self.model.timestamp >= starttime)
+
         latest_objs = (
             self.session.query(self.model)
-            .filter(self.model.timestamp >= starttime)
+            .filter(*convert_dict_to_alchemy_filters(filters))
             .group_by(self.model.non_prim_identifying_column_name)
             .order_by(self.model.timestamp)
         )
 
         return latest_objs
 
-    def _get_latest_event_objects_in_range(self, datetime1, datetime2):
+    def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}):
 
         assert datetime1 <= datetime2
 
         time1 = int(time.mktime(datetime1.timetuple()))
         time2 = int(time.mktime(datetime2.timetuple()))
 
+        filters.append(self.model.timestamp >= time1)
+        filters.append(self.model.timestamp <= time2)
+
         results = (
             self.session.query(self.model)
-            .filter(self.model.timestamp >= time1, self.model.timestamp <= time2)
+            .filter(*convert_dict_to_alchemy_filters(filters))
             .all()
         )
 
         return results
 
     def _get_latest_event_objects_in_range_with_limit(
-        self, datetime1, datetime2, max_number_of_results=None
+        self, datetime1, datetime2, filters={}, max_number_of_results=None
     ):
 
         assert datetime1 <= datetime2
@@ -149,10 +180,13 @@ class BaseTimeSeriesController(BaseController):
         time1 = int(time.mktime(datetime1.timetuple()))
         time2 = int(time.mktime(datetime2.timetuple()))
 
+        filters.append(self.model.timestamp >= time1)
+        filters.append(self.model.timestamp <= time2)
+
         if max_number_of_results is None:
             latest_objs = (
                 self.session.query(self.model)
-                .filter(self.model.timestamp >= time1, self.model.timestamp <= time2)
+                .filter(*convert_dict_to_alchemy_filters(filters))
                 .group_by(self.model.non_prim_identifying_column_name)
                 .order_by(self.model.timestamp)
             ).all()
@@ -160,17 +194,16 @@ class BaseTimeSeriesController(BaseController):
         elif isinstance(max_number_of_results, int):
             latest_objs = (
                 self.session.query(self.model)
-                .filter(self.model.timestamp >= time1, self.model.timestamp <= time2)
+                .filter(*filters)
                 .group_by(self.model.non_prim_identifying_column_name)
                 .order_by(self.model.timestamp)
             ).limit(max_number_of_results)
 
         return latest_objs
 
-    def _modify_object(self, non_prim_identifying_column_name, update_dict):
-        # this functions finds the latest object modified dto instance
-        # with a matching non_prim_identifying_column and updates it
-
+    def _find_latest_prim_key_from_non_prim_identifying_column_val(
+        self, non_prim_identifying_col_val
+    ):
         row = (
             self.session.query(
                 getattr(self.model, self.model.non_prim_identifying_column_name),
@@ -179,7 +212,7 @@ class BaseTimeSeriesController(BaseController):
             )
             .filter(
                 getattr(self.model, self.model.non_prim_identifying_column_name)
-                == non_prim_identifying_column_name
+                == non_prim_identifying_col_val
             )
             .group_by(
                 getattr(self.model, self.model.non_prim_identifying_column_name),
@@ -190,11 +223,28 @@ class BaseTimeSeriesController(BaseController):
             .first(),
         )
 
-        latest_prim_key = row[0][2]
+        assert (
+            len(row) > 0
+        ), f"Non-prim identifying ID '{non_prim_identifying_col_val}' for table '{self.model.__tablename__}' is not connected to any events "
+        latest_event_id = row[0][2]
+
+        return latest_event_id
+
+    def _modify_latest_object(self, non_prim_identifying_col_val, update_dict):
+        """
+        Definition: Finds the latest object modified dto instance with a matching
+                    non_prim_identifying_column and updates it
+        """
+
+        latest_event_id = (
+            self._find_latest_prim_key_from_non_prim_identifying_column_val(
+                non_prim_identifying_col_val
+            )
+        )
 
         latest_obj = (
             self.session.query(self.model)
-            .filter(getattr(self.model, self.primary_key) == latest_prim_key)
+            .filter(getattr(self.model, self.primary_key) == latest_event_id)
             .first()
         )
 
@@ -209,3 +259,61 @@ class BaseTimeSeriesController(BaseController):
         self.session.commit()
 
         return obj
+
+    def _modify_object(self, event_id, update_dict):
+        """
+        Definition: Creates a new event based on the object tied to event_id
+        """
+
+        object_to_modify = (
+            self.session.query(self.model)
+            .filter(getattr(self.model, self.primary_key) == event_id)
+            .first()
+        )
+
+        row = dict(object_to_modify.__dict__)
+        row.pop("_sa_instance_state", None)
+        row.pop(self.primary_key, None)
+        row.update(update_dict)
+
+        created_obj = self.model(**row)
+
+        self.session.add(created_obj)
+        self.session.commit()
+
+        return created_obj
+
+
+class BaseNestedDependencyContoller(BaseTimeSeriesController):
+    def __init__(self, model):
+        super().__init__(model=model)
+
+        self.model = model  # redudant
+
+    def __new__(cls, *args, **kwargs):
+        if cls is BaseNestedDependencyContoller:
+            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+        return object.__new__(cls, *args, **kwargs)
+
+    def _propagating_modify(
+        self, event_id, nested_cls, nested_cls_event_id, update_dict
+    ):
+        """
+        Definition: creates a new shippper event with the same shipperId
+                    but creates a new ticketEvent with the updated shipperEventId for
+                    the specfic ticket which is given in context
+        """
+
+        new_event = self._modify_latest_object(event_id, update_dict)
+
+        nested_controlller = BaseTimeSeriesController(nested_cls)
+
+        nested_controller_update_dict = {
+            self.primary_key: getattr(new_event, self.primary_key)
+        }
+
+        nested_controlller._modify_object(
+            nested_cls_event_id, nested_controller_update_dict
+        )
+
+        return new_event

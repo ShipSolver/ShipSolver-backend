@@ -137,9 +137,9 @@ class TicketEvents(Base):
     user = relationship("Users")
     customer = relationship("Customers")
     pieces = relationship(
-        "PiecesEvents",
+        "PieceEvents",
         # lazy="dynamic",
-        primaryjoin="TicketEvents.ticketEventId == PiecesEvents.ticketEventId",
+        primaryjoin="TicketEvents.ticketEventId == PieceEvents.ticketEventId",
     )
 
 
@@ -150,24 +150,44 @@ ticketId_timestamp_idx = Index(
 INDEXES.append(ticketId_timestamp_idx)
 
 
-class PiecesEvents(Base):
-    __tablename__ = "piecesevents"
+ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
+
+INDEXES.append(ticket_userId_idx)
+
+
+ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
+
+INDEXES.append(ticket_customerId_idx)
+
+
+ticket_shippperId_idx = Index("ticket_shippperId_idx", TicketEvents.shipperEventId)
+
+INDEXES.append(ticket_shippperId_idx)
+
+
+ticket_consigneeId_idx = Index("ticket_consigneeId_idx", TicketEvents.consigneeEventId)
+
+INDEXES.append(ticket_consigneeId_idx)
+
+
+class PieceEvents(Base):
+    __tablename__ = "PieceEvents"
     non_prim_identifying_column_name = "piecesId"
     piecesEventId = Column(Integer, primary_key=True, autoincrement=True)
     piecesId = Column(Integer, nullable=False)
     timestamp = Column(Integer, default=int(time.time()))
     ticketEventId = Column(Integer, ForeignKey(TicketEvents.ticketEventId))
-    customerId = Column(Integer, ForeignKey(Customers.customerId))
+    # customerId = Column(Integer, ForeignKey(Customers.customerId))
     userId = Column(Integer, ForeignKey(Users.userId))
     pieceDescription = Column(String)
 
-    user = relationship("Users")
-    customer = relationship("Customers")
+    user = relationship("Users")  # represents user which created / modified object
+    # customer = relationship("Customers")
     ticketEvents = relationship("TicketEvents", viewonly=True)
 
 
 piecesId_timestamp_idx = Index(
-    "piecesId_timestamp_idx", PiecesEvents.piecesId, PiecesEvents.timestamp
+    "piecesId_timestamp_idx", PieceEvents.piecesId, PieceEvents.timestamp
 )
 
 INDEXES.append(piecesId_timestamp_idx)

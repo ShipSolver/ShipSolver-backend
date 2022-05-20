@@ -14,6 +14,7 @@ class AlchemyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+# DFS function used to convert alchemy objects to JSON
 def alchemyConverter(object, res={}, visited=set({})):
     visited.add(str(object.__class__))
     for field in [
@@ -48,9 +49,24 @@ def alchemyConverter(object, res={}, visited=set({})):
     return res
 
 
-def require_appkey(view_function):
+# converts fiters as a dictionary to alchemy interpretable results
+#  Function expects input
+#
+#  data = {
+#    model.field1: "value1"
+#    model.field1: "value2"
+# }
+def convert_dict_to_alchemy_filters(model, filters_dict):
+    res = []
 
-    # API authentication route decorator
+    for key in filters_dict:
+        res.append(getattr(model, key) == filters_dict[key])
+
+    return res
+
+
+# API authentication route decorator
+def require_appkey(view_function):
     @wraps(view_function)
     def decorated_function(*args, **kwargs):
         if request.args.get("key") and request.args.get("key") == os.environ["API_KEY"]:

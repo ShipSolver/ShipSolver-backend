@@ -80,13 +80,6 @@ class ShipperEvents(Base):
         return f"<ShipperEvents:: shipperEventId: {self.shipperEventId}>"
 
 
-shipperId_timestamp_idx = Index(
-    "shipperId_timestamp_idx", ShipperEvents.shipperId, ShipperEvents.timestamp
-)
-
-INDEXES.append(shipperId_timestamp_idx)
-
-
 class ConsigneeEvents(Base):
     __tablename__ = "consigneeevents"
     non_prim_identifying_column_name = "consigneeId"
@@ -100,13 +93,6 @@ class ConsigneeEvents(Base):
     phoneNumber = Column(String, nullable=False)
 
     user = relationship("Users")
-
-
-consigneeId_timestamp_idx = Index(
-    "consigneeId_timestamp_idx", ConsigneeEvents.consigneeId, ConsigneeEvents.timestamp
-)
-
-INDEXES.append(consigneeId_timestamp_idx)
 
 
 class TicketEvents(Base):
@@ -143,35 +129,8 @@ class TicketEvents(Base):
     )
 
 
-ticketId_timestamp_idx = Index(
-    "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
-)
-
-INDEXES.append(ticketId_timestamp_idx)
-
-
-ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
-
-INDEXES.append(ticket_userId_idx)
-
-
-ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
-
-INDEXES.append(ticket_customerId_idx)
-
-
-ticket_shippperId_idx = Index("ticket_shippperId_idx", TicketEvents.shipperEventId)
-
-INDEXES.append(ticket_shippperId_idx)
-
-
-ticket_consigneeId_idx = Index("ticket_consigneeId_idx", TicketEvents.consigneeEventId)
-
-INDEXES.append(ticket_consigneeId_idx)
-
-
 class PieceEvents(Base):
-    __tablename__ = "PieceEvents"
+    __tablename__ = "piecesevents"
     non_prim_identifying_column_name = "piecesId"
     piecesEventId = Column(Integer, primary_key=True, autoincrement=True)
     piecesId = Column(Integer, nullable=False)
@@ -184,13 +143,6 @@ class PieceEvents(Base):
     user = relationship("Users")  # represents user which created / modified object
     # customer = relationship("Customers")
     ticketEvents = relationship("TicketEvents", viewonly=True)
-
-
-piecesId_timestamp_idx = Index(
-    "piecesId_timestamp_idx", PieceEvents.piecesId, PieceEvents.timestamp
-)
-
-INDEXES.append(piecesId_timestamp_idx)
 
 
 class GenericMilestones(Base):
@@ -207,11 +159,6 @@ class GenericMilestones(Base):
     user = relationship("Users")
 
 
-gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
-
-INDEXES.append(gen_milestoneId_idx)
-
-
 class InventoryMilestones(Base):
     __tablename__ = "inventorymilestones"
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)
@@ -225,11 +172,6 @@ class InventoryMilestones(Base):
     modifiedAt = Column(Integer, nullable=False, default=int(time.time()))
 
     user = relationship("Users")
-
-
-inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
-
-INDEXES.append(inv_milestoneId_idx)
 
 
 class DeliveryMilestones(Base):
@@ -250,16 +192,68 @@ class DeliveryMilestones(Base):
     user = relationship("Users")
 
 
-del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
+if __name__ == "__main__":
+    shipperId_timestamp_idx = Index(
+        "shipperId_timestamp_idx", ShipperEvents.shipperId, ShipperEvents.timestamp
+    )
 
-INDEXES.append(del_milestoneId_idx)
+    INDEXES.append(shipperId_timestamp_idx)
+
+    consigneeId_timestamp_idx = Index(
+        "consigneeId_timestamp_idx", ConsigneeEvents.consigneeId, ConsigneeEvents.timestamp
+    )
+
+    INDEXES.append(consigneeId_timestamp_idx)
+
+    ticketId_timestamp_idx = Index(
+        "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
+    )
+
+    INDEXES.append(ticketId_timestamp_idx)
 
 
-print("Configuring DB ...")
-Base.metadata.create_all(engine)
-try:
-    # create indexes
-    for index in INDEXES:
-        index.create(bind=engine)
-except:
-    pass
+    ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
+
+    INDEXES.append(ticket_userId_idx)
+
+
+    ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
+
+    INDEXES.append(ticket_customerId_idx)
+
+
+    ticket_shippperId_idx = Index("ticket_shippperId_idx", TicketEvents.shipperEventId)
+
+    INDEXES.append(ticket_shippperId_idx)
+
+
+    ticket_consigneeId_idx = Index("ticket_consigneeId_idx", TicketEvents.consigneeEventId)
+
+    INDEXES.append(ticket_consigneeId_idx)
+
+    piecesId_timestamp_idx = Index(
+        "piecesId_timestamp_idx", PieceEvents.piecesId, PieceEvents.timestamp
+    )
+
+    INDEXES.append(piecesId_timestamp_idx)
+
+    gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
+
+    INDEXES.append(gen_milestoneId_idx)
+
+    inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
+
+    INDEXES.append(inv_milestoneId_idx)
+
+    del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
+
+    INDEXES.append(del_milestoneId_idx)
+
+    print("Configuring DB ...")
+    Base.metadata.create_all(engine)
+    try:
+        # create indexes
+        for index in INDEXES:
+            index.create(bind=engine)
+    except:
+        pass

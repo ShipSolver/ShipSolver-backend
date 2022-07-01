@@ -512,7 +512,7 @@ with app.app_context():
 
     generate_delivery_milestones_events(scale=20, ticket_map=ticket_map, users=users)
 
-    ticketEvents = session.query(TicketEvents).filter(TicketEvents.ticketEventId).all()
+    ticketEvents = session.query(TicketEvents.ticketEventId).filter().all()
 
     res = alchemyConverter(random.choice(ticketEvents))
     pprint(res)

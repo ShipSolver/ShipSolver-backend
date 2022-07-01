@@ -1,8 +1,8 @@
 import os
-from multilingual_pdf2text.pdf2text import PDF2Text
-from multilingual_pdf2text.models.document_model.document import Document
-import pdfplumber
-import extraction.extract as e
+# from multilingual_pdf2text.pdf2text import PDF2Text
+# from multilingual_pdf2text.models.document_model.document import Document
+# import pdfplumber
+# import extraction.extract as e
 import json
 
 

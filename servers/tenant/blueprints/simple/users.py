@@ -19,10 +19,19 @@ user_bp = Blueprint("user_bp", __name__, url_prefix="user")
 user_controller = UserController()
 
 
-@user_bp.route("/", methods=["POST"])
+@user_bp.route("/", methods=["GET"])
 @require_appkey
+def user_get():  # create ticket
+    user_controller._get(**request.form["user"])
+    return "success"
+
+
+@user_bp.route("/", methods=["POST"])
+# @require_appkey
 def user_post():  # create ticket
-    user_controller._create(**request.form["user"])
+
+    (request.get_json(force=True)['user'])
+    user_controller._create((request.get_json(force=True)['user']))
     return "success"
 
 

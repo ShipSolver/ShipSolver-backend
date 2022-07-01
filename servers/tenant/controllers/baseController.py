@@ -20,10 +20,10 @@ class BaseController:
         self.session = session
         self.primary_key = inspect(self.model).primary_key[0].name
 
-    def __new__(cls, *args, **kwargs):
-        if cls is BaseController:
-            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
-        return object.__new__(cls, *args, **kwargs)
+    # def __new__(cls, *args, **kwargs):
+    #     if cls is BaseController:
+    #         raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+    #     return object.__new__(cls, *args, **kwargs)
 
     # create objects in bulk
     # args_arr is an array of args_dicts
@@ -103,10 +103,10 @@ class BaseTimeSeriesController(BaseController):
 
         self.model = model  # redudant
 
-    def __new__(cls, *args, **kwargs):
-        if cls is BaseTimeSeriesController:
-            raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
-        return object.__new__(cls, *args, **kwargs)
+    # def __new__(cls, *args, **kwargs):
+    #     if cls is BaseTimeSeriesController:
+    #         raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+    #     return object.__new__(cls, *args, **kwargs)
 
     """
     Definition: create an inital object. "args_dict" is the input to models

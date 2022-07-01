@@ -1,7 +1,5 @@
 import os
 from flask import request, jsonify, Blueprint
-from celery import group
-import PyPDF2
 import io
 from uuid import uuid4
 import traceback

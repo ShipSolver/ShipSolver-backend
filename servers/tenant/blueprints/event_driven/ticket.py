@@ -20,8 +20,8 @@ ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 # TODO: USER BASED AUTH
 
 
-ticket_controller = TicketController(TicketEvents)
-pieces_controller = PieceController(PieceEvents)
+ticket_controller = TicketController()
+pieces_controller = PieceController()
 
 
 """

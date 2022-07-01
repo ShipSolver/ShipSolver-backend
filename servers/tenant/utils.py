@@ -69,7 +69,13 @@ def convert_dict_to_alchemy_filters(model, filters_dict):
 def require_appkey(view_function):
     @wraps(view_function)
     def decorated_function(*args, **kwargs):
-        if request.args.get("key") and request.args.get("key") == os.environ["API_KEY"]:
+
+        if "API_KEY" not in os.environ:
+            raise Exception("NO API KEY FOUND")
+
+        print(request.args)
+        print(request.args.get("key"), os.environ["API_KEY"])
+        if request.args.get("key") == os.environ["API_KEY"]:
             return view_function(*args, **kwargs)
         else:
             abort(401)

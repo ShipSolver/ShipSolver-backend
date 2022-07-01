@@ -1,3 +1,4 @@
+from statistics import mode
 from controllers.baseController import (
     BaseController,
     BaseTimeSeriesController,

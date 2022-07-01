@@ -472,8 +472,13 @@ with app.app_context():
     generate_users(scale=10)
     users = session.query(Users).all()
 
+    # print(random.choice(users))
+
     generate_customers(scale=5)
     customers = session.query(Customers).all()
+
+    # pprint(alchemyConverter(users[0]))
+
 
     generate_shipper_events(scale=10, users=users)
     shipperEvents = session.query(ShipperEvents).limit(200).all()
@@ -490,9 +495,22 @@ with app.app_context():
     )
     ticketEvents = session.query(TicketEvents).distinct().all()
 
+
+    # pprint(alchemyConverter(ticketEvents[0]))
+
+    # exit()
+
     generate_pieces_events(
         scale=20, ticketEvents=ticketEvents, customers=customers, users=users
     )
+    pieceEvents = session.query(PieceEvents).distinct().all()
+
+
+    pprint(alchemyConverter(pieceEvents[0]))
+
+    exit()
+
+
 
     ticketIds = (
         session.query(TicketEvents.ticketId, TicketEvents.ticketEventId)
@@ -500,19 +518,18 @@ with app.app_context():
         .all()
     )
 
-    ticket_map = {}
-    for tid, teid in ticketIds:
-        if tid not in ticket_map:
-            ticket_map[tid] = []
-        ticket_map[tid].append(teid)
+    # ticket_map = {}
+    # for tid, teid in ticketIds:
+    #     if tid not in ticket_map:
+    #         ticket_map[tid] = []
+    #     ticket_map[tid].append(teid)
 
-    generate_generic_milestones_events(scale=20, ticket_map=ticket_map, users=users)
+    # generate_generic_milestones_events(scale=20, ticket_map=ticket_map, users=users)
 
-    generate_inventory_milestones_events(scale=20, ticket_map=ticket_map, users=users)
+    # generate_inventory_milestones_events(scale=20, ticket_map=ticket_map, users=users)
 
-    generate_delivery_milestones_events(scale=20, ticket_map=ticket_map, users=users)
+    # generate_delivery_milestones_events(scale=20, ticket_map=ticket_map, users=users)
 
-    ticketEvents = session.query(TicketEvents.ticketEventId).filter().all()
+    # ticketEvents = session.query(TicketEvents.ticketEventId).filter().all()
 
-    res = alchemyConverter(random.choice(ticketEvents))
-    pprint(res)
+    # res = alchemyConverter(random.choice(ticketEvents))

@@ -173,24 +173,35 @@ class TicketEvents(Base):
     specialServices = Column(String)
     specialInstructions = Column(String)
 <<<<<<< HEAD
+<<<<<<< HEAD
     # shipper
 =======
 >>>>>>> modifying db schema
+=======
+    # shipper 
+>>>>>>> push
     shipperCompany = Column(String, nullable=False)
     shipperName = Column(String, nullable=False)
     shipperAddress = Column(String, nullable=False)
     shipperPostalCode = Column(String, nullable=False)
     shipperPhoneNumber = Column(String, nullable=False)
 <<<<<<< HEAD
+<<<<<<< HEAD
     # consignee
 =======
 >>>>>>> modifying db schema
+=======
+    # consignee
+>>>>>>> push
     consigneeCompany = Column(String, nullable=False)
     consigneeName = Column(String, nullable=False)
     consigneeAddress = Column(String, nullable=False)
     consigneePostalCode = Column(String, nullable=False)
     consigneePhoneNumber = Column(String, nullable=False)
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> push
     # pieces
     pieces = Column(String, nullable=False)
     isPickup = Column(Boolean, nullable=False)
@@ -263,6 +274,7 @@ class InventoryMilestones(Base):
     newStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
+<<<<<<< HEAD
     approvedByUser = relationship("Users")
 =======
 if __name__ == "__main__":
@@ -318,8 +330,15 @@ class IncompleteDeliveryMilestones(Base):
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     assigneeUser = relationship("Users")
+=======
+ticketId_timestamp_idx = Index(
+    "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
+)
+>>>>>>> push
 
+INDEXES.append(ticketId_timestamp_idx)
 
+<<<<<<< HEAD
 class DeliveryMilestones(Base):
     __tablename__ = "deliverymilestones"
 
@@ -369,3 +388,34 @@ except:
     pass
 
 
+=======
+
+ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
+
+INDEXES.append(ticket_userId_idx)
+
+ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
+
+INDEXES.append(ticket_customerId_idx)
+
+gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
+
+INDEXES.append(gen_milestoneId_idx)
+
+inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
+
+INDEXES.append(inv_milestoneId_idx)
+
+del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
+
+INDEXES.append(del_milestoneId_idx)
+
+print("Configuring DB ...")
+Base.metadata.create_all(engine)
+try:
+    # create indexes
+    for index in INDEXES:
+        index.create(bind=engine)
+except:
+    pass
+>>>>>>> push

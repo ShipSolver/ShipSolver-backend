@@ -346,4 +346,5 @@ try:
 except:
     pass
 
+ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
 

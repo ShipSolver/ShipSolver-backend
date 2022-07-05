@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 db_port = os.getenv("DB_PORT", "5432")
-db_name = os.getenv("DB_NAME", "tenant_db")
+db_name = os.getenv("DB_NAME", "tenant_database")
 db_username = os.getenv("DB_USERNAME", "postgres")
 db_password = os.getenv("DB_PASSWORD", "password")
 db_url = os.getenv("DB_URL", "ship-solver.ccxmktobiszx.ca-central-1.rds.amazonaws.com")

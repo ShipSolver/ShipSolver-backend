@@ -556,4 +556,3 @@ with app.app_context():
     # ticketEvents = session.query(TicketEvents.ticketEventId).filter().all()
 
     # res = alchemyConverter(random.choice(ticketEvents))
-    

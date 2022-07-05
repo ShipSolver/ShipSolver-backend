@@ -20,6 +20,7 @@ class CustomerController(BaseController):
         super().__init__(Customers)
 
 
+<<<<<<< HEAD
 class TicketStatusController(BaseController):
     def __init__(self):
         super().__init__(TicketStatus)
@@ -86,6 +87,13 @@ class PickupMilestonesController(MilestoneController):
 class InventoryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(InventoryMilestones)
+=======
+class TicketController(BaseTimeSeriesController):
+    def __init__(self):
+        super().__init__(TicketEvents)
+
+
+>>>>>>> modifying db schema
 
     def convert_to_desc(self, milestones):
         string_milestones = []

@@ -1,9 +1,16 @@
 import json
+<<<<<<< HEAD
 from datetime import datetime
 from wsgiref import validate
 
 from numpy import number
 from flask import make_response, request, jsonify, Blueprint
+=======
+import datetime
+
+from numpy import number
+from flask import request, jsonify, Blueprint
+>>>>>>> modifying db schema
 
 import sys
 
@@ -88,6 +95,7 @@ def ticket_post():  # create ticket
     ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
+<<<<<<< HEAD
     response = {"ticketId": ticket_event.ticketId}
     return make_response(json.dumps(response))
 
@@ -123,6 +131,20 @@ def get_clean_filters_dict(immutable_args):
     if "limit" in sql_filters:
         del sql_filters["limit"]
     return sql_filters
+=======
+@ticket_bp.route("/", methods=["GET"])
+# @require_appkey
+def ticket_get_all():
+
+    filters = request.args.get("filters") or {}
+    limit = request.args.get("limit") or 1
+
+    data = ticket_controller._get_latest_event_objects(filters, number_of_res=limit)
+    print("data------------------")
+    print(data)
+    res = alchemyConverter(data)
+    response = json.dumps(res, cls=AlchemyEncoder)
+>>>>>>> modifying db schema
 
 
 def validate_date_format(date_text):

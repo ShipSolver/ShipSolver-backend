@@ -105,6 +105,7 @@ class Users(Base):
         return f"< Users:: userId: {self.userId}>"
 
 
+<<<<<<< HEAD
 class Documents(Base):
     __tablename__ = "documents"
     documentId = Column(Integer, primary_key=True, nullable=False)
@@ -145,6 +146,8 @@ class TicketStatus(Base):
     user = relationship("Users")
 
 
+=======
+>>>>>>> modifying db schema
 class TicketEvents(Base):
     __tablename__ = "ticketevents"
     non_prim_identifying_column_name = "ticketId"
@@ -152,10 +155,15 @@ class TicketEvents(Base):
     # TODO: forgein key
     ticketId = Column(Integer, ForeignKey(TicketStatus.ticketId))
     timestamp = Column(Integer, default=int(time.time()))
+<<<<<<< HEAD
     userId = Column(Integer, ForeignKey(Users.userId), nullable=False, index=True)
     customerId = Column(
         Integer, ForeignKey(Customers.customerId), nullable=False, index=True
     )
+=======
+    userId = Column(Integer, ForeignKey(Users.userId), nullable=False)
+    customerId = Column(Integer, ForeignKey(Customers.customerId), nullable=False)
+>>>>>>> modifying db schema
     barcodeNumber = Column(Integer, nullable=False)
     houseReferenceNumber = Column(Integer, nullable=False)
     orderS3Link = Column(String, nullable=False)
@@ -164,18 +172,25 @@ class TicketEvents(Base):
     BOLNumber = Column(Integer, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
+<<<<<<< HEAD
     # shipper
+=======
+>>>>>>> modifying db schema
     shipperCompany = Column(String, nullable=False)
     shipperName = Column(String, nullable=False)
     shipperAddress = Column(String, nullable=False)
     shipperPostalCode = Column(String, nullable=False)
     shipperPhoneNumber = Column(String, nullable=False)
+<<<<<<< HEAD
     # consignee
+=======
+>>>>>>> modifying db schema
     consigneeCompany = Column(String, nullable=False)
     consigneeName = Column(String, nullable=False)
     consigneeAddress = Column(String, nullable=False)
     consigneePostalCode = Column(String, nullable=False)
     consigneePhoneNumber = Column(String, nullable=False)
+<<<<<<< HEAD
     # pieces
     pieces = Column(String, nullable=False)
     isPickup = Column(Boolean, nullable=False)
@@ -193,6 +208,11 @@ class CreationMilestones(Base):
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
+=======
+    pieces = Column(String, nullable=False)
+    user = relationship("Users")
+    customer = relationship("Customers")
+>>>>>>> modifying db schema
 
     newStatus = Column(Enum(Creation_Milestone_Status), nullable=False)
 
@@ -229,6 +249,7 @@ class PickupMilestones(Base):
 class InventoryMilestones(Base):
     __tablename__ = "inventorymilestones"
 
+<<<<<<< HEAD
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
@@ -243,6 +264,12 @@ class InventoryMilestones(Base):
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     approvedByUser = relationship("Users")
+=======
+if __name__ == "__main__":
+    ticketId_timestamp_idx = Index(
+        "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
+    )
+>>>>>>> modifying db schema
 
 
 class AssignmentMilestones(Base):
@@ -270,6 +297,7 @@ class AssignmentMilestones(Base):
 class IncompleteDeliveryMilestones(Base):
     __tablename__ = "inconpletedeliverymilestones"
 
+<<<<<<< HEAD
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
@@ -320,6 +348,9 @@ class DeliveryMilestones(Base):
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     completingUser = relationship("Users")
+=======
+    gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
+>>>>>>> modifying db schema
 
 
 ticketId_timestamp_idx = Index(

@@ -81,6 +81,7 @@ class BaseController:
 
         self.session.commit()
 
+<<<<<<< HEAD
     def _get(self, filters, limit=5000):
         if not filters:
             filters = []
@@ -91,22 +92,21 @@ class BaseController:
             .limit(limit)
             .all()
         )
-
-        return objects
-    
-    def _get(self, lim, filters):
+=======
+    def _get(self, model, filters, limit=500):
         if not filters:
             filters = []
 
-        objects = (
-            self.session.query(self.model)
-            .filter(*convert_dict_to_alchemy_filters(filters))
-            .group_by(self.model.non_prim_identifying_column_name)
-            .order_by(self.model.timestamp)
-            .limit(lim)
-        )
+        objects = self.session.query(self.model) \
+            .filter(*convert_dict_to_alchemy_filters(model, filters)) \
+            .group_by(self.model.non_prim_identifying_column_name) \
+            .order_by(self.model.timestamp) \
+            .limit(limit) 
+        
+>>>>>>> modifying db schema
 
         return objects
+
 
     def _get_count(self, filters):
         if not filters:
@@ -147,6 +147,7 @@ class BaseTimeSeriesController(BaseController):
         #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
         #     .group_by(self.model.non_prim_identifying_column_name)
         #     .order_by(self.model.timestamp)
+<<<<<<< HEAD
         #     .limit(number_of_res)
         #     .all()
         # )
@@ -165,6 +166,18 @@ class BaseTimeSeriesController(BaseController):
         print("LATEST_OBJS-------")
         print(latest_objs)
         return latest_objs
+=======
+        #     .limit(number_of_res).all()
+        # )
+        latest_objs = (
+            self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name)
+            .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
+            .limit(number_of_res).all()
+        )
+
+        # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
+        return latest_objs[0]
+>>>>>>> modifying db schema
 
     # def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
 

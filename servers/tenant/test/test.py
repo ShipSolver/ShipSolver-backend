@@ -6,7 +6,11 @@ from typing import Generic
 from faker import Faker
 import os
 from flask import Flask, jsonify
+<<<<<<< HEAD
 import uuid
+=======
+import uuid;
+>>>>>>> push
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -110,8 +114,12 @@ with app.app_context():
                 firstName = faker.unique.first_name()
                 lastName = faker.unique.last_name()
 
+<<<<<<< HEAD
                 userType = random.choice([ut for ut in UserType])
                 userTypeValue = userType.value.lower()
+=======
+                userType = random.choice([ut for ut in UserType]).value
+>>>>>>> push
                 username = firstName.lower()[0] + lastName.lower()
                 email = f"{username}@faker.com"
                 userId = random.randint(1, 1000000000)
@@ -120,8 +128,13 @@ with app.app_context():
 
                 args_arr.append(
                     {
+<<<<<<< HEAD
                         "userId": userId,
                         "userType": userTypeValue,
+=======
+                        "userId": random.randint(1, 1000000000),
+                        "userType": userType,
+>>>>>>> push
                         "username": username,
                         "firstName": firstName,
                         "lastName": lastName,
@@ -577,7 +590,23 @@ with app.app_context():
 
     #             print("Created Delivery Milestone")
 
+<<<<<<< HEAD
     generate_users(scale=70)
+=======
+                    obj = gen_milestone_controller._create(
+                        {
+                            "milestoneId": milestoneId,
+                            "ticketEventId": random.choice(ticket_map[ticketId]),
+                            "userId": userId,
+                            "ticketStatus": ticketStatus,
+                            "approvalStatus": approvalStatus,
+                        }
+                    )
+
+                print("Created Delivery Milestone")
+
+    generate_users(scale=5)
+>>>>>>> push
     users = session.query(Users).all()
 
     # print(random.choice(users))

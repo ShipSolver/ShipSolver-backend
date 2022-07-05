@@ -1,5 +1,7 @@
 import json
 import datetime
+
+from numpy import number
 from flask import request, jsonify, Blueprint
 
 import sys
@@ -75,14 +77,15 @@ def ticket_post():  # create ticket
 
 
 @ticket_bp.route("/", methods=["GET"])
-@require_appkey
+# @require_appkey
 def ticket_get_all():
 
-    filters = request.args.get("filters")
-    limit = request.args.get("limit")
+    filters = request.args.get("filters") or {}
+    limit = request.args.get("limit") or 1
 
-    data = ticket_controller._get(limit, filters) if limit else ticket_controller._get(filters)
-
+    data = ticket_controller._get_latest_event_objects(filters, number_of_res=limit)
+    print("data------------------")
+    print(data)
     res = alchemyConverter(data)
     response = json.dumps(res, cls=AlchemyEncoder)
 

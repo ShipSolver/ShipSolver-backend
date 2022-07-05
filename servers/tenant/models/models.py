@@ -62,51 +62,12 @@ class Users(Base):
         return f"< Users:: userId: {self.userId}>"
 
 
-class ShipperEvents(Base):
-    __tablename__ = "shipperevents"
-    non_prim_identifying_column_name = "shipperId"
-    shipperEventId = Column(Integer, primary_key=True, autoincrement=True)
-    shipperId = Column(Integer, nullable=False)
-    timestamp = Column(Integer, default=int(time.time()))
-    userId = Column(Integer, ForeignKey(Users.userId))
-    companyName = Column(String, nullable=False)
-    address = Column(String, nullable=False)
-    postalCode = Column(String, nullable=False)
-    phoneNumber = Column(String, nullable=False, default=int(time.time()))
-
-    user = relationship("Users")
-
-    def __repr__(self):
-        return f"<ShipperEvents:: shipperEventId: {self.shipperEventId}>"
-
-
-class ConsigneeEvents(Base):
-    __tablename__ = "consigneeevents"
-    non_prim_identifying_column_name = "consigneeId"
-    consigneeEventId = Column(Integer, primary_key=True, autoincrement=True)
-    consigneeId = Column(Integer, nullable=False)
-    timestamp = Column(Integer, default=int(time.time()))
-    userId = Column(Integer, ForeignKey(Users.userId))
-    companyName = Column(String, nullable=False)
-    address = Column(String, nullable=False)
-    postalCode = Column(String, nullable=False)
-    phoneNumber = Column(String, nullable=False)
-
-    user = relationship("Users")
-
-
 class TicketEvents(Base):
     __tablename__ = "ticketevents"
     non_prim_identifying_column_name = "ticketId"
     ticketEventId = Column(Integer, primary_key=True, autoincrement=True)
     ticketId = Column(Integer, nullable=False)
     timestamp = Column(Integer, default=int(time.time()))
-    shipperEventId = Column(
-        Integer, ForeignKey(ShipperEvents.shipperEventId), nullable=False
-    )
-    consigneeEventId = Column(
-        Integer, ForeignKey(ConsigneeEvents.consigneeEventId), nullable=False
-    )
     userId = Column(Integer, ForeignKey(Users.userId), nullable=False)
     customerId = Column(Integer, ForeignKey(Customers.customerId), nullable=False)
     barcodeNumber = Column(Integer, nullable=False)
@@ -117,32 +78,19 @@ class TicketEvents(Base):
     BOLNumber = Column(Integer, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
-
-    shipperEvent = relationship("ShipperEvents")
-    consigneeEvent = relationship("ConsigneeEvents")
+    shipperCompany = Column(String, nullable=False)
+    shipperName = Column(String, nullable=False)
+    shipperAddress = Column(String, nullable=False)
+    shipperPostalCode = Column(String, nullable=False)
+    shipperPhoneNumber = Column(String, nullable=False)
+    consigneeCompany = Column(String, nullable=False)
+    consigneeName = Column(String, nullable=False)
+    consigneeAddress = Column(String, nullable=False)
+    consigneePostalCode = Column(String, nullable=False)
+    consigneePhoneNumber = Column(String, nullable=False)
+    pieces = Column(String, nullable=False)
     user = relationship("Users")
     customer = relationship("Customers")
-    pieces = relationship(
-        "PieceEvents",
-        # lazy="dynamic",
-        primaryjoin="TicketEvents.ticketEventId == PieceEvents.ticketEventId",
-    )
-
-
-class PieceEvents(Base):
-    __tablename__ = "piecesevents"
-    non_prim_identifying_column_name = "piecesId"
-    piecesEventId = Column(Integer, primary_key=True, autoincrement=True)
-    piecesId = Column(Integer, nullable=False)
-    timestamp = Column(Integer, default=int(time.time()))
-    ticketEventId = Column(Integer, ForeignKey(TicketEvents.ticketEventId))
-    # customerId = Column(Integer, ForeignKey(Customers.customerId))
-    userId = Column(Integer, ForeignKey(Users.userId))
-    pieceDescription = Column(String)
-
-    user = relationship("Users")  # represents user which created / modified object
-    # customer = relationship("Customers")
-    ticketEvents = relationship("TicketEvents", viewonly=True)
 
 
 class GenericMilestones(Base):
@@ -193,18 +141,6 @@ class DeliveryMilestones(Base):
 
 
 if __name__ == "__main__":
-    shipperId_timestamp_idx = Index(
-        "shipperId_timestamp_idx", ShipperEvents.shipperId, ShipperEvents.timestamp
-    )
-
-    INDEXES.append(shipperId_timestamp_idx)
-
-    consigneeId_timestamp_idx = Index(
-        "consigneeId_timestamp_idx", ConsigneeEvents.consigneeId, ConsigneeEvents.timestamp
-    )
-
-    INDEXES.append(consigneeId_timestamp_idx)
-
     ticketId_timestamp_idx = Index(
         "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
     )
@@ -220,22 +156,6 @@ if __name__ == "__main__":
     ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
 
     INDEXES.append(ticket_customerId_idx)
-
-
-    ticket_shippperId_idx = Index("ticket_shippperId_idx", TicketEvents.shipperEventId)
-
-    INDEXES.append(ticket_shippperId_idx)
-
-
-    ticket_consigneeId_idx = Index("ticket_consigneeId_idx", TicketEvents.consigneeEventId)
-
-    INDEXES.append(ticket_consigneeId_idx)
-
-    piecesId_timestamp_idx = Index(
-        "piecesId_timestamp_idx", PieceEvents.piecesId, PieceEvents.timestamp
-    )
-
-    INDEXES.append(piecesId_timestamp_idx)
 
     gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
 

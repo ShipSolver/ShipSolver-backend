@@ -6,7 +6,7 @@ import traceback
 from celery_client import client, logger
 from controllers.pdfController import PDFController
 
-pdf_bp = Blueprint("pdf_bp", __name__)
+pdf_bp = Blueprint("pdf_bp", __name__, url_prefix="document")
 
 pdfcontroller = PDFController()
 
@@ -27,7 +27,7 @@ def pdf_post():
     if file and file.filename.split(".")[-1].lower() == "pdf":
         pdfcontroller.process_files()
         resp = jsonify({"message": "File successfully uploaded"})
-        resp.status_code = 200
+        resp.status_code = 202
         return resp
     else:
         resp = jsonify({"message": "Allowed file types are pdf only"})

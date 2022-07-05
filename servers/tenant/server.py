@@ -2,7 +2,7 @@ from config import app
 from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
-from blueprints.pdf import pdf_bp  # TODO: Move this in seperate microservice
+from servers.tenant.blueprints.simple.pdf import pdf_bp  # TODO: Move this in seperate microservice
 
 # from models.__init__ import engine, Base
 # from models.models import INDEXES

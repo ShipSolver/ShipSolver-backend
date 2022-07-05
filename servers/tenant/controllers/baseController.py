@@ -134,17 +134,46 @@ class BaseTimeSeriesController(BaseController):
         #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
         #     .group_by(self.model.non_prim_identifying_column_name)
         #     .order_by(self.model.timestamp)
-        #     .limit(number_of_res)
-        #     .all()
-        # )
 
-        print(*convert_dict_to_alchemy_filters(self.model, filters))
+        #     .limit(number_of_res).all()
+        # )
+        latest_objs = (
+            self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name)
+            .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
+            .limit(number_of_res).all()
+        )
+
+        # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
+        return latest_objs[0]
+
+    def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
+
+        starttime = int(time.mktime(start_datetime).timetuple())
+
+        filters.append(self.model.timestamp >= starttime)
+
         latest_objs = (
             self.session.query(self.model)
-            .distinct(self.model.non_prim_identifying_column_name)
-            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .filter(*convert_dict_to_alchemy_filters(filters))
+            .group_by(self.model.non_prim_identifying_column_name)
             .order_by(self.model.timestamp)
-            .limit(1)
+        )
+
+        return latest_objs
+
+    def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}):
+
+        assert datetime1 <= datetime2
+
+        time1 = int(time.mktime(datetime1.timetuple()))
+        time2 = int(time.mktime(datetime2.timetuple()))
+
+        filters.append(self.model.timestamp >= time1)
+        filters.append(self.model.timestamp <= time2)
+
+        results = (
+            self.session.query(self.model)
+            .filter(*convert_dict_to_alchemy_filters(filters))
             .all()
         )
 

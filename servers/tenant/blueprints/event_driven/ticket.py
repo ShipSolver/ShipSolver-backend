@@ -16,13 +16,10 @@ from utils import (
 
 ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
-
 # TODO: USER BASED AUTH
-
 
 ticket_controller = TicketController()
 pieces_controller = PieceController()
-
 
 """
 Route expects requests of format:
@@ -77,6 +74,20 @@ def ticket_post():  # create ticket
     return "success"
 
 
+@ticket_bp.route("/", methods=["GET"])
+@require_appkey
+def ticket_get_all():
+
+    filters = request.args.get("filters")
+    limit = request.args.get("limit")
+
+    data = ticket_controller._get(limit, filters) if limit else ticket_controller._get(filters)
+
+    res = alchemyConverter(data)
+    response = json.dumps(res, cls=AlchemyEncoder)
+
+    return response
+
 """
 Route expects requests of format:
 
@@ -92,7 +103,7 @@ Route expects requests of format:
 """
 
 
-@ticket_bp.route("/", methods=["GET"])
+@ticket_bp.route("/date-range", methods=["GET"])
 @require_appkey
 def ticket_get_range():
     def validate_date_format(date_text):
@@ -132,8 +143,23 @@ Route expects requests of format:
 
 """
 
+@ticket_bp.route("/attribute/{attribute_name}", methods=["GET"])
+@require_appkey
+def ticket_attribute_get(attribute_name):
 
-@ticket_bp.route("/{ticket_id}", methods=["GET"])
+    filters.extend({"ticket_id": ticket_id})
+
+    latest_ticket = ticket_controller._get_latest_event_objects(
+        number_of_res=number_of_res, filters=filters
+    )
+
+    res = alchemyConverter(latest_ticket)
+    response = json.dumps(res, cls=AlchemyEncoder)
+
+    return response
+
+
+@ticket_bp.route("/id/{ticket_id}", methods=["GET"])
 @require_appkey
 def ticket_get(ticket_id):
     filters = request.args.get("filters")
@@ -166,7 +192,7 @@ Route expects requests of format:
 """
 
 
-@ticket_bp.route("/{ticket_id}", methods=["GET"])
+@ticket_bp.route("/id/{ticket_id}", methods=["GET"])
 @require_appkey
 def ticket_get_history(ticket_id):
     filters = request.args.get("filters")
@@ -201,7 +227,7 @@ Route expects requests of format:
 """
 
 
-@ticket_bp.route("/{ticket_id}", methods=["POST"])
+@ticket_bp.route("/id/{ticket_id}", methods=["PUT"])
 @require_appkey
 def ticket_update(ticket_id):
 

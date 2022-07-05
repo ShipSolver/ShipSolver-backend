@@ -31,11 +31,11 @@ class Generic_Ticket_Status(enum):
 
 
 class UserType(enum):
-    manager = "MANAGER"
-    dispatch = "DISPATCH"
-    customer = "CUSTOMER"
-    brooker = "BROOKER"
-    worker = "WORKER"
+    manager = "manager"
+    dispatch = "dispatch"
+    customer = "customer"
+    driver = "driver"
+    worker = "worker"
 
 
 class Customers(Base):
@@ -50,7 +50,7 @@ class Customers(Base):
 class Users(Base):
     __tablename__ = "users"
     userId = Column(Integer, primary_key=True, autoincrement=True)
-    userType = Column(Enum(UserType), nullable=False)
+    userType = Column(String, nullable=False)
     username = Column(String, nullable=False)
     firstName = Column(String, nullable=False)
     lastName = Column(String, nullable=False)
@@ -78,16 +78,19 @@ class TicketEvents(Base):
     BOLNumber = Column(Integer, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
+    # shipper 
     shipperCompany = Column(String, nullable=False)
     shipperName = Column(String, nullable=False)
     shipperAddress = Column(String, nullable=False)
     shipperPostalCode = Column(String, nullable=False)
     shipperPhoneNumber = Column(String, nullable=False)
+    # consignee
     consigneeCompany = Column(String, nullable=False)
     consigneeName = Column(String, nullable=False)
     consigneeAddress = Column(String, nullable=False)
     consigneePostalCode = Column(String, nullable=False)
     consigneePhoneNumber = Column(String, nullable=False)
+    # pieces
     pieces = Column(String, nullable=False)
     user = relationship("Users")
     customer = relationship("Customers")
@@ -140,40 +143,38 @@ class DeliveryMilestones(Base):
     user = relationship("Users")
 
 
-if __name__ == "__main__":
-    ticketId_timestamp_idx = Index(
-        "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
-    )
+ticketId_timestamp_idx = Index(
+    "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
+)
 
-    INDEXES.append(ticketId_timestamp_idx)
-
-
-    ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
-
-    INDEXES.append(ticket_userId_idx)
+INDEXES.append(ticketId_timestamp_idx)
 
 
-    ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
+ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
 
-    INDEXES.append(ticket_customerId_idx)
+INDEXES.append(ticket_userId_idx)
 
-    gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
+ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
 
-    INDEXES.append(gen_milestoneId_idx)
+INDEXES.append(ticket_customerId_idx)
 
-    inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
+gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
 
-    INDEXES.append(inv_milestoneId_idx)
+INDEXES.append(gen_milestoneId_idx)
 
-    del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
+inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
 
-    INDEXES.append(del_milestoneId_idx)
+INDEXES.append(inv_milestoneId_idx)
 
-    print("Configuring DB ...")
-    Base.metadata.create_all(engine)
-    try:
-        # create indexes
-        for index in INDEXES:
-            index.create(bind=engine)
-    except:
-        pass
+del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
+
+INDEXES.append(del_milestoneId_idx)
+
+print("Configuring DB ...")
+Base.metadata.create_all(engine)
+try:
+    # create indexes
+    for index in INDEXES:
+        index.create(bind=engine)
+except:
+    pass

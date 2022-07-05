@@ -1,3 +1,4 @@
+-- SQLBook: Code
 CREATE INDEX idx_ticketEvents_comp ON TicketEvents(ticketEventId, timestamp);
 
 CREATE INDEX idx_ticketEvents_ts ON TicketEvents(timestamp);

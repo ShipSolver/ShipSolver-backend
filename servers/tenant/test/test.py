@@ -5,7 +5,7 @@ from typing import Generic
 from faker import Faker
 import os
 from flask import Flask, jsonify
-
+import uuid;
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -45,12 +45,13 @@ with app.app_context():
                 firstName = faker.unique.first_name()
                 lastName = faker.unique.last_name()
 
-                userType = random.choice([ut for ut in UserType]).value.lower()
+                userType = random.choice([ut for ut in UserType]).value
                 username = firstName.lower()[0] + lastName.lower()
                 email = f"{username}@faker.com"
 
                 args_arr.append(
                     {
+                        "userId": random.randint(1, 1000000000),
                         "userType": userType,
                         "username": username,
                         "firstName": firstName,
@@ -300,7 +301,7 @@ with app.app_context():
 
                 print("Created Delivery Milestone")
 
-    generate_users(scale=10)
+    generate_users(scale=5)
     users = session.query(Users).all()
 
     # print(random.choice(users))

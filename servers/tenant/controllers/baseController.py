@@ -93,6 +93,20 @@ class BaseController:
         )
 
         return objects
+    
+    def _get(self, lim, filters):
+        if not filters:
+            filters = []
+
+        objects = (
+            self.session.query(self.model)
+            .filter(*convert_dict_to_alchemy_filters(filters))
+            .group_by(self.model.non_prim_identifying_column_name)
+            .order_by(self.model.timestamp)
+            .limit(lim)
+        )
+
+        return objects
 
     def _get_count(self, filters):
         if not filters:

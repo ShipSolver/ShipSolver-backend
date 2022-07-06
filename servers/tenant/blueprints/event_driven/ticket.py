@@ -1,5 +1,5 @@
 import json
-import datetime
+from datetime import datetime
 
 from numpy import number
 from flask import request, jsonify, Blueprint
@@ -66,24 +66,75 @@ def ticket_post():  # create ticket
 
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
-    pieces_args_array = ticket_dict["pieces"]
+    return {"success"}
 
-    for pieces_args in pieces_args_array:
-        pieces_args["ticketEventId"] = ticket_event.ticketEventId
-        pieces_controller._create_base_event(pieces_args)
 
-    return "success"
-
+# http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea
+# curl http://127.0.0.1:6767/api/ticket/?shipperName
+# # curl http://127.0.0.1:6767/api/ticket?key=a
+# # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
 @ticket_bp.route("/", methods=["GET"])
 # @require_appkey
 def ticket_get_all():
 
-    filters = request.args.get("filters") or {}
-    limit = request.args.get("limit") or 2
+    filters = request.args or {}
+    sql_filters = dict(filters)
+    
+    if "start" in sql_filters: 
+        del sql_filters["start"]
+    if "end" in sql_filters:
+        del sql_filters["end"]
+    if "limit" in sql_filters:
+        del sql_filters["limit"]
 
-    data = ticket_controller._get_latest_event_objects(filters, number_of_res=limit)
+    if "limit" not in filters:
+        limit = 5
+    else:
+        limit = filters["limit"]
+    def validate_date_format(date_text):
+        try:
+            return datetime.strptime(date_text, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%S")
+    
+    if "start" in filters:    
+        dt_start_str = filters["start"]
+        dt_start = validate_date_format(dt_start_str)
+        if "end" in filters:
+            dt_end_str= filters["end"]
+            dt_end = validate_date_format(dt_end_str)
+            data = ticket_controller._get_latest_event_objects_in_range(
+                dt_start, dt_end, filters=sql_filters, number_of_res=limit
+            )
+        else:
+            data = ticket_controller._get_latest_event_objects_from_start_date(
+                dt_start, filters=sql_filters, number_of_res=limit
+            )
+    else:
+        data = ticket_controller._get_latest_event_objects(sql_filters, number_of_res=limit)
+
     res = alchemyConverter(data)
+    response = json.dumps(res, cls=AlchemyEncoder)
+
+    return response
+
+
+@ticket_bp.route("/<ticket_id>", methods=["GET"])
+# @require_appkey
+def ticket_get(ticket_id):
+    filters = request.args.get("filters") or {}
+
+    number_of_res = request.args.get("number_of_res")
+
+    filters["ticketId"] = ticket_id
+
+
+    latest_ticket = ticket_controller._get_latest_event_objects(
+        number_of_res=number_of_res, filters=filters
+    )
+
+    res = alchemyConverter(latest_ticket[0])
     response = json.dumps(res, cls=AlchemyEncoder)
 
     return response
@@ -103,109 +154,23 @@ Route expects requests of format:
 """
 
 
-@ticket_bp.route("/date-range", methods=["GET"])
-@require_appkey
-def ticket_get_range():
-    def validate_date_format(date_text):
-        try:
-            datetime.datetime.strptime(date_text, "%Y-%m-%dT%H:%M:%SZ")
-        except ValueError:
-            raise ValueError("Incorrect data format, should be YYYY-MM-DD")
 
-    dt = request.args.get("datetime")
-    validate_date_format(dt)
+# @ticket_bp.route("/attribute/{attribute_name}", methods=["GET"])
+# @require_appkey
+# def ticket_attribute_get(attribute_name):
 
-    filters = request.args.get("filters")
+#     filters.extend({"ticket_id": ticket_id})
 
-    data = ticket_controller._get_latest_event_objects_from_start_date(
-        dt, filters=filters
-    )
+#     latest_ticket = ticket_controller._get_latest_event_objects(
+#         number_of_res=number_of_res, filters=filters
+#     )
 
-    res = alchemyConverter(data)
-    response = json.dumps(res, cls=AlchemyEncoder)
+#     res = alchemyConverter(latest_ticket)
+#     response = json.dumps(res, cls=AlchemyEncoder)
 
-    return response
+#     return response
 
 
-"""
-Route expects requests of format:
-
-{
-    "ticket_id" : "value", 
-    "filters" : {
-        "field1": "value1",
-        "field2": "value2",
-        ....
-    },
-    "number_of_res" : value,
-
-}
-
-"""
-
-@ticket_bp.route("/attribute/{attribute_name}", methods=["GET"])
-@require_appkey
-def ticket_attribute_get(attribute_name):
-
-    filters.extend({"ticket_id": ticket_id})
-
-    latest_ticket = ticket_controller._get_latest_event_objects(
-        number_of_res=number_of_res, filters=filters
-    )
-
-    res = alchemyConverter(latest_ticket)
-    response = json.dumps(res, cls=AlchemyEncoder)
-
-    return response
-
-
-@ticket_bp.route("/id/{ticket_id}", methods=["GET"])
-@require_appkey
-def ticket_get(ticket_id):
-    filters = request.args.get("filters")
-    number_of_res = request.args.get("number_of_res")
-
-    filters.extend({"ticket_id": ticket_id})
-
-    latest_ticket = ticket_controller._get_latest_event_objects(
-        number_of_res=number_of_res, filters=filters
-    )
-
-    res = alchemyConverter(latest_ticket)
-    response = json.dumps(res, cls=AlchemyEncoder)
-
-    return response
-
-
-"""
-Route expects requests of format:
-
-{
-    "ticket_id" : "value", 
-    "filters" : {
-        "field1": "value1",
-        "field2": "value2",
-        ....
-    }
-}
-
-"""
-
-
-@ticket_bp.route("/id/{ticket_id}", methods=["GET"])
-@require_appkey
-def ticket_get_history(ticket_id):
-    filters = request.args.get("filters")
-    filters.extend({"ticket_id": ticket_id})
-
-    latest_ticket = ticket_controller._get_latest_event_objects(
-        page=1, number_of_res=20, filters=filters
-    )
-
-    res = alchemyConverter(latest_ticket)
-    response = json.dumps(res, cls=AlchemyEncoder)
-
-    return response
 
 
 """
@@ -227,7 +192,7 @@ Route expects requests of format:
 """
 
 
-@ticket_bp.route("/id/{ticket_id}", methods=["PUT"])
+@ticket_bp.route("/<ticket_id>", methods=["PUT"])
 @require_appkey
 def ticket_update(ticket_id):
 

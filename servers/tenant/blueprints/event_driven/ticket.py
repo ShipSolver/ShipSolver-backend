@@ -165,8 +165,6 @@ def ticket_get_all():
     )
 
     data = ticket_controller._get_latest_event_objects(filters, number_of_res=limit)
-    print("data------------------")
-    print(data)
     res = alchemyConverter(data)
     for ticket in res:
         ticket["pieces"] = ticket["pieces"].split(PIECES_SEPERATOR)

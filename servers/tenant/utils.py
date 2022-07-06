@@ -14,6 +14,7 @@ class AlchemyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+<<<<<<< HEAD
 
 # DFS function used to convert alchemy objects to JSON
 <<<<<<< HEAD
@@ -86,19 +87,58 @@ def alchemyConverter(object):
 
                     res[field].append({})
                     single_convert(obj, res[field][i], visited=visited)
+=======
+>>>>>>> get endpoints
 
+# DFS function used to convert alchemy objects to JSON
+def alchemyConvertUtil(object, res={}, visited=set({})):
+    visited.add(str(object.__class__))
+    for field in [
+        x
+        for x in dir(object)
+        if not x.startswith("_")
+        and x not in set({"metadata", "non_prim_identifying_column_name", "registry"})
+    ]:
+
+        cls_name = str(object.__getattribute__(field).__class__)
+
+        if "models.models." in cls_name:
+            if cls_name in visited:
+                continue
             else:
-                res[field] = getattr(obj, field)
+                visited.add(cls_name)
 
-            return res
+            res[field] = {}
+            alchemyConvertUtil(getattr(object, field), res[field], visited=visited)
+            visited.remove(cls_name)
+        elif "InstrumentedList" in cls_name:
+            res[field] = []
+
+            for i, obj in enumerate(getattr(object, field)):
+
+                res[field].append({})
+                alchemyConvertUtil(obj, res[field][i], visited=visited)
+
+        else:
+            res[field] = getattr(object, field)
+
+    return res
     
-    if type(object) == list:
-        res = [single_convert(obj) for obj in object]
+def alchemyConverter(obj):
+    print("obj", obj)
+    if type(obj) == list:
+        res = [] 
+        for ele in obj:
+            res.append(alchemyConvertUtil(ele))
         return res
     else:
+<<<<<<< HEAD
         return single_convert(object)
     
 >>>>>>> fix schema
+=======
+        return alchemyConvertUtil(obj)
+>>>>>>> get endpoints
 
 
 # converts fiters as a dictionary to alchemy interpretable results

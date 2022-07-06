@@ -15,38 +15,44 @@ class AlchemyEncoder(json.JSONEncoder):
 
 
 # DFS function used to convert alchemy objects to JSON
-def alchemyConverter(object, res={}, visited=set({})):
-    visited.add(str(object.__class__))
-    for field in [
-        x
-        for x in dir(object)
-        if not x.startswith("_")
-        and x not in set({"metadata", "non_prim_identifying_column_name", "registry"})
-    ]:
+def alchemyConverter(object):
+    def single_convert(obj, res={}, visited=set({})):
+        visited.add(str(object.__class__))
+        for field in [
+            x
+            for x in dir(object)
+            if not x.startswith("_")
+            and x not in set({"metadata", "non_prim_identifying_column_name", "registry"})
+        ]:
+            cls_name = str(obj.__getattribute__(field).__class__)
+            if "models.models." in cls_name:
+                if cls_name in visited:
+                    continue
+                else:
+                    visited.add(cls_name)
 
-        cls_name = str(object.__getattribute__(field).__class__)
+                res[field] = {}
+                single_convert(getattr(obj, field), res[field], visited=visited)
+                visited.remove(cls_name)
+            elif "InstrumentedList" in cls_name:
+                res[field] = []
 
-        if "models.models." in cls_name:
-            if cls_name in visited:
-                continue
+                for i, obj in enumerate(getattr(obj, field)):
+
+                    res[field].append({})
+                    single_convert(obj, res[field][i], visited=visited)
+
             else:
-                visited.add(cls_name)
+                res[field] = getattr(obj, field)
 
-            res[field] = {}
-            alchemyConverter(getattr(object, field), res[field], visited=visited)
-            visited.remove(cls_name)
-        elif "InstrumentedList" in cls_name:
-            res[field] = []
-
-            for i, obj in enumerate(getattr(object, field)):
-
-                res[field].append({})
-                alchemyConverter(obj, res[field][i], visited=visited)
-
-        else:
-            res[field] = getattr(object, field)
-
-    return res
+            return res
+    
+    if type(object) == list:
+        res = [single_convert(obj) for obj in object]
+        return res
+    else:
+        return single_convert(object)
+    
 
 
 # converts fiters as a dictionary to alchemy interpretable results

@@ -8,8 +8,8 @@ import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
-from controllers.controllerMapper import PieceController, TicketController
-from models.models import TicketEvents, PieceEvents
+from controllers.controllerMapper import TicketController
+from models.models import TicketEvents
 from utils import (
     AlchemyEncoder,
     require_appkey,
@@ -21,7 +21,6 @@ ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 # TODO: USER BASED AUTH
 
 ticket_controller = TicketController()
-pieces_controller = PieceController()
 
 """
 Route expects requests of format:
@@ -81,11 +80,9 @@ def ticket_post():  # create ticket
 def ticket_get_all():
 
     filters = request.args.get("filters") or {}
-    limit = request.args.get("limit") or 1
+    limit = request.args.get("limit") or 2
 
     data = ticket_controller._get_latest_event_objects(filters, number_of_res=limit)
-    print("data------------------")
-    print(data)
     res = alchemyConverter(data)
     response = json.dumps(res, cls=AlchemyEncoder)
 

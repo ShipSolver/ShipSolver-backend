@@ -45,7 +45,7 @@ with app.app_context():
                 firstName = faker.unique.first_name()
                 lastName = faker.unique.last_name()
 
-                userType = random.choice([ut for ut in UserType]).value
+                userType = random.choice([ut for ut in UserType]).value.lower()
                 username = firstName.lower()[0] + lastName.lower()
                 email = f"{username}@faker.com"
 
@@ -125,8 +125,6 @@ with app.app_context():
 
                 obj = ticket_events_controller._create_base_event(
                     {
-                        "shipperEventId": shipperEventId,
-                        "consigneeEventId": consigneeEventId,
                         "userId": userId,
                         "customerId": customerId,
                         "barcodeNumber": barcodeNumber,
@@ -154,8 +152,6 @@ with app.app_context():
                 for i in range(random.randrange(10, 20)):
 
                     userId = random.choice(users).userId
-                    shipperEventId = random.choice(shipperEvents).shipperEventId
-                    consigneeEventId = random.choice(consigneeEvents).consigneeEventId
                     userId = random.choice(users).userId
                     customerId = random.choice(customers).customerId
                     barcodeNumber = random.randrange(100000000, 900000000)
@@ -169,8 +165,6 @@ with app.app_context():
                         getattr(obj, TicketEvents.non_prim_identifying_column_name),
                         {
                             "ticketId": obj.ticketId,
-                            "shipperEventId": shipperEventId,
-                            "consigneeEventId": consigneeEventId,
                             "userId": userId,
                             "customerId": customerId,
                             "barcodeNumber": barcodeNumber,

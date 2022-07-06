@@ -16,7 +16,11 @@ import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
+<<<<<<< HEAD
 from controllers.controllerMapper import TicketController, TicketStatusController
+=======
+from controllers.controllerMapper import TicketController
+>>>>>>> fix schema
 from models.models import TicketEvents
 from utils import (
     AlchemyEncoder,
@@ -28,8 +32,12 @@ from flask_cognito_lib.decorators import auth_required
 ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
 ticket_controller = TicketController()
+<<<<<<< HEAD
 ticket_status_controller = TicketStatusController()
 PIECES_SEPERATOR = ",+-"
+=======
+
+>>>>>>> fix schema
 """
 Route expects requests of format:
 
@@ -141,11 +149,9 @@ def get_clean_filters_dict(immutable_args):
 def ticket_get_all():
 
     filters = request.args.get("filters") or {}
-    limit = request.args.get("limit") or 1
+    limit = request.args.get("limit") or 2
 
     data = ticket_controller._get_latest_event_objects(filters, number_of_res=limit)
-    print("data------------------")
-    print(data)
     res = alchemyConverter(data)
     response = json.dumps(res, cls=AlchemyEncoder)
 >>>>>>> modifying db schema

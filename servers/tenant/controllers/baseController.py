@@ -169,15 +169,20 @@ class BaseTimeSeriesController(BaseController):
 =======
         #     .limit(number_of_res).all()
         # )
-        latest_objs = (
-            self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name)
-            .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
-            .limit(number_of_res).all()
-        )
+        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
+            .filter_by(*convert_dict_to_alchemy_filters(self.model, filters)) \
+            .limit(number_of_res).all() 
+    
 
         # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
+<<<<<<< HEAD
         return latest_objs[0]
 >>>>>>> modifying db schema
+=======
+        print("LATEST_OBJS-------")
+        print(latest_objs)
+        return latest_objs
+>>>>>>> fix schema
 
     # def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
 

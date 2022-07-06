@@ -115,11 +115,15 @@ with app.app_context():
                 lastName = faker.unique.last_name()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
                 userType = random.choice([ut for ut in UserType])
                 userTypeValue = userType.value.lower()
 =======
                 userType = random.choice([ut for ut in UserType]).value
 >>>>>>> push
+=======
+                userType = random.choice([ut for ut in UserType]).value.lower()
+>>>>>>> fix schema
                 username = firstName.lower()[0] + lastName.lower()
                 email = f"{username}@faker.com"
                 userId = random.randint(1, 1000000000)
@@ -249,6 +253,7 @@ with app.app_context():
                     }
                 )
 
+<<<<<<< HEAD
                 # for i in range(random.randrange(10, 20)):
 
                 #     userId = random.choice(users).userId
@@ -277,6 +282,36 @@ with app.app_context():
                 #             "specialInstructions": specialInstructions,
                 #         },
                 #     )
+=======
+                for i in range(random.randrange(10, 20)):
+
+                    userId = random.choice(users).userId
+                    userId = random.choice(users).userId
+                    customerId = random.choice(customers).customerId
+                    barcodeNumber = random.randrange(100000000, 900000000)
+                    houseReferenceNumber = random.randrange(100000000, 900000000)
+                    orderS3Link = "s3link"
+                    weight = random.randrange(100, 200)
+                    claimedNumberOfPieces = random.randrange(1, 5)
+                    BOLNumber = random.randrange(100000000, 900000000)
+
+                    created_obj = ticket_events_controller._modify_latest_object(
+                        getattr(obj, TicketEvents.non_prim_identifying_column_name),
+                        {
+                            "ticketId": obj.ticketId,
+                            "userId": userId,
+                            "customerId": customerId,
+                            "barcodeNumber": barcodeNumber,
+                            "houseReferenceNumber": houseReferenceNumber,
+                            "orderS3Link": orderS3Link,
+                            "weight": weight,
+                            "claimedNumberOfPieces": claimedNumberOfPieces,
+                            "BOLNumber": BOLNumber,
+                            "specialServices": specialServices,
+                            "specialInstructions": specialInstructions,
+                        },
+                    )
+>>>>>>> fix schema
 
                 print("Created Ticket")
 

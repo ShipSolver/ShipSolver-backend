@@ -15,6 +15,7 @@ class AlchemyEncoder(json.JSONEncoder):
 
 
 # DFS function used to convert alchemy objects to JSON
+<<<<<<< HEAD
 def alchemyConvertUtil(object, res, visited):
     # TODO: {"field" : [ obj1, obj ... ]  } fails
     # TODO: {"field" : [ obj1, obj ... ]  } fails
@@ -69,6 +70,46 @@ def alchemyConverter(obj):
         return res
     else:
         return alchemyConvertUtil(obj, {}, visited=set())
+=======
+def alchemyConverter(object):
+    def single_convert(obj, res={}, visited=set({})):
+        visited.add(str(object.__class__))
+        for field in [
+            x
+            for x in dir(object)
+            if not x.startswith("_")
+            and x not in set({"metadata", "non_prim_identifying_column_name", "registry"})
+        ]:
+            cls_name = str(obj.__getattribute__(field).__class__)
+            if "models.models." in cls_name:
+                if cls_name in visited:
+                    continue
+                else:
+                    visited.add(cls_name)
+
+                res[field] = {}
+                single_convert(getattr(obj, field), res[field], visited=visited)
+                visited.remove(cls_name)
+            elif "InstrumentedList" in cls_name:
+                res[field] = []
+
+                for i, obj in enumerate(getattr(obj, field)):
+
+                    res[field].append({})
+                    single_convert(obj, res[field][i], visited=visited)
+
+            else:
+                res[field] = getattr(obj, field)
+
+            return res
+    
+    if type(object) == list:
+        res = [single_convert(obj) for obj in object]
+        return res
+    else:
+        return single_convert(object)
+    
+>>>>>>> fix schema
 
 
 # converts fiters as a dictionary to alchemy interpretable results

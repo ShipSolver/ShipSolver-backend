@@ -25,19 +25,13 @@ def alchemyConvertUtil(object, res, visited):
         and x not in set({"metadata", "non_prim_identifying_column_name", "registry"})
     ]:
 
-                res[field] = {}
-                single_convert(getattr(obj, field), res[field], visited=visited)
-                visited.remove(cls_name)
-            elif "InstrumentedList" in cls_name:
-                res[field] = []
+        cls_name = str(object.__getattribute__(field).__class__)
 
-                for i, obj in enumerate(getattr(obj, field)):
-
-                    res[field].append({})
-                    single_convert(obj, res[field][i], visited=visited)
-
+        if "models.models." in cls_name:
+            if cls_name in visited:
+                continue
             else:
-                res[field] = getattr(obj, field)
+                visited.add(cls_name)
 
             res[field] = {}
             alchemyConvertUtil(getattr(object, field), res[field], visited=visited)

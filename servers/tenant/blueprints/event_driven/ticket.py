@@ -145,6 +145,10 @@ def default_end():
     dt_end = validate_date_format("2100-01-01T00:00:00")
     return dt_end
 
+# http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea
+# curl http://127.0.0.1:6767/api/ticket/?shipperName
+# # curl http://127.0.0.1:6767/api/ticket?key=a
+# # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
 @ticket_bp.route("/", methods=["GET"])
 #@auth_required()
@@ -164,7 +168,6 @@ def ticket_get_all():
         dt_start, dt_end, sql_filters, number_of_res=limit
     )
 
-    data = ticket_controller._get_latest_event_objects(filters, number_of_res=limit)
     res = alchemyConverter(data)
     for ticket in res:
         ticket["pieces"] = ticket["pieces"].split(PIECES_SEPERATOR)
@@ -191,6 +194,26 @@ def ticket_get(ticket_id):
     res = alchemyConverter(data)
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
+
+
+@ticket_bp.route("/<ticket_id>", methods=["GET"])
+# @require_appkey
+def ticket_get(ticket_id):
+    filters = request.args.get("filters") or {}
+
+    number_of_res = request.args.get("number_of_res")
+
+    filters["ticketId"] = ticket_id
+
+
+    latest_ticket = ticket_controller._get_latest_event_objects(
+        number_of_res=number_of_res, filters=filters
+    )
+
+    res = alchemyConverter(latest_ticket[0])
+    response = json.dumps(res, cls=AlchemyEncoder)
+
+    return response
 
 """
 Route expects requests of format:

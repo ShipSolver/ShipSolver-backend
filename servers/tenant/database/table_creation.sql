@@ -35,13 +35,37 @@ CREATE TABLE IF NOT EXISTS Users (
     PRIMARY KEY("userId")
 );
 
+CREATE TABLE IF NOT EXISTS Documents (
+    "documentId" INT,
+    "timestamp" INT,
+    "userId" INT,
+    "customerName" INT,
+    "barcodeNumber" INT,
+    "houseReferenceNumber" INT,
+    "orderS3Link" VARCHAR(50),
+    "weight" INT,
+    "claimedNumberOfPieces" INT,
+    "BOLNumber" INT,
+    "specialServices" VARCHAR(256),
+    "specialInstructions" VARCHAR(256),
+    "shipperCompany" VARCHAR(256),
+    "shipperName" VARCHAR(256),
+    "shipperAddress" VARCHAR(256),
+    "shipperPostalCode" VARCHAR(256),
+    "shipperPhoneNumber" VARCHAR(256),
+    "consigneeCompany" VARCHAR(256),
+    "consigneeName" VARCHAR(256),
+    "consigneeAddress" VARCHAR(256),
+    "consigneePostalCode" VARCHAR(256),
+    "consigneePhoneNumber" VARCHAR(256),
+    "pieces" VARCHAR(256),
+    PRIMARY KEY("documentId")
+);
 
 CREATE TABLE IF NOT EXISTS TicketEvents (
     "ticketEventId" INT,
     "ticketId" INT,
     "timestamp" INT,
-    "shipperEventId" INT,
-    "consigneeEventId" INT,
     "userId" INT,
     "customerId" INT,
     "barcodeNumber" INT,

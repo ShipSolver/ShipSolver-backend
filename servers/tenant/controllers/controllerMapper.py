@@ -37,3 +37,8 @@ class InventoryMilestoneController(BaseTimeSeriesController):
 class DeliveryMilestoneController(BaseTimeSeriesController):
     def __init__(self):
         super().__init__(DeliveryMilestones)
+
+
+class UserController(DocumentController):
+    def __init__(self):
+        super().__init__(Documents)

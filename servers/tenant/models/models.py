@@ -104,7 +104,36 @@ class Users(Base):
     def __repr__(self):
         return f"< Users:: userId: {self.userId}>"
 
+class Documents(Base):
+    __tablename__ = "documents"
+    documentId = Column(Integer, nullable=False)
+    timestamp = Column(Integer, default=int(time.time()))
+    userId = Column(Integer, ForeignKey(Users.userId), nullable=False)
+    customerId = Column(Integer, ForeignKey(Customers.customerId), nullable=False)
+    barcodeNumber = Column(Integer, nullable=False)
+    houseReferenceNumber = Column(Integer, nullable=False)
+    orderS3Link = Column(String, nullable=False)
+    weight = Column(Integer, nullable=False)
+    claimedNumberOfPieces = Column(Integer, nullable=False)
+    BOLNumber = Column(Integer, nullable=False)
+    specialServices = Column(String)
+    specialInstructions = Column(String)
+    # shipper 
+    shipperCompany = Column(String, nullable=False)
+    shipperName = Column(String, nullable=False)
+    shipperAddress = Column(String, nullable=False)
+    shipperPostalCode = Column(String, nullable=False)
+    shipperPhoneNumber = Column(String, nullable=False)
+    # consignee
+    consigneeCompany = Column(String, nullable=False)
+    consigneeName = Column(String, nullable=False)
+    consigneeAddress = Column(String, nullable=False)
+    consigneePostalCode = Column(String, nullable=False)
+    consigneePhoneNumber = Column(String, nullable=False)
+    # pieces
+    pieces = Column(String, nullable=False)
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 class Documents(Base):
     __tablename__ = "documents"
@@ -148,6 +177,9 @@ class TicketStatus(Base):
 
 =======
 >>>>>>> modifying db schema
+=======
+    
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
 class TicketEvents(Base):
     __tablename__ = "ticketevents"
     non_prim_identifying_column_name = "ticketId"

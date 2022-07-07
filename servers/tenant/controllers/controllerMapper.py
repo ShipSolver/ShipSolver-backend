@@ -184,6 +184,7 @@ class DeliveryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(DeliveryMilestones)
 
+<<<<<<< HEAD
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
@@ -256,3 +257,9 @@ class TicketController(BaseTimeSeriesController):
             }
         )
         return obj
+=======
+
+class UserController(DocumentController):
+    def __init__(self):
+        super().__init__(Documents)
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz

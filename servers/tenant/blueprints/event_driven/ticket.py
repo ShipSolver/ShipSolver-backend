@@ -7,6 +7,7 @@ from wsgiref import validate
 
 from numpy import number
 from flask import make_response, request, jsonify, Blueprint
+<<<<<<< HEAD
 =======
 import datetime
 =======
@@ -22,6 +23,9 @@ from flask import request, jsonify, Blueprint
 =======
 from flask import make_response, request, jsonify, Blueprint
 >>>>>>> Cors header
+=======
+from flask_cors import cross_origin
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
 
 import sys
 
@@ -100,7 +104,12 @@ def ticket_get_all_with_status(status):  # create ticket
 
 
 @ticket_bp.route("/", methods=["POST"])
+<<<<<<< HEAD
 @auth_required()
+=======
+@cross_origin(supports_credentials=True)
+@require_appkey
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
 def ticket_post():  # create ticket
     print("Creating ticket from the following JSON:")
     print(request.data)
@@ -255,6 +264,7 @@ def default_end():
     return dt_end
 
 @ticket_bp.route("/", methods=["GET"])
+@cross_origin(supports_credentials=True)
 # @require_appkey
 def ticket_get_all():
     filters = request.args or {}
@@ -333,6 +343,7 @@ def get_single(ticket_id):
     return data[0] if isinstance(data, list) else data
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
+<<<<<<< HEAD
 @auth_required()
 def ticket_get(ticket_id):
     data = get_single(ticket_id)
@@ -340,6 +351,9 @@ def ticket_get(ticket_id):
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 =======
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
+=======
+@cross_origin(supports_credentials=True)
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
 # @require_appkey
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}
@@ -420,6 +434,7 @@ Route expects requests of format:
 =======
 
 @ticket_bp.route("/<ticket_id>", methods=["PUT"])
+@cross_origin(supports_credentials=True)
 @require_appkey
 def ticket_update(ticket_id):
 

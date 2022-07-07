@@ -5,6 +5,7 @@ from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
 <<<<<<< HEAD
+<<<<<<< HEAD
 from blueprints.simple.milestones import milestone_bp
 from blueprints.simple.driver import driver_bp
 
@@ -13,6 +14,10 @@ from flask_cognito_lib import CognitoAuth
 =======
 from servers.tenant.blueprints.simple.pdf import pdf_bp  # TODO: Move this in seperate microservice
 >>>>>>> modifying db schema
+=======
+from flask_cors import cross_origin
+from servers.tenant.blueprints.simple.document import pdf_bp  # TODO: Move this in seperate microservice
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
 
 # from models.__init__ import engine, Base
 # from models.models import INDEXES

@@ -3,7 +3,7 @@ from datetime import datetime
 from wsgiref import validate
 
 from numpy import number
-from flask import request, jsonify, Blueprint
+from flask import make_response, request, jsonify, Blueprint
 
 import sys
 
@@ -76,9 +76,10 @@ def ticket_post():  # create ticket
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
 def corsify(resp):
+    resp = make_response(json.dumps(resp))
     resp.headers['Access-Control-Allow-Origin'] = '*'
     resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
-    return json.dumps(resp)
+    return resp
 
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)

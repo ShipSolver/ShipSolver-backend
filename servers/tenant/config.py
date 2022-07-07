@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, make_response
 from celery_client import client
 
 CELERY_BROKER_URL = "redis://redis:6379/0"

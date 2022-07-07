@@ -15,10 +15,14 @@ cnx_string = f"postgresql://{db_username}:{db_password}@{db_url}:{db_port}/{db_n
 
 Base = declarative_base()
 <<<<<<< HEAD
+<<<<<<< HEAD
 engine = create_engine(cnx_string, echo=False)
 =======
 engine = create_engine(cnx_string)
 >>>>>>> push
+=======
+engine = create_engine(cnx_string, echo=True)
+>>>>>>> ALL tickets API done
 print("connecting to db....")
 Session = sessionmaker(bind=engine)
 session = Session()

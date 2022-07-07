@@ -6,7 +6,7 @@ import inspect as insp
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
 import sys
-
+from datetime import datetime
 sys.path.insert(0, "..")  # import parent folder
 
 from models.models import Users
@@ -85,16 +85,19 @@ class BaseController:
 
         self.session.commit()
 
-    def _get(self, filters=[]):
+    def _get(self, model, filters, limit=500):
+        if not filters:
+            filters = []
 
-        objects = (
-            self.session.query(self.model)
-            .filter(*convert_dict_to_alchemy_filters(filters))
-            .group_by(self.model.non_prim_identifying_column_name)
-            .order_by(self.model.timestamp)
-        )
+        objects = self.session.query(self.model) \
+            .filter(*convert_dict_to_alchemy_filters(model, filters)) \
+            .group_by(self.model.non_prim_identifying_column_name) \
+            .order_by(self.model.timestamp) \
+            .limit(limit) 
+        
 
         return objects
+
 
 
 class BaseTimeSeriesController(BaseController):
@@ -128,78 +131,66 @@ class BaseTimeSeriesController(BaseController):
     def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
 
         # get up to 'number_of_res' last event objects
-        latest_objs = (
-            self.session.query(self.model)
-            .filters(*convert_dict_to_alchemy_filters(filters))
-            .group_by(self.model.non_prim_identifying_column_name)
-            .order_by(self.model.timestamp)
-            .paginate(page, number_of_res)
-        )
+        # latest_objs = (
+        #     self.session.query(self.model)
+        #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
+        #     .group_by(self.model.non_prim_identifying_column_name)
+        #     .order_by(self.model.timestamp)
+        #     .limit(number_of_res).all() 
+        # )
 
+        print(*convert_dict_to_alchemy_filters(self.model, filters))
+        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
+            .order_by(self.model.timestamp) \
+            .limit(1).all() 
+    
+
+        # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
+        print("LATEST_OBJS-------")
+        print(latest_objs)
         return latest_objs
 
-    def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
+    # def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
 
-        starttime = int(time.mktime(start_datetime).timetuple())
+    #     starttime = int(time.mktime(start_datetime).timetuple())
 
-        filters.append(self.model.timestamp >= starttime)
+    #     filters.append(self.model.timestamp >= starttime)
 
-        latest_objs = (
-            self.session.query(self.model)
-            .filter(*convert_dict_to_alchemy_filters(filters))
-            .group_by(self.model.non_prim_identifying_column_name)
-            .order_by(self.model.timestamp)
-        )
+    #     latest_objs = (
+    #         self.session.query(self.model)
+    #         .filter(*convert_dict_to_alchemy_filters(filters))
+    #         .group_by(self.model.non_prim_identifying_column_name)
+    #         .order_by(self.model.timestamp)
+    #     )
 
-        return latest_objs
+    #     return latest_objs
 
-    def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}):
+    def  _get_latest_event_objects_from_start_date(self, datetime1, filters, number_of_res=5):
+        return self._get_latest_event_objects_in_range(datetime1, datetime.now(), filters=filters, number_of_res=5)
 
+
+    def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}, number_of_res=5):
         assert datetime1 <= datetime2
-
         time1 = int(time.mktime(datetime1.timetuple()))
         time2 = int(time.mktime(datetime2.timetuple()))
 
-        filters.append(self.model.timestamp >= time1)
-        filters.append(self.model.timestamp <= time2)
+        
+        session_filters = convert_dict_to_alchemy_filters(self.model, filters)
 
-        results = (
-            self.session.query(self.model)
-            .filter(*convert_dict_to_alchemy_filters(filters))
-            .all()
-        )
-
+        session_filters.append(self.model.timestamp >= time1)
+        session_filters.append(self.model.timestamp <= time2)
+        
+        print("------------------------RUNNING TICKET GET QUERY----------------------------")
+        results = \
+            self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
+            .filter(*session_filters) \
+            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp) \
+            .limit(number_of_res).all()
+        print("----------complete-----------------")   
+        for result in results:
+            print("TID " + str(result.ticketId))
         return results
-
-    def _get_latest_event_objects_in_range_with_limit(
-        self, datetime1, datetime2, filters={}, max_number_of_results=None
-    ):
-
-        assert datetime1 <= datetime2
-
-        time1 = int(time.mktime(datetime1.timetuple()))
-        time2 = int(time.mktime(datetime2.timetuple()))
-
-        filters.append(self.model.timestamp >= time1)
-        filters.append(self.model.timestamp <= time2)
-
-        if max_number_of_results is None:
-            latest_objs = (
-                self.session.query(self.model)
-                .filter(*convert_dict_to_alchemy_filters(filters))
-                .group_by(self.model.non_prim_identifying_column_name)
-                .order_by(self.model.timestamp)
-            ).all()
-
-        elif isinstance(max_number_of_results, int):
-            latest_objs = (
-                self.session.query(self.model)
-                .filter(*filters)
-                .group_by(self.model.non_prim_identifying_column_name)
-                .order_by(self.model.timestamp)
-            ).limit(max_number_of_results)
-
-        return latest_objs
 
     def _find_latest_prim_key_from_non_prim_identifying_column_val(
         self, non_prim_identifying_col_val

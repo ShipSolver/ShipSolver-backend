@@ -5,7 +5,7 @@ from typing import Generic
 from faker import Faker
 import os
 from flask import Flask, jsonify
-
+import uuid;
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -18,10 +18,7 @@ from models.models import *
 from controllers.controllerMapper import (
     UserController,
     CustomerController,
-    ShipperController,
-    ConsigneeController,
     TicketController,
-    PieceController,
     GenericMilestoneController,
     InventoryMilestoneController,
     DeliveryMilestoneController,
@@ -34,7 +31,7 @@ faker = Faker()
 app = Flask(__name__)
 with app.app_context():
 
-    def generate_users(scale=100):
+    def generate_users(scale=5):
 
         user_controller = UserController()
 
@@ -54,6 +51,7 @@ with app.app_context():
 
                 args_arr.append(
                     {
+                        "userId": random.randint(1, 1000000000),
                         "userType": userType,
                         "username": username,
                         "firstName": firstName,
@@ -66,7 +64,7 @@ with app.app_context():
 
         return user_controller._create_bulk(args_arr)
 
-    def generate_customers(scale=100):
+    def generate_customers(scale=2):
 
         customer_controller = CustomerController()
 
@@ -85,143 +83,9 @@ with app.app_context():
 
         return customer_controller._create_bulk(args_arr)
 
-    def generate_shipper_events(scale=50, users=[]):
-
-        shipper_events_controller = ShipperController()
-
-        n = len(
-            session.query(ShipperEvents)
-            .filter(ShipperEvents.shipperEventId == ShipperEvents.shipperId)
-            .distinct()
-            .all()
-        )
-
-        if n < scale:
-            print(f"Generating {scale - n } Shippers")
-
-            for _ in range(scale - n):
-                shipperId = random.randint(1, 2147483645)
-                userId = random.choice(users).userId
-                companyName = faker.company()
-                address = faker.address()
-                postalCode = faker.zipcode()
-                phoneNumber = faker.phone_number()
-
-                obj = shipper_events_controller._create_base_event(
-                    {
-                        "shipperId": shipperId,
-                        "userId": userId,
-                        "companyName": companyName,
-                        "address": address,
-                        "postalCode": postalCode,
-                        "phoneNumber": phoneNumber,
-                    }
-                )
-
-                # created_ids.append(obj.shipperEventId)
-
-                for i in range(random.randrange(10, 20)):
-
-                    userId = random.choice(users).userId
-
-                    if i % 4 == 0:
-                        companyName = faker.company()
-                    elif i % 4 == 1:
-                        address = faker.address()
-                    elif i % 4 == 2:
-                        postalCode = faker.zipcode()
-                    elif i % 4 == 3:
-                        phoneNumber = faker.phone_number()
-
-                    # companyName = faker.company()
-                    # address = faker.address()
-                    # postalCode = faker.zipcode()
-                    # phoneNumber = faker.phone_number()
-
-                    created_obj = shipper_events_controller._modify_latest_object(
-                        getattr(obj, ShipperEvents.non_prim_identifying_column_name),
-                        {
-                            "userId": userId,
-                            "companyName": companyName,
-                            "address": address,
-                            "postalCode": postalCode,
-                            "phoneNumber": phoneNumber,
-                        },
-                    )
-
-                    print("Created Shipper")
-                    # created_ids.append(created_obj.shipperEventId)
-
-    def generate_consignee_events(scale=20, users=[]):
-
-        shipper_events_controller = ConsigneeController()
-
-        n = len(
-            session.query(ConsigneeEvents)
-            .filter(ConsigneeEvents.consigneeEventId == ConsigneeEvents.consigneeId)
-            .distinct()
-            .all()
-        )
-
-        if n < scale:
-            print(f"Generating {scale - n } Consignee")
-
-            for _ in range(scale - n):
-                consigneeId = random.randint(1, 2147483645)
-                userId = random.choice(users).userId
-                companyName = faker.company()
-                address = faker.address()
-                postalCode = faker.zipcode()
-                phoneNumber = faker.phone_number()
-
-                obj = shipper_events_controller._create_base_event(
-                    {
-                        "consigneeId": consigneeId,
-                        "userId": userId,
-                        "companyName": companyName,
-                        "address": address,
-                        "postalCode": postalCode,
-                        "phoneNumber": phoneNumber,
-                    }
-                )
-
-                # created_ids.append(obj.shipperEventId)
-
-                for i in range(random.randrange(10, 20)):
-
-                    userId = random.choice(users).userId
-
-                    if i % 4 == 0:
-                        companyName = faker.company()
-                    elif i % 4 == 1:
-                        address = faker.address()
-                    elif i % 4 == 2:
-                        postalCode = faker.zipcode()
-                    elif i % 4 == 3:
-                        phoneNumber = faker.phone_number()
-
-                    companyName = faker.company()
-                    address = faker.address()
-                    postalCode = faker.zipcode()
-                    phoneNumber = faker.phone_number()
-
-                    created_obj = shipper_events_controller._modify_latest_object(
-                        getattr(obj, ConsigneeEvents.non_prim_identifying_column_name),
-                        {
-                            "userId": userId,
-                            "companyName": companyName,
-                            "address": address,
-                            "postalCode": postalCode,
-                            "phoneNumber": phoneNumber,
-                        },
-                    )
-
-                    # created_ids.append(created_obj.shipperEventId)
-
-                print("Created Consignee")
 
     def generate_ticket_events(
-        scale=20, shipperEvents=[], consigneeEvents=[], users=[], customers=[]
+        scale=20, users=[], customers=[]
     ):
 
         ticket_events_controller = TicketController()
@@ -237,8 +101,6 @@ with app.app_context():
             print(f"Generating {scale - n } Tickets")
 
             for _ in range(scale - n):
-                shipperEventId = random.choice(shipperEvents).shipperEventId
-                consigneeEventId = random.choice(consigneeEvents).consigneeEventId
                 userId = random.choice(users).userId
                 customerId = random.choice(customers).customerId
                 barcodeNumber = random.randrange(100000000, 900000000)
@@ -247,13 +109,22 @@ with app.app_context():
                 weight = random.randrange(100, 200)
                 claimedNumberOfPieces = random.randrange(1, 5)
                 BOLNumber = random.randrange(100000000, 900000000)
-                specialServices = ""
-                specialInstructions = ""
+                specialServices = faker.sentence()
+                specialInstructions = faker.sentence()
+                shipperCompany = faker.company()
+                shipperName = faker.name()
+                shipperAddress = faker.address()
+                shipperPostalCode = faker.zipcode()
+                shipperPhoneNumber = faker.phone_number()
+                consigneeCompany = faker.company()
+                consigneeName = faker.name()
+                consigneeAddress = faker.address()
+                consigneePostalCode = faker.zipcode()
+                consigneePhoneNumber = faker.phone_number()
+                pieces = faker.sentence()
 
                 obj = ticket_events_controller._create_base_event(
                     {
-                        "shipperEventId": shipperEventId,
-                        "consigneeEventId": consigneeEventId,
                         "userId": userId,
                         "customerId": customerId,
                         "barcodeNumber": barcodeNumber,
@@ -264,14 +135,23 @@ with app.app_context():
                         "BOLNumber": BOLNumber,
                         "specialServices": specialServices,
                         "specialInstructions": specialInstructions,
+                        "shipperCompany": shipperCompany,
+                        "shipperName": shipperName,
+                        "shipperAddress": shipperAddress,
+                        "shipperPostalCode": shipperPostalCode,
+                        "shipperPhoneNumber": shipperPhoneNumber,
+                        "consigneeCompany": consigneeCompany,
+                        "consigneeName": consigneeName,
+                        "consigneeAddress": consigneeAddress,
+                        "consigneePostalCode": consigneePostalCode,
+                        "consigneePhoneNumber": consigneePhoneNumber,
+                        "pieces": pieces
                     }
                 )
 
                 for i in range(random.randrange(10, 20)):
 
                     userId = random.choice(users).userId
-                    shipperEventId = random.choice(shipperEvents).shipperEventId
-                    consigneeEventId = random.choice(consigneeEvents).consigneeEventId
                     userId = random.choice(users).userId
                     customerId = random.choice(customers).customerId
                     barcodeNumber = random.randrange(100000000, 900000000)
@@ -285,8 +165,6 @@ with app.app_context():
                         getattr(obj, TicketEvents.non_prim_identifying_column_name),
                         {
                             "ticketId": obj.ticketId,
-                            "shipperEventId": shipperEventId,
-                            "consigneeEventId": consigneeEventId,
                             "userId": userId,
                             "customerId": customerId,
                             "barcodeNumber": barcodeNumber,
@@ -302,60 +180,8 @@ with app.app_context():
 
                 print("Created Ticket")
 
-    def generate_pieces_events(scale=20, ticketEvents=[], customers=[], users=[]):
 
-        pieces_events_controller = PieceController()
-
-        n = len(
-            session.query(PieceEvents)
-            .filter(PieceEvents.piecesEventId == PieceEvents.piecesId)
-            .distinct()
-            .all()
-        )
-
-        if n < scale:
-            print(f"Generating {scale - n } Pieces")
-
-            for _ in range(scale - n):
-
-                ticketEventId = random.choice(ticketEvents).ticketEventId
-
-                for _ in range(1, 5):
-                    piecesId = random.randint(1, 2147483645)
-                    customerId = random.choice(customers).customerId
-                    userId = random.choice(users).userId
-                    pieceDescription = ""
-
-                    obj = pieces_events_controller._create_base_event(
-                        {
-                            "piecesId": piecesId,
-                            "ticketEventId": ticketEventId,
-                            "customerId": customerId,
-                            "userId": userId,
-                            "pieceDescription": pieceDescription,
-                        }
-                    )
-
-                    for i in range(random.randrange(1, 3)):
-
-                        ticketEventId = random.choice(ticketEvents).ticketEventId
-                        customerId = random.choice(customers).customerId
-                        userId = random.choice(users).userId
-
-                        created_obj = pieces_events_controller._modify_latest_object(
-                            getattr(obj, PieceEvents.non_prim_identifying_column_name),
-                            {
-                                "piecesId": piecesId,
-                                "ticketEventId": ticketEventId,
-                                "customerId": customerId,
-                                "userId": userId,
-                                "pieceDescription": pieceDescription,
-                            },
-                        )
-
-                print("Created Piece")
-
-    def generate_generic_milestones_events(scale=200, ticket_map=[], users=[]):
+    def generate_generic_milestones_events(scale=50, ticket_map=[], users=[]):
 
         gen_milestone_controller = GenericMilestoneController()
 
@@ -389,7 +215,7 @@ with app.app_context():
 
                 print("Created Gen Milestone")
 
-    def generate_inventory_milestones_events(scale=200, ticket_map=[], users=[]):
+    def generate_inventory_milestones_events(scale=50, ticket_map=[], users=[]):
 
         gen_milestone_controller = InventoryMilestoneController()
 
@@ -429,7 +255,7 @@ with app.app_context():
 
                 print("Created Inventory Milestone")
 
-    def generate_delivery_milestones_events(scale=200, ticket_map=[], users=[]):
+    def generate_delivery_milestones_events(scale=50, ticket_map=[], users=[]):
 
         gen_milestone_controller = DeliveryMilestoneController()
 
@@ -469,7 +295,7 @@ with app.app_context():
 
                 print("Created Delivery Milestone")
 
-    generate_users(scale=10)
+    generate_users(scale=5)
     users = session.query(Users).all()
 
     # print(random.choice(users))
@@ -479,17 +305,8 @@ with app.app_context():
 
     # pprint(alchemyConverter(users[0]))
 
-
-    generate_shipper_events(scale=10, users=users)
-    shipperEvents = session.query(ShipperEvents).limit(200).all()
-
-    generate_consignee_events(scale=10, users=users)
-    consigneeEvents = session.query(ConsigneeEvents).limit(200).all()
-
     generate_ticket_events(
         scale=20,
-        shipperEvents=shipperEvents,
-        consigneeEvents=consigneeEvents,
         users=users,
         customers=customers,
     )
@@ -500,13 +317,8 @@ with app.app_context():
 
     # exit()
 
-    generate_pieces_events(
-        scale=20, ticketEvents=ticketEvents, customers=customers, users=users
-    )
-    pieceEvents = session.query(PieceEvents).distinct().all()
 
-
-    pprint(alchemyConverter(pieceEvents[0]))
+    pprint(alchemyConverter(ticketEvents[0]))
 
     exit()
 

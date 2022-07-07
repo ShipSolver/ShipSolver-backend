@@ -1,7 +1,7 @@
 import os
 from flask import abort, request
 from functools import wraps
-
+import copy
 import json
 
 
@@ -14,8 +14,9 @@ class AlchemyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
+
 # DFS function used to convert alchemy objects to JSON
-def alchemyConverter(object, res={}, visited=set({})):
+def alchemyConvertUtil(object, res, visited):
     visited.add(str(object.__class__))
     for field in [
         x
@@ -33,7 +34,7 @@ def alchemyConverter(object, res={}, visited=set({})):
                 visited.add(cls_name)
 
             res[field] = {}
-            alchemyConverter(getattr(object, field), res[field], visited=visited)
+            alchemyConvertUtil(getattr(object, field), res[field], visited=visited)
             visited.remove(cls_name)
         elif "InstrumentedList" in cls_name:
             res[field] = []
@@ -41,12 +42,24 @@ def alchemyConverter(object, res={}, visited=set({})):
             for i, obj in enumerate(getattr(object, field)):
 
                 res[field].append({})
-                alchemyConverter(obj, res[field][i], visited=visited)
+                alchemyConvertUtil(obj, res[field][i], visited=visited)
 
         else:
             res[field] = getattr(object, field)
 
     return res
+    
+def alchemyConverter(obj):
+    if type(obj) == list:
+        res = [] 
+        for ele in obj:
+            print("ALCHEMY DEBUG ---------------------------")
+            print("TID: " + str(ele.ticketId))
+            json_res = alchemyConvertUtil(ele, {}, visited=set())
+            res.append(json_res)
+        return res
+    else:
+        return alchemyConvertUtil(obj, {}, visited=set())
 
 
 # converts fiters as a dictionary to alchemy interpretable results

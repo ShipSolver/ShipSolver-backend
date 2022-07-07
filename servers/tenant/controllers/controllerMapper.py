@@ -185,7 +185,6 @@ class DeliveryMilestonesController(MilestoneController):
 
 """"""
 
-
 class TicketController(BaseTimeSeriesController):
     def __init__(self):
         super().__init__(TicketEvents)

@@ -4,6 +4,7 @@ from wsgiref import validate
 
 from numpy import number
 from flask import make_response, request, jsonify, Blueprint
+from flask_cors import cross_origin
 
 import sys
 

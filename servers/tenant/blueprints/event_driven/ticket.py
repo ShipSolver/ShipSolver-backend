@@ -171,7 +171,6 @@ def corsify(resp):
     resp = make_response(json.dumps(resp))
     resp.headers['Access-Control-Allow-Origin'] = '*'
     resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
-    trd
     return resp
 
 >>>>>>> Cors header

@@ -1,7 +1,7 @@
 import os
 from flask import abort, request
 from functools import wraps
-
+import copy
 import json
 
 
@@ -16,7 +16,7 @@ class AlchemyEncoder(json.JSONEncoder):
 
 
 # DFS function used to convert alchemy objects to JSON
-def alchemyConvertUtil(object, res={}, visited=set({})):
+def alchemyConvertUtil(object, res, visited):
     visited.add(str(object.__class__))
     for field in [
         x
@@ -50,14 +50,15 @@ def alchemyConvertUtil(object, res={}, visited=set({})):
     return res
     
 def alchemyConverter(obj):
-    print("obj", obj)
     if type(obj) == list:
         res = [] 
         for ele in obj:
-            res.append(alchemyConvertUtil(ele))
+            print("ALCHEMY DEBUG ---------------------------")
+            print("TID: " + str(ele.ticketId))
+            res.append(alchemyConvertUtil(ele, {}, visited=set()))
         return res
     else:
-        return alchemyConvertUtil(obj)
+        return alchemyConvertUtil(obj, {}, visited=set())
 
 
 # converts fiters as a dictionary to alchemy interpretable results

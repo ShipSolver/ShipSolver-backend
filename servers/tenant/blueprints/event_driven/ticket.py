@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+from wsgiref import validate
 
 from numpy import number
 from flask import request, jsonify, Blueprint
@@ -91,31 +92,25 @@ def validate_date_format(date_text):
     except ValueError:
         raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%S")
 
+def default_start():
+    dt_start = validate_date_format("1900-01-01T00:00:00")
+    return dt_start
+
+def default_end():
+    dt_end = validate_date_format("2100-01-01T00:00:00")
+    return dt_end
+
 @ticket_bp.route("/", methods=["GET"])
 # @require_appkey
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
-    if "limit" not in filters:
-        limit = 5
-    else:
-        limit = filters["limit"]
-    
-    if "start" in filters:    
-        dt_start_str = filters["start"]
-        dt_start = validate_date_format(dt_start_str)
-        if "end" in filters:
-            dt_end_str= filters["end"]
-            dt_end = validate_date_format(dt_end_str)
-            data = ticket_controller._get_latest_event_objects_in_range(
-                dt_start, dt_end, filters=sql_filters, number_of_res=limit
-            )
-        else:
-            data = ticket_controller._get_latest_event_objects_from_start_date(
-                dt_start, filters=sql_filters, number_of_res=limit
-            )
-    else:
-        data = ticket_controller._get_latest_event_objects(sql_filters, number_of_res=limit)
+    limit = 5 if "limit" not in filters else filters["limit"]
+
+    dt_start = validate_date_format(filters["start"]) if "start" in filters else default_start()
+    dt_end = validate_date_format(filters["end"]) if "end" in filters else default_end()
+
+    data = ticket_controller._get_latest_event_objects_in_range(dt_start, dt_end, sql_filters, number_of_res=limit)
     
     res = alchemyConverter(data)
     
@@ -137,10 +132,8 @@ def ticket_get(ticket_id):
     
     sql_filters = get_clean_filters_dict(filters)
     sql_filters["ticketId"] = ticket_id
-    dt_start = validate_date_format("1900-01-01T00:00:00")
-    dt_end = validate_date_format("2100-01-01T00:00:00")
     data = ticket_controller._get_latest_event_objects_in_range(
-        dt_start, dt_end, filters=sql_filters
+        default_start(), default_end(), filters=sql_filters
     )
 
     res = alchemyConverter(data[0])

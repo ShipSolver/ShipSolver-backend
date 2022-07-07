@@ -144,6 +144,7 @@ def ticket_edit(ticket_id):  # create ticket
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
+<<<<<<< HEAD
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
     if "start" in sql_filters:
@@ -206,22 +207,34 @@ def ticket_get_all():
     filters = request.args or {}
     sql_filters = dict(filters)
     
+=======
+
+def get_clean_filters_dict(immutable_args):
+    sql_filters = dict(immutable_args)
+>>>>>>> ALL tickets API done
     if "start" in sql_filters: 
         del sql_filters["start"]
     if "end" in sql_filters:
         del sql_filters["end"]
     if "limit" in sql_filters:
         del sql_filters["limit"]
+    return sql_filters
 
+def validate_date_format(date_text):
+    try:
+        return datetime.strptime(date_text, "%Y-%m-%dT%H:%M:%S")
+    except ValueError:
+        raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%S")
+
+@ticket_bp.route("/", methods=["GET"])
+# @require_appkey
+def ticket_get_all():
+    filters = request.args or {}
+    sql_filters = get_clean_filters_dict(filters)
     if "limit" not in filters:
         limit = 5
     else:
         limit = filters["limit"]
-    def validate_date_format(date_text):
-        try:
-            return datetime.strptime(date_text, "%Y-%m-%dT%H:%M:%S")
-        except ValueError:
-            raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%S")
     
     if "start" in filters:    
         dt_start_str = filters["start"]
@@ -238,6 +251,7 @@ def ticket_get_all():
             )
     else:
         data = ticket_controller._get_latest_event_objects(sql_filters, number_of_res=limit)
+<<<<<<< HEAD
 >>>>>>> get endpoints
 
     res = alchemyConverter(data)
@@ -246,6 +260,17 @@ def ticket_get_all():
         ticket["ticketStatus"]["currentStatus"] = ticket["ticketStatus"]["currentStatus"].value
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
+=======
+    
+    res = alchemyConverter(data)
+    
+    print("\n\n\n\nRES POST AC ----------------------")
+    print(res)
+    response = json.dumps(res)
+
+    print("\n\n\n\nRESULT RESPONSE ------------------" )
+    print(response)
+>>>>>>> ALL tickets API done
 
 
 <<<<<<< HEAD
@@ -273,18 +298,18 @@ def ticket_get(ticket_id):
 # @require_appkey
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}
-
-    number_of_res = request.args.get("number_of_res")
-
-    filters["ticketId"] = ticket_id
-
-
-    latest_ticket = ticket_controller._get_latest_event_objects(
-        number_of_res=number_of_res, filters=filters
+    
+    
+    sql_filters = get_clean_filters_dict(filters)
+    sql_filters["ticketId"] = ticket_id
+    dt_start = validate_date_format("1900-01-01T00:00:00")
+    dt_end = validate_date_format("2100-01-01T00:00:00")
+    data = ticket_controller._get_latest_event_objects_in_range(
+        dt_start, dt_end, filters=sql_filters
     )
 
-    res = alchemyConverter(latest_ticket[0])
-    response = json.dumps(res, cls=AlchemyEncoder)
+    res = alchemyConverter(data[0])
+    response = json.dumps(res)
 
     return response
 >>>>>>> get endpoints

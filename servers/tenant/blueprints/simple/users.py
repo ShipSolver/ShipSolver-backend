@@ -23,7 +23,7 @@ def user_get():  # create ticket
 
 
 @user_bp.route("/", methods=["POST"])
-# @auth_required()
+@auth_required()
 def user_post():  # create ticket
 
     (request.get_json(force=True)['user'])

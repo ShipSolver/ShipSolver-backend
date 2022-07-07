@@ -148,6 +148,14 @@ def ticket_edit(ticket_id):  # create ticket
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+def corsify(resp):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+    return json.dumps(resp)
+
+>>>>>>> Cors header
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
     if "start" in sql_filters:
@@ -291,6 +299,7 @@ def ticket_get_all():
     
     res = alchemyConverter(data)
     
+<<<<<<< HEAD
     print("\n\n\n\nRES POST AC ----------------------")
     print(res)
     response = json.dumps(res)
@@ -299,6 +308,9 @@ def ticket_get_all():
     print(response)
 >>>>>>> ALL tickets API done
 
+=======
+    return corsify(res)
+>>>>>>> Cors header
 
 <<<<<<< HEAD
 def get_single(ticket_id):
@@ -334,10 +346,14 @@ def ticket_get(ticket_id):
     )
 
     res = alchemyConverter(data[0])
+<<<<<<< HEAD
     response = json.dumps(res)
 
     return response
 >>>>>>> get endpoints
+=======
+    return corsify(res)
+>>>>>>> Cors header
 
 """
 Route expects requests of format:

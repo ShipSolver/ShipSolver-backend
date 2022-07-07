@@ -146,11 +146,15 @@ class BaseTimeSeriesController(BaseController):
 
         # get up to 'number_of_res' last event objects
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> ALL tickets API done
         # latest_objs = (
         #     self.session.query(self.model)
         #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
         #     .group_by(self.model.non_prim_identifying_column_name)
         #     .order_by(self.model.timestamp)
+<<<<<<< HEAD
 <<<<<<< HEAD
         #     .limit(number_of_res)
         #     .all()
@@ -190,6 +194,16 @@ class BaseTimeSeriesController(BaseController):
         #     .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
         #     .limit(number_of_res).all() 
 >>>>>>> get endpoints
+=======
+        #     .limit(number_of_res).all() 
+        # )
+
+        print(*convert_dict_to_alchemy_filters(self.model, filters))
+        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
+            .order_by(self.model.timestamp) \
+            .limit(1).all() 
+>>>>>>> ALL tickets API done
     
 
         # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
@@ -234,9 +248,12 @@ class BaseTimeSeriesController(BaseController):
 
 
     def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}, number_of_res=5):
+<<<<<<< HEAD
         print("\n\n\nDATETIM1", datetime1, datetime2)
 
 >>>>>>> get endpoints
+=======
+>>>>>>> ALL tickets API done
         assert datetime1 <= datetime2
         time1 = int(time.mktime(datetime1.timetuple()))
         time2 = int(time.mktime(datetime2.timetuple()))
@@ -249,6 +266,7 @@ class BaseTimeSeriesController(BaseController):
 
         session_filters.append(self.model.timestamp >= time1)
         session_filters.append(self.model.timestamp <= time2)
+<<<<<<< HEAD
 
         print(
             "------------------------RUNNING TICKET GET QUERY----------------------------"
@@ -273,6 +291,18 @@ class BaseTimeSeriesController(BaseController):
         print("results" , results)
 
 >>>>>>> get endpoints
+=======
+        
+        print("------------------------RUNNING TICKET GET QUERY----------------------------")
+        results = \
+            self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
+            .filter(*session_filters) \
+            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp) \
+            .limit(number_of_res).all()
+        print("----------complete-----------------")   
+        for result in results:
+            print("TID " + str(result.ticketId))
+>>>>>>> ALL tickets API done
         return results
 
     def _find_latest_prim_key_from_non_prim_identifying_column_val(

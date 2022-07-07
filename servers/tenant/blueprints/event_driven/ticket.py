@@ -4,6 +4,7 @@ from wsgiref import validate
 
 from numpy import number
 from flask import make_response, request, jsonify, Blueprint
+from flask_cors import cross_origin
 
 import sys
 
@@ -202,6 +203,7 @@ def ticket_get(ticket_id):
 
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
+@cross_origin(supports_credentials=True)
 # @require_appkey
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}

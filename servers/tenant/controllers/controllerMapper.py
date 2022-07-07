@@ -219,3 +219,7 @@ class TicketController(BaseTimeSeriesController):
             }
         )
         return obj
+
+class UserController(DocumentController):
+    def __init__(self):
+        super().__init__(Documents)

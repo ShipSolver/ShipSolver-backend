@@ -232,6 +232,7 @@ class BaseTimeSeriesController(BaseController):
     #     return latest_objs
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     def _get_latest_event_objects_from_start_date(
         self, datetime1, filters, number_of_res=5
     ):
@@ -244,6 +245,9 @@ class BaseTimeSeriesController(BaseController):
     ):
 =======
     def  _get_latest_event_objects_from_start_date(self, datetime1, filters={}, number_of_res=5):
+=======
+    def  _get_latest_event_objects_from_start_date(self, datetime1, filters, number_of_res=5):
+>>>>>>> Fixing default date bug
         return self._get_latest_event_objects_in_range(datetime1, datetime.now(), filters=filters, number_of_res=5)
 
 

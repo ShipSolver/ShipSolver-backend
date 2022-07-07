@@ -12,9 +12,8 @@ from controllers.controllerMapper import (
     DeliveryMilestoneController,
 )
 from models.models import GenericMilestones, InventoryMilestones, DeliveryMilestones
-from utils import require_appkey
+from flask_cognito_lib.decorators import auth_required
 
-# TODO: USER BASED AUTH
 
 class_to_cntrl_map = {
     GenericMilestones: GenericMilestoneController,
@@ -33,14 +32,14 @@ for milestoneCls in class_to_cntrl_map:
     milestone_controller = class_to_cntrl_map[milestoneCls]
 
     @milestone_bp.route("/", methods=["POST"])
-    @require_appkey
+    @auth_required()
     def miltestone_post():  # create ticket
         milestone_controller._create(**request.form["object"])
 
         return "success"
 
     @milestone_bp.route("/modify", methods=["POST"])
-    @require_appkey
+    @auth_required()
     def milestone_modify():
 
         milestoneId = request.form["milestoneId"]
@@ -51,7 +50,7 @@ for milestoneCls in class_to_cntrl_map:
         return "success"
 
     @milestone_bp.route("/", methods=["DELETE"])
-    @require_appkey
+    @auth_required()
     def milestone_delete():
         milestoneId = request.args.get("milestoneId")
         milestone_controller._delete(milestoneId)

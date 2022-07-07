@@ -11,15 +11,11 @@ from controllers.controllerMapper import PieceController
 from models.models import TicketEvents, PieceEvents
 from utils import (
     AlchemyEncoder,
-    require_appkey,
     alchemyConverter,
 )
+from flask_cognito_lib.decorators import auth_required
 
 pieces_bp = Blueprint("pieces_bp", __name__, url_prefix="piece")
-
-
-# TODO: USER BASED AUTH
-
 
 pieces_controller = PieceController()
 
@@ -41,7 +37,7 @@ Route expects requests of format:
 
 @pieces_bp.route("/{piece_id}", methods=["GET"])
 @cross_origin(supports_credentials=True)
-@require_appkey
+@auth_required()
 def pieces_get_history(piece_id):
     filters = request.args.get("filters")
     filters.extend({"piece_id": piece_id})

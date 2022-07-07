@@ -14,13 +14,12 @@ from controllers.controllerMapper import TicketController
 from models.models import TicketEvents
 from utils import (
     AlchemyEncoder,
-    require_appkey,
     alchemyConverter,
 )
 
-ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
+from flask_cognito_lib.decorators import auth_required
 
-# TODO: USER BASED AUTH
+ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
 ticket_controller = TicketController()
 
@@ -58,7 +57,7 @@ Route expects requests of format:
 
 @ticket_bp.route("/", methods=["POST"])
 @cross_origin(supports_credentials=True)
-@require_appkey
+@auth_required()
 def ticket_post():  # create ticket
 
     ticket_dict = request.args.get("ticket")
@@ -109,7 +108,7 @@ def default_end():
 
 @ticket_bp.route("/", methods=["GET"])
 @cross_origin(supports_credentials=True)
-# @require_appkey
+@auth_required()
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
@@ -127,7 +126,7 @@ def ticket_get_all():
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
 @cross_origin(supports_credentials=True)
-# @require_appkey
+@auth_required()
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}
     
@@ -196,7 +195,7 @@ Route expects requests of format:
 
 @ticket_bp.route("/<ticket_id>", methods=["PUT"])
 @cross_origin(supports_credentials=True)
-@require_appkey
+@auth_required()
 def ticket_update(ticket_id):
 
     update_dict = request.form["update_dict"]

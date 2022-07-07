@@ -106,10 +106,8 @@ class Users(Base):
 
 class Documents(Base):
     __tablename__ = "documents"
-    documentId = Column(Integer, nullable=False)
+    documentId = Column(Integer, primary_key=True, nullable=False)
     timestamp = Column(Integer, default=int(time.time()))
-    userId = Column(Integer, ForeignKey(Users.userId), nullable=False)
-    customerId = Column(Integer, ForeignKey(Customers.customerId), nullable=False)
     barcodeNumber = Column(Integer, nullable=False)
     houseReferenceNumber = Column(Integer, nullable=False)
     orderS3Link = Column(String, nullable=False)
@@ -132,6 +130,9 @@ class Documents(Base):
     consigneePhoneNumber = Column(String, nullable=False)
     # pieces
     pieces = Column(String, nullable=False)
+    customerName = Column(String, nullable=False)
+
+
 
 class DocumentStatus(Base):
     __tablename__ = "documentstatus"

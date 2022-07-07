@@ -220,6 +220,6 @@ class TicketController(BaseTimeSeriesController):
         )
         return obj
 
-class UserController(DocumentController):
+class DocumentController(BaseController):
     def __init__(self):
         super().__init__(Documents)

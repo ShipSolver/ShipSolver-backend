@@ -135,16 +135,13 @@ def validate_date_format(date_text):
     except ValueError:
         raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%S")
 
-
 def default_start():
     dt_start = validate_date_format("1900-01-01T00:00:00")
     return dt_start
 
-
 def default_end():
     dt_end = validate_date_format("2100-01-01T00:00:00")
     return dt_end
-
 
 @ticket_bp.route("/", methods=["GET"])
 #@auth_required()

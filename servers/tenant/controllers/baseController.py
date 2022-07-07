@@ -128,18 +128,19 @@ class BaseTimeSeriesController(BaseController):
     def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
 
         # get up to 'number_of_res' last event objects
-        latest_objs = (
-            self.session.query(self.model)
-            .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
-            .group_by(self.model.non_prim_identifying_column_name)
-            .order_by(self.model.timestamp)
-            .limit(number_of_res).all()
-        )
-
-        # print(*convert_dict_to_alchemy_filters(self.model, filters))
-        # latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-        #     .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
+        # latest_objs = (
+        #     self.session.query(self.model)
+        #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
+        #     .group_by(self.model.non_prim_identifying_column_name)
+        #     .order_by(self.model.timestamp)
         #     .limit(number_of_res).all() 
+        # )
+
+        print(*convert_dict_to_alchemy_filters(self.model, filters))
+        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
+            .order_by(self.model.timestamp) \
+            .limit(1).all() 
     
 
         # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
@@ -167,8 +168,6 @@ class BaseTimeSeriesController(BaseController):
 
 
     def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}, number_of_res=5):
-        print("\n\n\nDATETIM1", datetime1, datetime2)
-
         assert datetime1 <= datetime2
         time1 = int(time.mktime(datetime1.timetuple()))
         time2 = int(time.mktime(datetime2.timetuple()))

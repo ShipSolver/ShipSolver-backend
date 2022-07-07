@@ -200,18 +200,18 @@ def ticket_get(ticket_id):
 # @require_appkey
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}
-
-    number_of_res = request.args.get("number_of_res")
-
-    filters["ticketId"] = ticket_id
-
-
-    latest_ticket = ticket_controller._get_latest_event_objects(
-        number_of_res=number_of_res, filters=filters
+    
+    
+    sql_filters = get_clean_filters_dict(filters)
+    sql_filters["ticketId"] = ticket_id
+    dt_start = validate_date_format("1900-01-01T00:00:00")
+    dt_end = validate_date_format("2100-01-01T00:00:00")
+    data = ticket_controller._get_latest_event_objects_in_range(
+        dt_start, dt_end, filters=sql_filters
     )
 
-    res = alchemyConverter(latest_ticket[0])
-    response = json.dumps(res, cls=AlchemyEncoder)
+    res = alchemyConverter(data[0])
+    response = json.dumps(res)
 
     return response
 

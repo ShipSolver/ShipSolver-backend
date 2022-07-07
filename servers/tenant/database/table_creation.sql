@@ -37,6 +37,9 @@ CREATE TABLE IF NOT EXISTS Users (
 );
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
 CREATE TABLE IF NOT EXISTS Documents (
     "documentId" INT,
     "timestamp" INT,
@@ -62,14 +65,18 @@ CREATE TABLE IF NOT EXISTS Documents (
     "consigneePhoneNumber" VARCHAR(256),
     "pieces" VARCHAR(256),
     PRIMARY KEY("documentId")
+<<<<<<< HEAD
 =======
 >>>>>>> push
+=======
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
 );
 
 CREATE TABLE IF NOT EXISTS TicketEvents (
     "ticketEventId" INT,
     "ticketId" INT,
     "timestamp" INT,
+<<<<<<< HEAD
     "userId" INT,
     "customerId" INT,
     "barcodeNumber" INT,
@@ -134,6 +141,8 @@ CREATE TABLE IF NOT EXISTS TicketEvents (
     "timestamp" INT,
     "shipperEventId" INT,
     "consigneeEventId" INT,
+=======
+>>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
     "userId" INT,
     "customerId" INT,
     "barcodeNumber" INT,

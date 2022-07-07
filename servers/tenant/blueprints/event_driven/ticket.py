@@ -16,8 +16,12 @@ from datetime import datetime
 >>>>>>> Fixing default date bug
 
 from numpy import number
+<<<<<<< HEAD
 from flask import request, jsonify, Blueprint
 >>>>>>> modifying db schema
+=======
+from flask import make_response, request, jsonify, Blueprint
+>>>>>>> Cors header
 
 import sys
 
@@ -151,9 +155,10 @@ def ticket_edit(ticket_id):  # create ticket
 <<<<<<< HEAD
 =======
 def corsify(resp):
+    resp = make_response(json.dumps(resp))
     resp.headers['Access-Control-Allow-Origin'] = '*'
     resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
-    return json.dumps(resp)
+    return resp
 
 >>>>>>> Cors header
 def get_clean_filters_dict(immutable_args):

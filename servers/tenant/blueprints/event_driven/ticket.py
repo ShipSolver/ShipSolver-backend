@@ -75,6 +75,11 @@ def ticket_post():  # create ticket
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
+def corsify(resp):
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+    return json.dumps(resp)
+
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
     if "start" in sql_filters: 
@@ -113,14 +118,7 @@ def ticket_get_all():
     
     res = alchemyConverter(data)
     
-    print("\n\n\n\nRES POST AC ----------------------")
-    print(res)
-    response = json.dumps(res)
-
-    print("\n\n\n\nRESULT RESPONSE ------------------" )
-    print(response)
-
-    return response
+    return corsify(res)
 
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
@@ -136,9 +134,7 @@ def ticket_get(ticket_id):
     )
 
     res = alchemyConverter(data[0])
-    response = json.dumps(res)
-
-    return response
+    return corsify(res)
 
 """
 Route expects requests of format:

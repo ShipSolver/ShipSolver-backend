@@ -75,7 +75,6 @@ def ticket_post():  # create ticket
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
-
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
     if "start" in sql_filters: 
@@ -105,7 +104,7 @@ def default_end():
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
-    limit = 5 if "limit" not in filters else filters["limit"]
+    limit = 5000 if "limit" not in filters else filters["limit"]
 
     dt_start = validate_date_format(filters["start"]) if "start" in filters else default_start()
     dt_end = validate_date_format(filters["end"]) if "end" in filters else default_end()

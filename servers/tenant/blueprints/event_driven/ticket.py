@@ -192,6 +192,7 @@ def default_end():
     dt_end = validate_date_format("2100-01-01T00:00:00")
     return dt_end
 
+<<<<<<< HEAD
 
 @ticket_bp.route("/", methods=["GET"])
 @auth_required()
@@ -216,6 +217,8 @@ def ticket_get_all():
     
 =======
 
+=======
+>>>>>>> Cors header
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
 >>>>>>> ALL tickets API done
@@ -246,6 +249,7 @@ def default_end():
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
+<<<<<<< HEAD
 <<<<<<< HEAD
     if "limit" not in filters:
         limit = 5
@@ -279,6 +283,9 @@ def ticket_get_all():
 =======
 =======
     limit = 5 if "limit" not in filters else filters["limit"]
+=======
+    limit = 5000 if "limit" not in filters else filters["limit"]
+>>>>>>> Cors header
 
     dt_start = validate_date_format(filters["start"]) if "start" in filters else default_start()
     dt_end = validate_date_format(filters["end"]) if "end" in filters else default_end()

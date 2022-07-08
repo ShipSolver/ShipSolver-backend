@@ -4,7 +4,6 @@ from wsgiref import validate
 
 from numpy import number
 from flask import make_response, request, jsonify, Blueprint
-from flask_cors import cross_origin
 
 import sys
 
@@ -14,13 +13,12 @@ from controllers.controllerMapper import TicketController
 from models.models import TicketEvents
 from utils import (
     AlchemyEncoder,
-    require_appkey,
     alchemyConverter,
 )
 
-ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
+from flask_cognito_lib.decorators import auth_required
 
-# TODO: USER BASED AUTH
+ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
 ticket_controller = TicketController()
 
@@ -57,8 +55,7 @@ Route expects requests of format:
 
 
 @ticket_bp.route("/", methods=["POST"])
-@cross_origin(supports_credentials=True)
-@require_appkey
+@auth_required()
 def ticket_post():  # create ticket
 
     ticket_dict = request.args.get("ticket")
@@ -69,19 +66,13 @@ def ticket_post():  # create ticket
 
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
-    return {"success"}
+    return make_response("success")
 
 
 # http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea
 # curl http://127.0.0.1:6767/api/ticket/?shipperName
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
-
-def corsify(resp):
-    resp = make_response(json.dumps(resp))
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
-    return resp
 
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
@@ -108,8 +99,7 @@ def default_end():
     return dt_end
 
 @ticket_bp.route("/", methods=["GET"])
-@cross_origin(supports_credentials=True)
-# @require_appkey
+@auth_required()
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
@@ -122,12 +112,11 @@ def ticket_get_all():
     
     res = alchemyConverter(data)
     
-    return corsify(res)
+    return make_response(json.dumps(res))
 
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
-@cross_origin(supports_credentials=True)
-# @require_appkey
+@auth_required()
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}
     
@@ -139,7 +128,7 @@ def ticket_get(ticket_id):
     )
 
     res = alchemyConverter(data[0])
-    return corsify(res)
+    return make_response(json.dumps(res))
 
 """
 Route expects requests of format:
@@ -195,8 +184,7 @@ Route expects requests of format:
 
 
 @ticket_bp.route("/<ticket_id>", methods=["PUT"])
-@cross_origin(supports_credentials=True)
-@require_appkey
+@auth_required()
 def ticket_update(ticket_id):
 
     update_dict = request.form["update_dict"]
@@ -215,4 +203,4 @@ def ticket_update(ticket_id):
     res = alchemyConverter(updated_object)
     response = json.dumps(res, cls=AlchemyEncoder)
 
-    return response
+    return make_response(response)

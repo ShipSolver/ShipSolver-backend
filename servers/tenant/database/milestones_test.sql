@@ -86,3 +86,20 @@ CREATE TABLE IF NOT EXISTS TestIncompleteDeliveryMilestones (
     PRIMARY KEY("milestoneId"),
     CONSTRAINT "fk_ticketEventId" FOREIGN KEY ("ticketEventId") REFERENCES TicketEvents("ticketEventId")
 );
+
+-- -------------------- --
+-- ASSIGNMENT MILESTONE --
+-- -------------------- --
+CREATE TYPE TEST_ASSIGNMENT_TICKET_STATUS AS ENUM('CHECKED_INTO_INVENTORY', 'ASSIGNED', 'IN_TRANSIT');
+DROP TABLE TestAssignmentMilestones;
+CREATE TABLE IF NOT EXISTS TestAssignmentMilestones (
+    "milestoneId" INT,
+    timestamp INT,
+    "ticketEventId" INT,
+    "assignedToUserId" INT,
+    "assignedByUserId" INT,
+    "previousTicketStatus" TEST_ASSIGNMENT_TICKET_STATUS,
+    "currentTicketStatus" TEST_ASSIGNMENT_TICKET_STATUS,
+    PRIMARY KEY("milestoneId"),
+    CONSTRAINT "fk_ticketEventId" FOREIGN KEY ("ticketEventId") REFERENCES TicketEvents("ticketEventId")
+);

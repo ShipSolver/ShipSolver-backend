@@ -14,7 +14,7 @@ cnx_string = f"postgresql://{db_username}:{db_password}@{db_url}:{db_port}/{db_n
 
 
 Base = declarative_base()
-engine = create_engine(cnx_string, echo=True)
+engine = create_engine(cnx_string, echo=False)
 print("connecting to db....")
 Session = sessionmaker(bind=engine)
 session = Session()

@@ -5,7 +5,7 @@ from typing import Generic
 from faker import Faker
 import os
 from flask import Flask, jsonify
-import uuid;
+import uuid
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -83,10 +83,7 @@ with app.app_context():
 
         return customer_controller._create_bulk(args_arr)
 
-
-    def generate_ticket_events(
-        scale=20, users=[], customers=[]
-    ):
+    def generate_ticket_events(scale=20, users=[], customers=[]):
 
         ticket_events_controller = TicketController()
 
@@ -145,7 +142,7 @@ with app.app_context():
                         "consigneeAddress": consigneeAddress,
                         "consigneePostalCode": consigneePostalCode,
                         "consigneePhoneNumber": consigneePhoneNumber,
-                        "pieces": pieces
+                        "pieces": pieces,
                     }
                 )
 
@@ -180,120 +177,119 @@ with app.app_context():
 
                 print("Created Ticket")
 
+    # def generate_generic_milestones_events(scale=50, ticket_map=[], users=[]):
 
-    def generate_generic_milestones_events(scale=50, ticket_map=[], users=[]):
+    #     gen_milestone_controller = GenericMilestoneController()
 
-        gen_milestone_controller = GenericMilestoneController()
+    #     n = len(session.query(GenericMilestones).distinct().all())
+    #     if n < scale:
+    #         print(f"Generating Gen Milestones for {scale - n } Tickets")
 
-        n = len(session.query(GenericMilestones).distinct().all())
-        if n < scale:
-            print(f"Generating Gen Milestones for {scale - n } Tickets")
+    #         for _ in range(scale - n):
 
-            for _ in range(scale - n):
+    #             ticketId = random.choice([k for k in ticket_map])
 
-                ticketId = random.choice([k for k in ticket_map])
+    #             for _ in range(
+    #                 random.randint(4, 10)
+    #             ):  # number of milestones per ticket
 
-                for _ in range(
-                    random.randint(4, 10)
-                ):  # number of milestones per ticket
+    #                 milestoneId = random.randint(1, 2147483645)
+    #                 userId = random.choice(users).userId
 
-                    milestoneId = random.randint(1, 2147483645)
-                    userId = random.choice(users).userId
+    #                 ticketStatus = random.choice(
+    #                     [e for e in Generic_Ticket_Status]
+    #                 ).value.lower()
 
-                    ticketStatus = random.choice(
-                        [e for e in Generic_Ticket_Status]
-                    ).value.lower()
+    #                 obj = gen_milestone_controller._create(
+    #                     {
+    #                         "milestoneId": milestoneId,
+    #                         "ticketEventId": random.choice(ticket_map[ticketId]),
+    #                         "userId": userId,
+    #                         "ticketStatus": ticketStatus,
+    #                     }
+    #                 )
 
-                    obj = gen_milestone_controller._create(
-                        {
-                            "milestoneId": milestoneId,
-                            "ticketEventId": random.choice(ticket_map[ticketId]),
-                            "userId": userId,
-                            "ticketStatus": ticketStatus,
-                        }
-                    )
+    #             print("Created Gen Milestone")
 
-                print("Created Gen Milestone")
+    # def generate_inventory_milestones_events(scale=50, ticket_map=[], users=[]):
 
-    def generate_inventory_milestones_events(scale=50, ticket_map=[], users=[]):
+    #     gen_milestone_controller = InventoryMilestoneController()
 
-        gen_milestone_controller = InventoryMilestoneController()
+    #     n = len(session.query(InventoryMilestones).distinct().all())
 
-        n = len(session.query(InventoryMilestones).distinct().all())
+    #     if n < scale:
+    #         print(f"Generating Inventory Milestones for {scale - n } Tickets")
 
-        if n < scale:
-            print(f"Generating Inventory Milestones for {scale - n } Tickets")
+    #         for _ in range(scale - n):
 
-            for _ in range(scale - n):
+    #             ticketId = random.choice([k for k in ticket_map])
 
-                ticketId = random.choice([k for k in ticket_map])
+    #             for _ in range(
+    #                 random.randint(4, 10)
+    #             ):  # number of milestones per ticket
 
-                for _ in range(
-                    random.randint(4, 10)
-                ):  # number of milestones per ticket
+    #                 milestoneId = random.randint(1, 2147483645)
+    #                 userId = random.choice(users).userId
 
-                    milestoneId = random.randint(1, 2147483645)
-                    userId = random.choice(users).userId
+    #                 ticketStatus = random.choice(
+    #                     [e for e in Generic_Ticket_Status]
+    #                 ).value.lower()
 
-                    ticketStatus = random.choice(
-                        [e for e in Generic_Ticket_Status]
-                    ).value.lower()
+    #                 approvalStatus = random.choice(
+    #                     [e for e in Ticket_Approval_Status]
+    #                 ).value.lower()
 
-                    approvalStatus = random.choice(
-                        [e for e in Ticket_Approval_Status]
-                    ).value.lower()
+    #                 obj = gen_milestone_controller._create(
+    #                     {
+    #                         "milestoneId": milestoneId,
+    #                         "ticketEventId": random.choice(ticket_map[ticketId]),
+    #                         "userId": userId,
+    #                         "ticketStatus": ticketStatus,
+    #                         "approvalStatus": approvalStatus,
+    #                     }
+    #                 )
 
-                    obj = gen_milestone_controller._create(
-                        {
-                            "milestoneId": milestoneId,
-                            "ticketEventId": random.choice(ticket_map[ticketId]),
-                            "userId": userId,
-                            "ticketStatus": ticketStatus,
-                            "approvalStatus": approvalStatus,
-                        }
-                    )
+    #             print("Created Inventory Milestone")
 
-                print("Created Inventory Milestone")
+    # def generate_delivery_milestones_events(scale=50, ticket_map=[], users=[]):
 
-    def generate_delivery_milestones_events(scale=50, ticket_map=[], users=[]):
+    #     gen_milestone_controller = DeliveryMilestoneController()
 
-        gen_milestone_controller = DeliveryMilestoneController()
+    #     n = len(session.query(DeliveryMilestones).distinct().all())
 
-        n = len(session.query(DeliveryMilestones).distinct().all())
+    #     if n < scale:
+    #         print(f"Generating Delivery Milestones for {scale - n } Tickets")
 
-        if n < scale:
-            print(f"Generating Delivery Milestones for {scale - n } Tickets")
+    #         for _ in range(scale - n):
 
-            for _ in range(scale - n):
+    #             ticketId = random.choice([k for k in ticket_map])
 
-                ticketId = random.choice([k for k in ticket_map])
+    #             for _ in range(
+    #                 random.randint(4, 10)
+    #             ):  # number of milestones per ticket
 
-                for _ in range(
-                    random.randint(4, 10)
-                ):  # number of milestones per ticket
+    #                 milestoneId = random.randint(1, 2147483645)
+    #                 userId = random.choice(users).userId
 
-                    milestoneId = random.randint(1, 2147483645)
-                    userId = random.choice(users).userId
+    #                 ticketStatus = random.choice(
+    #                     [e for e in Generic_Ticket_Status]
+    #                 ).value.lower()
 
-                    ticketStatus = random.choice(
-                        [e for e in Generic_Ticket_Status]
-                    ).value.lower()
+    #                 approvalStatus = random.choice(
+    #                     [e for e in Ticket_Approval_Status]
+    #                 ).value.lower()
 
-                    approvalStatus = random.choice(
-                        [e for e in Ticket_Approval_Status]
-                    ).value.lower()
+    #                 obj = gen_milestone_controller._create(
+    #                     {
+    #                         "milestoneId": milestoneId,
+    #                         "ticketEventId": random.choice(ticket_map[ticketId]),
+    #                         "userId": userId,
+    #                         "ticketStatus": ticketStatus,
+    #                         "approvalStatus": approvalStatus,
+    #                     }
+    #                 )
 
-                    obj = gen_milestone_controller._create(
-                        {
-                            "milestoneId": milestoneId,
-                            "ticketEventId": random.choice(ticket_map[ticketId]),
-                            "userId": userId,
-                            "ticketStatus": ticketStatus,
-                            "approvalStatus": approvalStatus,
-                        }
-                    )
-
-                print("Created Delivery Milestone")
+    #             print("Created Delivery Milestone")
 
     generate_users(scale=5)
     users = session.query(Users).all()
@@ -312,17 +308,13 @@ with app.app_context():
     )
     ticketEvents = session.query(TicketEvents).distinct().all()
 
-
     # pprint(alchemyConverter(ticketEvents[0]))
 
     # exit()
 
-
     pprint(alchemyConverter(ticketEvents[0]))
 
     exit()
-
-
 
     ticketIds = (
         session.query(TicketEvents.ticketId, TicketEvents.ticketEventId)

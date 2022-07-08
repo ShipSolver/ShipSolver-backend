@@ -7,20 +7,36 @@ import sys
 sys.path.insert(0, "..")  # import parent folder
 
 from controllers.controllerMapper import (
-    GenericMilestoneController,
-    InventoryMilestoneController,
-    DeliveryMilestoneController,
+    CreationMilestonesController,
+    PickupMilestonesController,
+    InventoryMilestonesController,
+    AssignmentMilestonesController,
+    IncompleteDeliveryMilestonesController,
+    DeliveryMilestonesController,
+    TicketStatusController,
 )
-from models.models import GenericMilestones, InventoryMilestones, DeliveryMilestones
 from flask_cognito_lib.decorators import auth_required
+
+from models.models import (
+    CreationMilestones,
+    PickupMilestones,
+    InventoryMilestones,
+    AssignmentMilestones,
+    IncompleteDeliveryMilestones,
+    DeliveryMilestones,
+)
 
 
 class_to_cntrl_map = {
-    GenericMilestones: GenericMilestoneController,
-    InventoryMilestones: InventoryMilestoneController,
-    DeliveryMilestones: DeliveryMilestoneController,
+    CreationMilestones: CreationMilestonesController,
+    PickupMilestones: PickupMilestonesController,
+    InventoryMilestones: InventoryMilestonesController,
+    AssignmentMilestones: AssignmentMilestonesController,
+    IncompleteDeliveryMilestones: IncompleteDeliveryMilestonesController,
+    DeliveryMilestones: DeliveryMilestonesController,
 }
 
+ticket_status_controller = TicketStatusController()
 for milestoneCls in class_to_cntrl_map:
 
     milestone_bp = Blueprint(
@@ -34,6 +50,13 @@ for milestoneCls in class_to_cntrl_map:
     @milestone_bp.route("/", methods=["POST"])
     @auth_required()
     def miltestone_post():  # create ticket
+        ticketId = request.form["ticketId"]
+
+        
+        milestoneCls.__tablename__
+        ticket_status_controller._modify(
+            ticketId, {"ticket_status": }
+        )
         milestone_controller._create(**request.form["object"])
 
         return "success"
@@ -42,10 +65,9 @@ for milestoneCls in class_to_cntrl_map:
     @auth_required()
     def milestone_modify():
 
-        milestoneId = request.form["milestoneId"]
-        update_dict = request.form["update_dict"]
+    # milestone_controller._modify(milestoneId, **update_dict)
 
-        milestone_controller._modify(milestoneId, **update_dict)
+    # return "success"
 
         return "success"
 

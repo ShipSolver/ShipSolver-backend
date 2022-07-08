@@ -19,9 +19,6 @@ from controllers.controllerMapper import (
     UserController,
     CustomerController,
     TicketController,
-    GenericMilestoneController,
-    InventoryMilestoneController,
-    DeliveryMilestoneController,
 )
 from utils import alchemyConverter
 from utils import AlchemyEncoder

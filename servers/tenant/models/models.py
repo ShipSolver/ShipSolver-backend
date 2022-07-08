@@ -1,6 +1,6 @@
 import os
 import time
-from sqlalchemy import Column, ForeignKey, Integer, String, Enum, Index
+from sqlalchemy import Column, ForeignKey, Integer, String, Enum, Index, Boolean, null
 from sqlalchemy.orm import relationship
 from enum import Enum as enum
 from itertools import chain
@@ -53,9 +53,6 @@ class Incomplete_Delivery_Milestone_Status(enum):
     incomplete_delivery = "INCOMPLETE_DELIVERY"
 
 
-""" END  MILESTONE STATUSES """
-
-
 class Generic_Milestone_Status(enum):
     _ignore_ = "member cls"
     cls = vars()
@@ -70,10 +67,10 @@ class Generic_Milestone_Status(enum):
         if member.name not in cls:
             cls[member.name] = member.value
 
-    # del member, cls
+    del member, cls
 
 
-print([e.name for e in Generic_Milestone_Status])
+""" END  MILESTONE STATUSES """
 
 
 class UserType(enum):
@@ -141,6 +138,7 @@ class TicketEvents(Base):
     __tablename__ = "ticketevents"
     non_prim_identifying_column_name = "ticketId"
     ticketEventId = Column(Integer, primary_key=True, autoincrement=True)
+    # TODO: forgein key
     ticketId = Column(Integer, nullable=False)
     timestamp = Column(Integer, default=int(time.time()))
     userId = Column(Integer, ForeignKey(Users.userId), nullable=False, index=True)
@@ -177,9 +175,6 @@ class TicketStatus(Base):
     __tablename__ = "ticketstatus"
     ticketId = Column(Integer, primary_key=True, autoincrement=True)
     ticketStatus = Column(Enum(Generic_Milestone_Status))
-    ticketEventId = Column(
-        Integer, ForeignKey(TicketEvents.ticketEventId), nullable=False
-    )
 
 
 class CreationMilestones(Base):
@@ -189,6 +184,8 @@ class CreationMilestones(Base):
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
+
+    newStatus = Column(Enum(Ticket_Created_Milestone_Status), nullable=False)
 
     createdByUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
@@ -214,7 +211,7 @@ class PickupMilestones(Base):
 
     oldStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
-    createdAt = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     requesteeUser = relationship("Users", foreign_keys=[requesteeUserId])
     requesterUser = relationship("Users", foreign_keys=[requestedUserId])
@@ -234,7 +231,7 @@ class InventoryMilestones(Base):
 
     oldStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
-    createdAt = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     approvedByUser = relationship("Users")
 
@@ -255,7 +252,7 @@ class AssignmentMilestones(Base):
 
     oldStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
-    createdAt = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     requesteeUser = relationship("Users", foreign_keys=[assginedByUserId])
     requesterUser = relationship("Users", foreign_keys=[assginedToUserId])
@@ -268,6 +265,40 @@ class IncompleteDeliveryMilestones(Base):
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
+    newStatus = Column(
+        Enum(Delivery_Milestone_Status),
+        default=Incomplete_Delivery_Milestone_Status.incomplete_delivery.value,
+    )
+    oldStatus = Column(
+        Enum(Delivery_Milestone_Status),
+        default=Incomplete_Delivery_Milestone_Status.in_transit.value,
+    )
+    assigneeUserId = Column(
+        Integer, ForeignKey(Users.userId), nullable=False, index=True
+    )
+    reasonForIncomplete = Column(String, nullable=False)
+    dueToEndedShift = Column(Boolean, default=False)
+    timestamp = Column(Integer, nullable=False, default=int(time.time()))
+
+    assigneeUserId = relationship("Users")
+
+
+class DeliveryMilestones(Base):
+    __tablename__ = "deliverymilestones"
+
+    milestoneId = Column(Integer, primary_key=True, autoincrement=True)
+    ticketId = Column(
+        Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
+    )
+    newStatus = Column(
+        Enum(Delivery_Milestone_Status),
+        default=Delivery_Milestone_Status.completed_delivery.value,
+    )
+
+    oldStatus = Column(
+        Enum(Delivery_Milestone_Status),
+        default=Delivery_Milestone_Status.in_transit.value,
+    )
 
     completingdUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
@@ -277,7 +308,7 @@ class IncompleteDeliveryMilestones(Base):
     picture2Link = Column(String, nullable=False)
     picture3Link = Column(String, nullable=False)
 
-    createdAt = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     completingUser = relationship("Users")
 
@@ -287,24 +318,6 @@ ticketId_timestamp_idx = Index(
 )
 
 INDEXES.append(ticketId_timestamp_idx)
-
-
-ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
-
-INDEXES.append(ticket_customerId_idx)
-
-
-# gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
-
-# INDEXES.append(gen_milestoneId_idx)
-
-# inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
-
-# INDEXES.append(inv_milestoneId_idx)
-
-# del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
-
-# INDEXES.append(del_milestoneId_idx)
 
 print("Configuring DB ...")
 Base.metadata.create_all(engine)

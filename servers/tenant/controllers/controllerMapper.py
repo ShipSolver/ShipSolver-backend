@@ -96,7 +96,6 @@ class TicketController(BaseTimeSeriesController):
         self.assigned_milestones_controller = AssignmentMilestonesController()
 
     def _create_base_event(self, args_dict):
-        print(args_dict)
 
         is_pickup = args_dict["isPickup"]
 

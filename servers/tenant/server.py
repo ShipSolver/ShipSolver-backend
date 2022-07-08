@@ -22,7 +22,6 @@ parent.register_blueprint(customer_bp)
 parent.register_blueprint(user_bp)
 
 
-# @app.before_first_request
 # def instantiate_database():  # creates tables and indexes from models if not instantiated
 #     try:
 #         # create indexes

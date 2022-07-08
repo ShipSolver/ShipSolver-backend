@@ -10,7 +10,7 @@ import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
-from controllers.controllerMapper import TicketController
+from controllers.controllerMapper import TicketController, TicketStatusController
 from models.models import TicketEvents
 from utils import (
     AlchemyEncoder,
@@ -23,6 +23,7 @@ ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 # TODO: USER BASED AUTH
 
 ticket_controller = TicketController()
+ticket_status_controller = TicketStatusController()
 
 """
 Route expects requests of format:
@@ -56,12 +57,35 @@ Route expects requests of format:
 """
 
 
+@ticket_bp.route("/status/<status>", methods=["GET"])
+# @cross_origin(supports_credentials=True)
+# @require_appkey
+def ticket_get_all_with_status(status):  # create ticket
+
+    limit = 5000 if "limit" not in request.args else request.args["limit"]
+    sql_filters = get_clean_filters_dict(request.args)
+    sql_filters["currentStatus"] = status
+    data = ticket_status_controller._get(sql_filters, limit=limit)
+    num_tickets = ticket_status_controller._get_count(sql_filters)
+
+    data = alchemyConverter(data)
+    ticketIds = [x["ticketId"] for x in data]
+    tickets = []
+    for ticketId in ticketIds:
+        tickets.append(get_single(ticketId))
+    tickets = alchemyConverter(data)
+
+    res = {"tickets": tickets, "count": num_tickets}
+
+    return make_response(json.dumps(res, cls=AlchemyEncoder))
+
+
 @ticket_bp.route("/", methods=["POST"])
-@cross_origin(supports_credentials=True)
-@require_appkey
+# @cross_origin(supports_credentials=True)
+# @require_appkey
 def ticket_post():  # create ticket
 
-    ticket_dict = request.args.get("ticket")
+    ticket_dict = request.json.get("ticket")
 
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
@@ -69,25 +93,13 @@ def ticket_post():  # create ticket
 
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
-    return {"success"}
+    return "success"
 
 
 # http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea
 # curl http://127.0.0.1:6767/api/ticket/?shipperName
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
-
-
-def corsify(resp):
-    resp = make_response(json.dumps(resp))
-    resp.headers["Access-Control-Allow-Origin"] = "*"
-    resp.headers["Access-Control-Allow-Headers"] = [
-        "Origin",
-        "X-Requested-With",
-        "Content-Type",
-        "Accept",
-    ]
-    return resp
 
 
 def get_clean_filters_dict(immutable_args):
@@ -119,7 +131,7 @@ def default_end():
 
 
 @ticket_bp.route("/", methods=["GET"])
-@cross_origin(supports_credentials=True)
+# @cross_origin(supports_credentials=True)
 # @require_appkey
 def ticket_get_all():
     filters = request.args or {}
@@ -139,13 +151,10 @@ def ticket_get_all():
 
     res = alchemyConverter(data)
 
-    return corsify(res)
+    return make_response(json.dumps(res, cls=AlchemyEncoder))
 
 
-@ticket_bp.route("/<ticket_id>", methods=["GET"])
-@cross_origin(supports_credentials=True)
-# @require_appkey
-def ticket_get(ticket_id):
+def get_single(ticket_id):
     filters = request.args.get("filters") or {}
 
     sql_filters = get_clean_filters_dict(filters)
@@ -153,9 +162,17 @@ def ticket_get(ticket_id):
     data = ticket_controller._get_latest_event_objects_in_range(
         default_start(), default_end(), filters=sql_filters
     )
+    print(data)
+    return data[0]
 
-    res = alchemyConverter(data[0])
-    return corsify(res)
+
+@ticket_bp.route("/<ticket_id>", methods=["GET"])
+@cross_origin(supports_credentials=True)
+# @require_appkey
+def ticket_get(ticket_id):
+    data = get_single(ticket_id)
+    res = alchemyConverter(data)
+    return make_response(json.dumps(res, cls=AlchemyEncoder))
 
 
 """
@@ -230,3 +247,6 @@ def ticket_update(ticket_id):
     response = json.dumps(res, cls=AlchemyEncoder)
 
     return response
+
+
+# {"tickets": [{"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 4, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 5, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 6, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 7, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 8, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 9, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 10, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 11, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 12, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 13, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 14, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 15, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 16, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 17, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 18, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 19, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 20, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 21, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 22, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 23, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 24, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 25, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 26, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 27, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 28, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 29, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 30, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 31, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 32, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 33, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 34, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 35, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 36, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 37, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 38, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 39, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 40, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 41, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 42, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 43, "user": null}, {"assignedTo": null, "currentStatus": "Generic_Milestone_Status.ticket_created", "ticketId": 44, "user": null}], "count": 41}

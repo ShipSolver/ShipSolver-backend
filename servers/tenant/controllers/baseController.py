@@ -83,19 +83,30 @@ class BaseController:
 
         self.session.commit()
 
-    def _get(self, model, filters, limit=500):
+    def _get(self, filters, limit):
         if not filters:
             filters = []
 
         objects = (
             self.session.query(self.model)
-            .filter(*convert_dict_to_alchemy_filters(model, filters))
-            .group_by(self.model.non_prim_identifying_column_name)
-            .order_by(self.model.timestamp)
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
             .limit(limit)
+            .all()
         )
 
         return objects
+
+    def _get_count(self, filters):
+        if not filters:
+            filters = []
+
+        objects = (
+            self.session.query(getattr(self.model, self.primary_key))
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .all()
+        )
+
+        return len(objects)
 
 
 class BaseTimeSeriesController(BaseController):

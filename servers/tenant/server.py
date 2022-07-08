@@ -4,7 +4,7 @@ from flask import Flask, Blueprint, jsonify, session
 from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
-from flask_cors import cross_origin
+# from flask_cors import cross_origin
 from flask_cognito_lib import CognitoAuth
 
 # from models.__init__ import engine, Base

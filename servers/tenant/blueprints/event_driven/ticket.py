@@ -4,7 +4,7 @@ from wsgiref import validate
 
 from numpy import number
 from flask import make_response, request, jsonify, Blueprint
-from flask_cors import cross_origin
+# from flask_cors import cross_origin
 
 import sys
 
@@ -56,7 +56,7 @@ Route expects requests of format:
 
 
 @ticket_bp.route("/", methods=["POST"])
-@cross_origin(supports_credentials=True)
+# @cross_origin(supports_credentials=True)
 @auth_required()
 def ticket_post():  # create ticket
 
@@ -107,7 +107,7 @@ def default_end():
     return dt_end
 
 @ticket_bp.route("/", methods=["GET"])
-@cross_origin(supports_credentials=True)
+# @cross_origin(supports_credentials=True)
 @auth_required()
 def ticket_get_all():
     filters = request.args or {}
@@ -125,7 +125,7 @@ def ticket_get_all():
 
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
-@cross_origin(supports_credentials=True)
+# @cross_origin(supports_credentials=True)
 @auth_required()
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}
@@ -194,7 +194,7 @@ Route expects requests of format:
 
 
 @ticket_bp.route("/<ticket_id>", methods=["PUT"])
-@cross_origin(supports_credentials=True)
+# @cross_origin(supports_credentials=True)
 @auth_required()
 def ticket_update(ticket_id):
 

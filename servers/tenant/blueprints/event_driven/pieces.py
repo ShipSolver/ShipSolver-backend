@@ -1,7 +1,6 @@
 import json
 import datetime
 from flask import request, jsonify, Blueprint
-# from flask_cors import cross_origin
 
 import sys
 
@@ -36,7 +35,6 @@ Route expects requests of format:
 
 
 @pieces_bp.route("/{piece_id}", methods=["GET"])
-# @cross_origin(supports_credentials=True)
 @auth_required()
 def pieces_get_history(piece_id):
     filters = request.args.get("filters")

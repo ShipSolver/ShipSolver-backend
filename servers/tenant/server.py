@@ -29,6 +29,7 @@ app.config["AWS_COGNITO_DOMAIN"] = os.environ["AWS_COGNITO_DOMAIN"]
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 parent = Blueprint("api", __name__, url_prefix="/api")
+parent.register_blueprint(document_bp)
 parent.register_blueprint(ticket_bp)
 parent.register_blueprint(customer_bp)
 parent.register_blueprint(user_bp)
@@ -37,10 +38,9 @@ parent.register_blueprint(driver_bp)
 parent.register_blueprint(document_bp)
 
 
-
 if __name__ == "__main__":
 
     print("REGISTERING BLUEPRINT")
     app.register_blueprint(parent)
 
-    app.run(debug=True, host="0.0.0.0", port=6767)
+    app.run(debug=True, host="0.0.0.0", port=5000)

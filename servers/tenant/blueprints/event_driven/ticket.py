@@ -69,7 +69,9 @@ def ticket_get_all_with_status(status):  # create ticket
     ticketIds = [x["ticketId"] for x in data]
     tickets = []
     for ticketId in ticketIds:
-        tickets.append(get_single(ticketId))
+        ticket = get_single(ticketId)
+        if ticket:
+            tickets.append(ticket)
     tickets = alchemyConverter(data)
 
     res = {"tickets": tickets, "count": num_tickets}
@@ -157,8 +159,7 @@ def get_single(ticket_id):
         default_start(), default_end(), filters=sql_filters
     )
 
-    return data[0]
-
+    return data[0] if isinstance(data, list) else data
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
 @auth_required()

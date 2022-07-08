@@ -29,22 +29,22 @@ class MilestoneController(BaseController):
         self.model = model  # redudant
         self.ticket_status = TicketStatusController()
 
-    def _create(self, args_dict, ticket_id):
+    # def _create(self, args_dict, ticket_id):
 
-        assert isinstance(args_dict, dict)
-        assert "newStatus" in args_dict
+    # assert isinstance(args_dict, dict)
+    # assert "newStatus" in args_dict
 
-        obj = self.model(**args_dict)
-        self.session.add(obj)
-        self.session.commit()
+    # obj = self.model(**args_dict)
+    # self.session.add(obj)
+    # self.session.commit()
 
-        # update current ticket status
-        self.ticket_status._modify(
-            filters={"ticket_id": ticket_id},
-            update_dict={"currentStatus": args_dict["newStatus"]},
-        )
+    # # update current ticket status
+    # self.ticket_status._modify(
+    #     filters={"ticket_id": ticket_id},
+    #     update_dict={"currentStatus": args_dict["newStatus"]},
+    # )
 
-        return obj
+    # return obj
 
     def __getattr__(self, attr_name):
         if attr_name != "_create":
@@ -121,6 +121,7 @@ class TicketController(BaseTimeSeriesController):
 
             milestone = self.ticket_status_controller._create(fields)
 
+        new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
         args_dict[self.primary_key] = milestone.ticketId
         args_dict[self.model.non_prim_identifying_column_name] = milestone.ticketId
@@ -128,5 +129,13 @@ class TicketController(BaseTimeSeriesController):
         obj = self.model(**args_dict)
         self.session.add(obj)
         self.session.commit()
+
+        self.creation_milestone_controller._create(
+            {
+                "ticketId": obj.ticketId,
+                "newStatus": new_status,
+                "createdByUserId": args_dict["userId"],
+            }
+        )
 
         return obj

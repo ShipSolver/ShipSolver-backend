@@ -5,7 +5,6 @@ from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
 from flask_cors import cross_origin
-from servers.tenant.blueprints.simple.document import pdf_bp  # TODO: Move this in seperate microservice
 from flask_cognito_lib import CognitoAuth
 
 # from models.__init__ import engine, Base
@@ -25,7 +24,6 @@ app.config["AWS_COGNITO_DOMAIN"] = os.environ["AWS_COGNITO_DOMAIN"]
 auth = CognitoAuth(app)
 
 parent = Blueprint("api", __name__, url_prefix="/api")
-parent.register_blueprint(pdf_bp)
 parent.register_blueprint(ticket_bp)
 parent.register_blueprint(customer_bp)
 parent.register_blueprint(user_bp)

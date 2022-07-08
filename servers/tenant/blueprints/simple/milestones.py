@@ -52,10 +52,9 @@ for milestoneCls in class_to_cntrl_map:
     def miltestone_post():  # create ticket
         ticketId = request.form["ticketId"]
 
-        
         milestoneCls.__tablename__
         ticket_status_controller._modify(
-            ticketId, {"ticket_status": }
+            ticketId, {"ticket_status": request.form["new_status"]}
         )
         milestone_controller._create(**request.form["object"])
 

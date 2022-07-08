@@ -19,6 +19,7 @@ from controllers.controllerMapper import (
     UserController,
     CustomerController,
     TicketController,
+    Generic_Milestone_Status,
 )
 from utils import alchemyConverter
 from utils import AlchemyEncoder
@@ -27,6 +28,15 @@ faker = Faker()
 
 app = Flask(__name__)
 with app.app_context():
+
+    stateTable = {
+        Generic_Milestone_Status.ticket_created: [
+            Generic_Milestone_Status.ticket_created
+        ],
+        Generic_Milestone_Status.unassigned_pickup: [
+            Generic_Milestone_Status.unassigned_pickup
+        ],
+    }
 
     def generate_users(scale=5):
 
@@ -116,6 +126,7 @@ with app.app_context():
                 consigneePostalCode = faker.zipcode()
                 consigneePhoneNumber = faker.phone_number()
                 pieces = faker.sentence()
+                isPickup = False
 
                 obj = ticket_events_controller._create_base_event(
                     {
@@ -140,37 +151,38 @@ with app.app_context():
                         "consigneePostalCode": consigneePostalCode,
                         "consigneePhoneNumber": consigneePhoneNumber,
                         "pieces": pieces,
+                        "isPickup": isPickup,
                     }
                 )
 
-                for i in range(random.randrange(10, 20)):
+                # for i in range(random.randrange(10, 20)):
 
-                    userId = random.choice(users).userId
-                    userId = random.choice(users).userId
-                    customerId = random.choice(customers).customerId
-                    barcodeNumber = random.randrange(100000000, 900000000)
-                    houseReferenceNumber = random.randrange(100000000, 900000000)
-                    orderS3Link = "s3link"
-                    weight = random.randrange(100, 200)
-                    claimedNumberOfPieces = random.randrange(1, 5)
-                    BOLNumber = random.randrange(100000000, 900000000)
+                #     userId = random.choice(users).userId
+                #     userId = random.choice(users).userId
+                #     customerId = random.choice(customers).customerId
+                #     barcodeNumber = random.randrange(100000000, 900000000)
+                #     houseReferenceNumber = random.randrange(100000000, 900000000)
+                #     orderS3Link = "s3link"
+                #     weight = random.randrange(100, 200)
+                #     claimedNumberOfPieces = random.randrange(1, 5)
+                #     BOLNumber = random.randrange(100000000, 900000000)
 
-                    created_obj = ticket_events_controller._modify_latest_object(
-                        getattr(obj, TicketEvents.non_prim_identifying_column_name),
-                        {
-                            "ticketId": obj.ticketId,
-                            "userId": userId,
-                            "customerId": customerId,
-                            "barcodeNumber": barcodeNumber,
-                            "houseReferenceNumber": houseReferenceNumber,
-                            "orderS3Link": orderS3Link,
-                            "weight": weight,
-                            "claimedNumberOfPieces": claimedNumberOfPieces,
-                            "BOLNumber": BOLNumber,
-                            "specialServices": specialServices,
-                            "specialInstructions": specialInstructions,
-                        },
-                    )
+                #     created_obj = ticket_events_controller._modify_latest_object(
+                #         getattr(obj, TicketEvents.non_prim_identifying_column_name),
+                #         {
+                #             "ticketId": obj.ticketId,
+                #             "userId": userId,
+                #             "customerId": customerId,
+                #             "barcodeNumber": barcodeNumber,
+                #             "houseReferenceNumber": houseReferenceNumber,
+                #             "orderS3Link": orderS3Link,
+                #             "weight": weight,
+                #             "claimedNumberOfPieces": claimedNumberOfPieces,
+                #             "BOLNumber": BOLNumber,
+                #             "specialServices": specialServices,
+                #             "specialInstructions": specialInstructions,
+                #         },
+                #     )
 
                 print("Created Ticket")
 

@@ -61,9 +61,6 @@ CREATE TABLE IF NOT EXISTS TestDeliveryMilestones (
     timestamp INT,
     "ticketEventId" INT,
     "userId" INT,
-    "previousTicketStatus" TEST_PICKUP_TICKET_STATUS,
-    "currentTicketStatus" TEST_PICKUP_TICKET_STATUS,
-    "approvalStatus" TICKET_APPROVAL_STATUS,
     "PODLink" VARCHAR(50),
     "signatureLink" VARCHAR(50),
     "picture1Link" VARCHAR(50),
@@ -73,3 +70,19 @@ CREATE TABLE IF NOT EXISTS TestDeliveryMilestones (
     CONSTRAINT "fk_ticketEventId" FOREIGN KEY ("ticketEventId") REFERENCES TicketEvents("ticketEventId")
 );
 
+-- ----------------------------- --
+-- INCOMPLETE DELIVERY MILESTONE --
+-- ----------------------------- --
+
+CREATE TYPE TEST_INCOMPLETE_DELIVERY_TICKET_STATUS AS ENUM('INCOMPLETED_DELIVERY', 'IN_TRANSIT');
+DROP TABLE TestIncompleteDeliveryMilestones;
+CREATE TABLE IF NOT EXISTS TestIncompleteDeliveryMilestones (
+    "milestoneId" INT,
+    timestamp INT,
+    "ticketEventId" INT,
+    "assigneeId" INT,
+    "reasonForIncomplete" VARCHAR(50),
+    "dueToEndedShift" BOOLEAN,
+    PRIMARY KEY("milestoneId"),
+    CONSTRAINT "fk_ticketEventId" FOREIGN KEY ("ticketEventId") REFERENCES TicketEvents("ticketEventId")
+);

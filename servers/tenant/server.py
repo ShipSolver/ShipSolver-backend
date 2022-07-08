@@ -3,7 +3,10 @@ from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
 from flask_cors import cross_origin
-from servers.tenant.blueprints.simple.document import pdf_bp  # TODO: Move this in seperate microservice
+
+# from servers.tenant.blueprints.simple.document import (
+#     pdf_bp,
+# )  # TODO: Move this in seperate microservice
 
 # from models.__init__ import engine, Base
 # from models.models import INDEXES
@@ -13,7 +16,7 @@ from dotenv import load_dotenv
 load_dotenv(".env", override=True)
 
 parent = Blueprint("api", __name__, url_prefix="/api")
-parent.register_blueprint(pdf_bp)
+# parent.register_blueprint(pdf_bp)
 parent.register_blueprint(ticket_bp)
 parent.register_blueprint(customer_bp)
 parent.register_blueprint(user_bp)

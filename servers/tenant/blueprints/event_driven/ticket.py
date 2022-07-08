@@ -77,15 +77,22 @@ def ticket_post():  # create ticket
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
+
 def corsify(resp):
     resp = make_response(json.dumps(resp))
-    resp.headers['Access-Control-Allow-Origin'] = '*'
-    resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Access-Control-Allow-Headers"] = [
+        "Origin",
+        "X-Requested-With",
+        "Content-Type",
+        "Accept",
+    ]
     return resp
+
 
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
-    if "start" in sql_filters: 
+    if "start" in sql_filters:
         del sql_filters["start"]
     if "end" in sql_filters:
         del sql_filters["end"]
@@ -93,19 +100,23 @@ def get_clean_filters_dict(immutable_args):
         del sql_filters["limit"]
     return sql_filters
 
+
 def validate_date_format(date_text):
     try:
         return datetime.strptime(date_text, "%Y-%m-%dT%H:%M:%S")
     except ValueError:
         raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%S")
 
+
 def default_start():
     dt_start = validate_date_format("1900-01-01T00:00:00")
     return dt_start
 
+
 def default_end():
     dt_end = validate_date_format("2100-01-01T00:00:00")
     return dt_end
+
 
 @ticket_bp.route("/", methods=["GET"])
 @cross_origin(supports_credentials=True)
@@ -115,13 +126,19 @@ def ticket_get_all():
     sql_filters = get_clean_filters_dict(filters)
     limit = 5000 if "limit" not in filters else filters["limit"]
 
-    dt_start = validate_date_format(filters["start"]) if "start" in filters else default_start()
+    dt_start = (
+        validate_date_format(filters["start"])
+        if "start" in filters
+        else default_start()
+    )
     dt_end = validate_date_format(filters["end"]) if "end" in filters else default_end()
 
-    data = ticket_controller._get_latest_event_objects_in_range(dt_start, dt_end, sql_filters, number_of_res=limit)
-    
+    data = ticket_controller._get_latest_event_objects_in_range(
+        dt_start, dt_end, sql_filters, number_of_res=limit
+    )
+
     res = alchemyConverter(data)
-    
+
     return corsify(res)
 
 
@@ -130,8 +147,7 @@ def ticket_get_all():
 # @require_appkey
 def ticket_get(ticket_id):
     filters = request.args.get("filters") or {}
-    
-    
+
     sql_filters = get_clean_filters_dict(filters)
     sql_filters["ticketId"] = ticket_id
     data = ticket_controller._get_latest_event_objects_in_range(
@@ -140,6 +156,7 @@ def ticket_get(ticket_id):
 
     res = alchemyConverter(data[0])
     return corsify(res)
+
 
 """
 Route expects requests of format:
@@ -156,7 +173,6 @@ Route expects requests of format:
 """
 
 
-
 # @ticket_bp.route("/attribute/{attribute_name}", methods=["GET"])
 # @require_appkey
 # def ticket_attribute_get(attribute_name):
@@ -171,8 +187,6 @@ Route expects requests of format:
 #     response = json.dumps(res, cls=AlchemyEncoder)
 
 #     return response
-
-
 
 
 """

@@ -14,43 +14,41 @@ INDEXES = []
 """ MILESTONE STATUSES BEGIIN """
 
 
-class Ticket_Created_Milestone_Status(enum):
-    ticket_created = "TICKET_CREATED"
-    unassigned_pickup = "UNASSIGNED_PICKUP"
+class Creation_Milestone_Status(enum):
+    ticket_created = "ticket_created"
+    unassigned_pickup = "unassigned_pickup"
 
 
 class Pickup_Milestone_Status(enum):
-    unassigned_pickup = "UNASSIGNED_PICKUP"
-    requested_pickup = "REQUESTED_PICKUP"
-    accepted_pickup = "ACCEPTED_PICKUP"
-    declined_pickup = "DECLINED_PICKUP"
-    completed_pickup = "COMPLETED_PICKUP"
-    incomplete_pickup = "INCOMPLETE_PICKUP"
+    unassigned_pickup = "unassigned_pickup"
+    requested_pickup = "requested_pickup"
+    accepted_pickup = "accepted_pickup"
+    declined_pickup = "declined_pickup"
+    completed_pickup = "completed_pickup"
+    incomplete_pickup = "incomplete_pickup"
 
 
 class Inventory_Milestone_Status(enum):
-    unassigned_pickup = "UNASSIGNED_PICKUP"
-    requested_pickup = "REQUESTED_PICKUP"
-    accepted_pickup = "ACCEPTED_PICKUP"
-    declined_pickup = "DECLINED_PICKUP"
-    completed_pickup = "COMPLETED_PICKUP"
-    incomplete_pickup = "INCOMPLETE_PICKUP"
+    ticket_created = "ticket_created"
+    checked_into_inventory = "checked_into_inventory"
+    completed_delivery = "completed_delivery"
+    incomplete_delivery = "incomplete_delivery"
 
 
 class Assignment_Milestone_Status(enum):
-    checked_into_inventory = "CHECKED_INTO_INVENTORY"
-    assigned = "ASSIGNED"
-    in_transit = "IN_TRANSIT"
+    checked_into_inventory = "checked_into_inventory"
+    assigned = "assigned"
+    in_transit = "in_transit"
 
 
 class Delivery_Milestone_Status(enum):
-    in_transit = "IN_TRANSIT"
-    completed_delivery = "COMPLETED_DELIVERY"
+    in_transit = "in_transit"
+    completed_delivery = "completed_delivery"
 
 
 class Incomplete_Delivery_Milestone_Status(enum):
-    in_transit = "IN_TRANSIT"
-    incomplete_delivery = "INCOMPLETE_DELIVERY"
+    in_transit = "in_transit"
+    incomplete_delivery = "incomplete_delivery"
 
 
 class Generic_Milestone_Status(enum):
@@ -58,7 +56,7 @@ class Generic_Milestone_Status(enum):
     cls = vars()
 
     for member in chain(
-        list(Ticket_Created_Milestone_Status),
+        list(Creation_Milestone_Status),
         list(Inventory_Milestone_Status),
         list(Assignment_Milestone_Status),
         list(Delivery_Milestone_Status),
@@ -134,12 +132,21 @@ class Documents(Base):
     customerName = Column(String, nullable=False)
 
 
+class TicketStatus(Base):
+    __tablename__ = "ticketstatus"
+    ticketId = Column(Integer, primary_key=True, autoincrement=True)
+    currentStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
+    assignedTo = Column(Integer, ForeignKey(Users.userId), nullable=True, index=True)
+
+    user = relationship("Users")
+
+
 class TicketEvents(Base):
     __tablename__ = "ticketevents"
     non_prim_identifying_column_name = "ticketId"
     ticketEventId = Column(Integer, primary_key=True, autoincrement=True)
     # TODO: forgein key
-    ticketId = Column(Integer, nullable=False)
+    ticketId = Column(Integer, ForeignKey(TicketStatus.ticketId))
     timestamp = Column(Integer, default=int(time.time()))
     userId = Column(Integer, ForeignKey(Users.userId), nullable=False, index=True)
     customerId = Column(
@@ -167,14 +174,11 @@ class TicketEvents(Base):
     consigneePhoneNumber = Column(String, nullable=False)
     # pieces
     pieces = Column(String, nullable=False)
+    isPickup = Column(Boolean, nullable=False)
+
+    ticketStatus = relationship("TicketStatus")
     user = relationship("Users")
     customer = relationship("Customers")
-
-
-class TicketStatus(Base):
-    __tablename__ = "ticketstatus"
-    ticketId = Column(Integer, primary_key=True, autoincrement=True)
-    ticketStatus = Column(Enum(Generic_Milestone_Status))
 
 
 class CreationMilestones(Base):
@@ -185,7 +189,7 @@ class CreationMilestones(Base):
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
 
-    newStatus = Column(Enum(Ticket_Created_Milestone_Status), nullable=False)
+    newStatus = Column(Enum(Creation_Milestone_Status), nullable=False)
 
     createdByUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
@@ -280,7 +284,7 @@ class IncompleteDeliveryMilestones(Base):
     dueToEndedShift = Column(Boolean, default=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    assigneeUserId = relationship("Users")
+    assigneeUser = relationship("Users")
 
 
 class DeliveryMilestones(Base):

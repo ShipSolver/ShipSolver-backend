@@ -57,15 +57,17 @@ class Generic_Milestone_Status(enum):
 
     for member in chain(
         list(Creation_Milestone_Status),
+        list(Pickup_Milestone_Status),
         list(Inventory_Milestone_Status),
         list(Assignment_Milestone_Status),
         list(Delivery_Milestone_Status),
         list(Incomplete_Delivery_Milestone_Status),
     ):
+        # print(f"Name: {member.name} | Value: {member.value}")
         if member.name not in cls:
             cls[member.name] = member.value
 
-    del member, cls
+    # del member, cls
 
 
 """ END  MILESTONE STATUSES """
@@ -209,16 +211,16 @@ class PickupMilestones(Base):
     requestedUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
     )
-    requesteeUserId = Column(
+    requesterUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
     )
 
-    oldStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
+    oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    requesteeUser = relationship("Users", foreign_keys=[requesteeUserId])
-    requesterUser = relationship("Users", foreign_keys=[requestedUserId])
+    requesterUser = relationship("Users", foreign_keys=[requesterUserId])
+    requestedUser = relationship("Users", foreign_keys=[requestedUserId])
 
 
 class InventoryMilestones(Base):
@@ -233,7 +235,7 @@ class InventoryMilestones(Base):
         Integer, ForeignKey(Users.userId), nullable=False, index=True
     )
 
-    oldStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
+    oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
@@ -247,19 +249,19 @@ class AssignmentMilestones(Base):
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
-    assginedByUserId = Column(
+    assignedByUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
     )
-    assginedToUserId = Column(
+    assignedToUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
     )
 
-    oldStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
-    newStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
+    oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
+    newStatus = Column(Enum(Assignment_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    requesteeUser = relationship("Users", foreign_keys=[assginedByUserId])
-    requesterUser = relationship("Users", foreign_keys=[assginedToUserId])
+    requesterUser = relationship("Users", foreign_keys=[assignedByUserId])
+    requestedUser = relationship("Users", foreign_keys=[assignedToUserId])
 
 
 class IncompleteDeliveryMilestones(Base):
@@ -270,12 +272,12 @@ class IncompleteDeliveryMilestones(Base):
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
     newStatus = Column(
-        Enum(Delivery_Milestone_Status),
+        Enum(Incomplete_Delivery_Milestone_Status),
         default=Incomplete_Delivery_Milestone_Status.incomplete_delivery.value,
     )
     oldStatus = Column(
-        Enum(Delivery_Milestone_Status),
-        default=Incomplete_Delivery_Milestone_Status.in_transit.value,
+        Enum(Generic_Milestone_Status),
+        default=Generic_Milestone_Status.in_transit.value,
     )
     assigneeUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
@@ -300,8 +302,8 @@ class DeliveryMilestones(Base):
     )
 
     oldStatus = Column(
-        Enum(Delivery_Milestone_Status),
-        default=Delivery_Milestone_Status.in_transit.value,
+        Enum(Generic_Milestone_Status),
+        default=Generic_Milestone_Status.in_transit.value,
     )
 
     completingdUserId = Column(

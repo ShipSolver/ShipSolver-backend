@@ -1,6 +1,7 @@
 import json
 import datetime
-from flask import request, Blueprint
+from flask import request, Blueprint, make_response
+from utils import alchemyConverter, AlchemyEncoder
 
 import sys
 
@@ -27,52 +28,90 @@ from models.models import (
 )
 
 
-class_to_cntrl_map = {
-    CreationMilestones: CreationMilestonesController,
-    PickupMilestones: PickupMilestonesController,
-    InventoryMilestones: InventoryMilestonesController,
-    AssignmentMilestones: AssignmentMilestonesController,
-    IncompleteDeliveryMilestones: IncompleteDeliveryMilestonesController,
-    DeliveryMilestones: DeliveryMilestonesController,
-}
+milestone_bp = Blueprint(
+    f"{CreationMilestones.__tablename__}_bp",
+    __name__,
+    url_prefix=CreationMilestones.__tablename__,
+)
 
-ticket_status_controller = TicketStatusController()
-for milestoneCls in class_to_cntrl_map:
+milestone_controller  = CreationMilestonesController()
 
-    milestone_bp = Blueprint(
-        f"{milestoneCls.__tablename__}_bp",
-        __name__,
-        url_prefix=milestoneCls.__tablename__,
-    )
+@milestone_bp.route("/<ticket_id>", methods=["GET"])
+@auth_required()
+def miltestone_get(ticket_id):  # create ticket
 
-    milestone_controller = class_to_cntrl_map[milestoneCls]
+    filters = {
+        "ticketId" : ticket_id
+    }
 
-    @milestone_bp.route("/", methods=["POST"])
-    @auth_required()
-    def miltestone_post():  # create ticket
-        ticketId = request.form["ticketId"]
+    data = milestone_controller._get(filters, 1000)
 
-        milestoneCls.__tablename__
-        ticket_status_controller._modify(
-            ticketId, {"ticket_status": request.form["new_status"]}
-        )
-        milestone_controller._create(**request.form["object"])
+    milestones = alchemyConverter(data)
 
-        return "success"
+    
+    return make_response(json.dumps(milestones, cls=AlchemyEncoder))
 
-    @milestone_bp.route("/modify", methods=["POST"])
-    @auth_required()
-    def milestone_modify():
 
-    # milestone_controller._modify(milestoneId, **update_dict)
+# class_to_cntrl_map = {
+#     CreationMilestones: CreationMilestonesController,
+#     PickupMilestones: PickupMilestonesController,
+#     InventoryMilestones: InventoryMilestonesController,
+#     AssignmentMilestones: AssignmentMilestonesController,
+#     IncompleteDeliveryMilestones: IncompleteDeliveryMilestonesController,
+#     DeliveryMilestones: DeliveryMilestonesController,
+# }
 
-    # return "success"
+# ticket_status_controller = TicketStatusController()
+# for milestoneCls in class_to_cntrl_map:
 
-        return "success"
+#     milestone_bp = Blueprint(
+#         f"{milestoneCls.__tablename__}_bp",
+#         __name__,
+#         url_prefix=milestoneCls.__tablename__,
+#     )
 
-    @milestone_bp.route("/", methods=["DELETE"])
-    @auth_required()
-    def milestone_delete():
-        milestoneId = request.args.get("milestoneId")
-        milestone_controller._delete(milestoneId)
-        return "success"
+#     milestone_controller = class_to_cntrl_map[milestoneCls]
+
+#     @milestone_bp.route("/", methods=["POST"])
+#     @auth_required()
+#     def miltestone_post():  # create ticket
+#         ticketId = request.form["ticketId"]
+
+#         ticket_status_controller._modify(
+#             ticketId, {"ticket_status": request.form["new_status"]}
+#         )
+#         milestone_controller._create(**request.form["object"])
+
+#         return "success"
+
+#     @milestone_bp.route("/<ticket_id>", methods=["GET"])
+#     @auth_required()
+#     def miltestone_get(ticket_id):  # create ticket
+
+#         filters = {
+#             "ticketId" : ticket_id
+#         }
+
+#         data = milestone_controller._get(**filters)
+
+#         milestones = alchemyConverter(data)
+
+        
+#         return make_response(json.dumps(milestones, cls=AlchemyEncoder))
+
+#     @milestone_bp.route("/modify", methods=["POST"])
+#     @auth_required()
+#     def milestone_modify():
+
+#     # milestone_controller._modify(milestoneId, **update_dict)
+
+#     # return "success"
+
+#         return "success"
+
+#     @milestone_bp.route("/", methods=["DELETE"])
+#     @auth_required()
+#     def milestone_delete():
+#         milestoneId = request.args.get("milestoneId")
+#         milestone_controller._delete(milestoneId)
+#         return "success"

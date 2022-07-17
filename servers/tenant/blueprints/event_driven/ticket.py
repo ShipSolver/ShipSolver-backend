@@ -147,7 +147,7 @@ def ticket_get_all():
 
     res = alchemyConverter(data)
     
-    return make_response(json.dumps(res))
+    return make_response(json.dumps(res, cls=AlchemyEncoder))
 
 
 def get_single(ticket_id):

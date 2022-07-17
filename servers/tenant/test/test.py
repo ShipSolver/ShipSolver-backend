@@ -1,3 +1,4 @@
+from multiprocessing import managers
 from pprint import pprint
 import json
 import random
@@ -49,109 +50,157 @@ with app.app_context():
     deliveryMilestonesController = DeliveryMilestonesController()
     incompleteDeliveryMilestonesController = IncompleteDeliveryMilestonesController()
 
-    # stateTable = {
-    #     Generic_Milestone_Status.ticket_created: [
-    #         Creation_Milestone_Status.ticket_created
-    #     ],
-    #     Generic_Milestone_Status.unassigned_pickup: {
-    #         "happyPath": [Creation_Milestone_Status.unassigned_pickup],
-    #         "failedPath1": [
-    #             Creation_Milestone_Status.unassigned_pickup,
-    #             Pickup_Milestone_Status.requested_pickup,
-    #             Pickup_Milestone_Status.declined_pickup,
-    #             Pickup_Milestone_Status.unassigned_pickup,
-    #         ],
-    #         "failedPath2": [
-    #             Creation_Milestone_Status.unassigned_pickup,
-    #             Pickup_Milestone_Status.requested_pickup,
-    #             Pickup_Milestone_Status.accepted_pickup,
-    #             Pickup_Milestone_Status.incomplete_pickup,
-    #             Pickup_Milestone_Status.unassigned_pickup,
-    #         ],
-    #     },
-    #     Generic_Milestone_Status.requested_pickup: [
-    #         Creation_Milestone_Status.unassigned_pickup,
-    #         Pickup_Milestone_Status.requested_pickup,
-    #     ],
-    #     Generic_Milestone_Status.accepted_pickup: [
-    #         Creation_Milestone_Status.unassigned_pickup,
-    #         Pickup_Milestone_Status.requested_pickup,
-    #         Pickup_Milestone_Status.accepted_pickup,
-    #     ],
-    #     Generic_Milestone_Status.declined_pickup: [
-    #         Creation_Milestone_Status.unassigned_pickup,
-    #         Pickup_Milestone_Status.requested_pickup,
-    #         Pickup_Milestone_Status.declined_pickup,
-    #     ],
-    #     Generic_Milestone_Status.completed_pickup: [
-    #         Creation_Milestone_Status.unassigned_pickup,
-    #         Pickup_Milestone_Status.requested_pickup,
-    #         Pickup_Milestone_Status.accepted_pickup,
-    #         Pickup_Milestone_Status.completed_pickup,
-    #     ],
-    #     Generic_Milestone_Status.incomplete_pickup: [
-    #         Creation_Milestone_Status.unassigned_pickup,
-    #         Pickup_Milestone_Status.requested_pickup,
-    #         Pickup_Milestone_Status.accepted_pickup,
-    #         Pickup_Milestone_Status.incomplete_pickup,
-    #     ],
-    #     Generic_Milestone_Status.checked_into_inventory: {
-    #         "happyPath": [
-    #             Creation_Milestone_Status.ticket_created,
-    #             Inventory_Milestone_Status.checked_into_inventory,
-    #         ],
-    #         "failedPath": [
-    #             Creation_Milestone_Status.ticket_created,
-    #             Inventory_Milestone_Status.checked_into_inventory,
-    #             Assignment_Milestone_Status.assigned,
-    #             Assignment_Milestone_Status.in_transit,
-    #             Incomplete_Delivery_Milestone_Status.incomplete_delivery,
-    #             Inventory_Milestone_Status.checked_into_inventory,
-    #         ],
-    #     },
-    #     Generic_Milestone_Status.completed_delivery: [
-    #         Creation_Milestone_Status.ticket_created,
-    #         Inventory_Milestone_Status.checked_into_inventory,
-    #         Assignment_Milestone_Status.assigned,
-    #         Assignment_Milestone_Status.in_transit,
-    #         Delivery_Milestone_Status.completed_delivery,
-    #     ],
-    #     Generic_Milestone_Status.incomplete_delivery: [
-    #         Creation_Milestone_Status.ticket_created,
-    #         Inventory_Milestone_Status.checked_into_inventory,
-    #         Assignment_Milestone_Status.assigned,
-    #         Assignment_Milestone_Status.in_transit,
-    #         Incomplete_Delivery_Milestone_Status.incomplete_delivery,
-    #     ],
-    #     Generic_Milestone_Status.assigned: [
-    #         Creation_Milestone_Status.ticket_created,
-    #         Inventory_Milestone_Status.checked_into_inventory,
-    #         Assignment_Milestone_Status.assigned,
-    #     ],
-    #     Generic_Milestone_Status.in_transit: [
-    #         Creation_Milestone_Status.ticket_created,
-    #         Inventory_Milestone_Status.checked_into_inventory,
-    #         Assignment_Milestone_Status.assigned,
-    #         Assignment_Milestone_Status.in_transit,
-    #     ],
-    # }
+    stateTable = {
+        Generic_Milestone_Status.ticket_created: [
+            Creation_Milestone_Status.ticket_created
+        ],
+        Generic_Milestone_Status.unassigned_pickup: {
+            "happyPath": [Creation_Milestone_Status.unassigned_pickup],
+            "failedPath1": [
+                Creation_Milestone_Status.unassigned_pickup,
+                Pickup_Milestone_Status.requested_pickup,
+                Pickup_Milestone_Status.declined_pickup,
+                Pickup_Milestone_Status.unassigned_pickup,
+            ],
+            "failedPath2": [
+                Creation_Milestone_Status.unassigned_pickup,
+                Pickup_Milestone_Status.requested_pickup,
+                Pickup_Milestone_Status.accepted_pickup,
+                Pickup_Milestone_Status.incomplete_pickup,
+                Pickup_Milestone_Status.unassigned_pickup,
+            ],
+        },
+        Generic_Milestone_Status.requested_pickup: [
+            Creation_Milestone_Status.unassigned_pickup,
+            Pickup_Milestone_Status.requested_pickup,
+        ],
+        Generic_Milestone_Status.accepted_pickup: [
+            Creation_Milestone_Status.unassigned_pickup,
+            Pickup_Milestone_Status.requested_pickup,
+            Pickup_Milestone_Status.accepted_pickup,
+        ],
+        Generic_Milestone_Status.declined_pickup: [
+            Creation_Milestone_Status.unassigned_pickup,
+            Pickup_Milestone_Status.requested_pickup,
+            Pickup_Milestone_Status.declined_pickup,
+        ],
+        Generic_Milestone_Status.completed_pickup: [
+            Creation_Milestone_Status.unassigned_pickup,
+            Pickup_Milestone_Status.requested_pickup,
+            Pickup_Milestone_Status.accepted_pickup,
+            Pickup_Milestone_Status.completed_pickup,
+        ],
+        Generic_Milestone_Status.incomplete_pickup: [
+            Creation_Milestone_Status.unassigned_pickup,
+            Pickup_Milestone_Status.requested_pickup,
+            Pickup_Milestone_Status.accepted_pickup,
+            Pickup_Milestone_Status.incomplete_pickup,
+        ],
+        Generic_Milestone_Status.checked_into_inventory: {
+            "happyPath": [
+                Creation_Milestone_Status.ticket_created,
+                Inventory_Milestone_Status.checked_into_inventory,
+            ],
+            "failedPath1": [
+                Creation_Milestone_Status.ticket_created,
+                Inventory_Milestone_Status.checked_into_inventory,
+                Assignment_Milestone_Status.assigned,
+                Assignment_Milestone_Status.in_transit,
+                Incomplete_Delivery_Milestone_Status.incomplete_delivery,
+                Inventory_Milestone_Status.checked_into_inventory,
+            ],
+            "failedPath2": [
+                Creation_Milestone_Status.ticket_created,
+                Inventory_Milestone_Status.checked_into_inventory,
+                Assignment_Milestone_Status.assigned,
+                Assignment_Milestone_Status.in_transit,
+                Delivery_Milestone_Status.completed_delivery,
+                Inventory_Milestone_Status.incomplete_delivery,
+                Inventory_Milestone_Status.checked_into_inventory,
+            ]
+        },
+        Generic_Milestone_Status.completed_delivery: {
+            "completed" : [
+                Creation_Milestone_Status.ticket_created,
+                Inventory_Milestone_Status.checked_into_inventory,
+                Assignment_Milestone_Status.assigned,
+                Assignment_Milestone_Status.in_transit,
+                Delivery_Milestone_Status.completed_delivery,
+            ],
+            "approved" : [
+                Creation_Milestone_Status.ticket_created,
+                Inventory_Milestone_Status.checked_into_inventory,
+                Assignment_Milestone_Status.assigned,
+                Assignment_Milestone_Status.in_transit,
+                Delivery_Milestone_Status.completed_delivery,
+                Inventory_Milestone_Status.completed_delivery
+            ]
+        },
+        Generic_Milestone_Status.incomplete_delivery: {
+            "incomplete" : [
+                Creation_Milestone_Status.ticket_created,
+                Inventory_Milestone_Status.checked_into_inventory,
+                Assignment_Milestone_Status.assigned,
+                Assignment_Milestone_Status.in_transit,
+                Incomplete_Delivery_Milestone_Status.incomplete_delivery,
+            ],
+            "declined" : [
+                Creation_Milestone_Status.ticket_created,
+                Inventory_Milestone_Status.checked_into_inventory,
+                Assignment_Milestone_Status.assigned,
+                Assignment_Milestone_Status.in_transit,
+                Delivery_Milestone_Status.completed_delivery,
+                Inventory_Milestone_Status.incomplete_delivery
+            ]
+        },
+        Generic_Milestone_Status.assigned: [
+            Creation_Milestone_Status.ticket_created,
+            Inventory_Milestone_Status.checked_into_inventory,
+            Assignment_Milestone_Status.assigned,
+        ],
+        Generic_Milestone_Status.in_transit: [
+            Creation_Milestone_Status.ticket_created,
+            Inventory_Milestone_Status.checked_into_inventory,
+            Assignment_Milestone_Status.assigned,
+            Assignment_Milestone_Status.in_transit,
+        ],
+    }
 
-    # functionMapping = {
-    #     "Creation_Milestone_Status": creationMilestonesController._create,
-    #     "Pickup_Milestone_Status": pickupMilestonesController._create,
-    #     "Inventory_Milestone_Status": inventoryMilestonesController._create,
-    #     "Assignment_Milestone_Status": assignmentMilestonesController._create,
-    #     "Delivery_Milestone_Status": deliveryMilestonesController._create,
-    #     "Incomplete_Delivery_Milestone_Status": incompleteDeliveryMilestonesController._create,
-    # }
+    reprocessPickupsSet = [
+        Generic_Milestone_Status.unassigned_pickup,
+        Generic_Milestone_Status.requested_pickup,
+        Generic_Milestone_Status.accepted_pickup,
+        Generic_Milestone_Status.declined_pickup,
+        Generic_Milestone_Status.completed_pickup,
+        Generic_Milestone_Status.incomplete_pickup
+    ]
 
-    # usersByTypeList = {
-    #     UserType.manager: [],
-    #     UserType.dispatch: [],
-    #     UserType.customer: [],
-    #     UserType.driver: [],
-    #     UserType.worker: [],
-    # }
+    reprocessDeliverySet = [
+        Generic_Milestone_Status.checked_into_inventory,
+        Generic_Milestone_Status.completed_delivery,
+        Generic_Milestone_Status.incomplete_delivery,
+        Generic_Milestone_Status.assigned,
+        Generic_Milestone_Status.in_transit
+    ]
+
+    maxReprocess = 4
+
+    functionMapping = {
+        "Creation_Milestone_Status": creationMilestonesController._create,
+        "Pickup_Milestone_Status": pickupMilestonesController._create,
+        "Inventory_Milestone_Status": inventoryMilestonesController._create,
+        "Assignment_Milestone_Status": assignmentMilestonesController._create,
+        "Delivery_Milestone_Status": deliveryMilestonesController._create,
+        "Incomplete_Delivery_Milestone_Status": incompleteDeliveryMilestonesController._create,
+    }
+
+    usersByTypeList = {
+        UserType.manager: [],
+        UserType.dispatch: [],
+        UserType.customer: [],
+        UserType.driver: [],
+        UserType.worker: [],
+    }
 
     def generate_users(scale=5):
 
@@ -167,14 +216,18 @@ with app.app_context():
                 firstName = faker.unique.first_name()
                 lastName = faker.unique.last_name()
 
-                userType = random.choice([ut for ut in UserType]).value.lower()
+                userType = random.choice([ut for ut in UserType])
+                userTypeValue = userType.value.lower()
                 username = firstName.lower()[0] + lastName.lower()
                 email = f"{username}@faker.com"
+                userId = random.randint(1, 1000000000)
+
+                usersByTypeList[userType].append(userId)
 
                 args_arr.append(
                     {
-                        "userId": random.randint(1, 1000000000),
-                        "userType": userType,
+                        "userId": userId,
+                        "userType": userTypeValue,
                         "username": username,
                         "firstName": firstName,
                         "lastName": lastName,
@@ -301,6 +354,148 @@ with app.app_context():
 
                 print("Created Ticket")
 
+    def list_diff(li1, li2):
+        return list(set(li1) - set(li2)) + list(set(li2) - set(li1))
+
+    def generate_transitions(ticket, transition_list, approver_list, start_state = null):
+        '''
+        Generates and inserts logical state transitions into milestones DBs
+        @param ticket -> ticketID
+        @param transition_list -> list of stte transitions to undergo
+        @param approver_list -> list of user IDs of possible approvers
+        '''
+        prev_state = start_state
+        curr_approver = null
+        curr_driver = null
+
+        for curr_state in transition_list:
+            milestone_type = type(curr_state).__name__
+            curr_state = curr_state.value
+            
+            if milestone_type == "Creation_Milestone_Status":
+                curr_approver = random.choice(approver_list)
+                data = {"ticketId" : ticket, "newStatus" : curr_state, "createdByUserId" : curr_approver}
+            
+            elif milestone_type == "Pickup_Milestone_Status": 
+                curr_approver = curr_approver if curr_approver != null and random.randrange(2) == 0 else random.choice(approver_list)
+                curr_driver = random.choice(usersByTypeList[UserType.driver])
+                data = {
+                    "ticketId" : ticket,
+                    "newStatus" : curr_state,
+                    "oldStatus" : prev_state,
+                    "requesterUserId" : curr_approver,
+                    "requestedUserId" : curr_driver
+                    }
+
+            elif milestone_type == "Inventory_Milestone_Status":
+                curr_approver = curr_approver if curr_approver != null and random.randrange(2) == 0 else random.choice(approver_list)
+                data = {
+                    "ticketId" : ticket,
+                    "newStatus" : curr_state,
+                    "oldStatus" : prev_state,
+                    "approvedByUserId" : curr_approver
+                    }
+            
+            elif milestone_type == "Assignment_Milestone_Status":
+                curr_approver = curr_approver if curr_approver != null and random.randrange(2) == 0 else random.choice(approver_list)
+                curr_driver = curr_driver if curr_driver != null else random.choice(usersByTypeList[UserType.driver])
+                data = {
+                    "ticketId" : ticket,
+                    "newStatus" : curr_state,
+                    "oldStatus" : prev_state,
+                    "assignedByUserId" : curr_approver,
+                    "assignedToUserId" : curr_driver
+                    }
+            
+            elif milestone_type == "Delivery_Milestone_Status":
+                data = {
+                    "ticketId" : ticket,
+                    "newStatus" : curr_state,
+                    "oldStatus" : prev_state,
+                    "completingdUserId" : curr_driver,
+                    "PODLink" : "https://www.youtube.com/watch?v=xvFZjo5PgG0",
+                    "picture1Link" : "https://images.unsplash.com/flagged/photo-1572392640988-ba48d1a74457?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=464&q=80",
+                    "picture2Link" : "https://images.unsplash.com/photo-1515405295579-ba7b45403062?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
+                    "picture3Link" : "https://images.unsplash.com/photo-1657817142233-8689b78b7f9f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=415&q=80"
+                    }
+            
+            elif milestone_type == "Incomplete_Delivery_Milestone_Status":
+                due_to_end_shift = random.choice([True, False])
+                incomplete_reason = "some reason for incompleteness" if not due_to_end_shift else "shift ended"
+                data = {
+                    "ticketId" : ticket,
+                    "newStatus" : curr_state,
+                    "oldStatus" :  prev_state,
+                    "assigneeUserId" : curr_driver,
+                    "reasonForIncomplete" : incomplete_reason,
+                    "dueToEndedShift" : due_to_end_shift
+                    }
+
+            else:
+                raise Exception(f"Logic for milsetone type {milestone_type} not found")
+            
+            functionMapping[milestone_type](data)
+            prev_state = curr_state
+    
+    def generate_milestone_events(old_tickets):
+        all_tickets = (
+            session.query(TicketEvents)
+            .with_entities(TicketEvents.ticketId)
+            .distinct()
+            .all()
+        )
+        all_tickets = [v for v, in all_tickets]
+
+        new_tickets = list_diff(all_tickets, old_tickets)
+        reprocess_pickups = []
+        reprocess_deliveries = []
+
+        approver_list = usersByTypeList[UserType.manager] + usersByTypeList[UserType.dispatch]
+
+        for ticket in new_tickets:
+            end_state = random.choice(list(Generic_Milestone_Status))
+            transition_list = (
+                random.choice(list(stateTable[end_state].values())) 
+                if type(stateTable[end_state]) is dict
+                else stateTable[end_state]
+            )
+            generate_transitions(ticket, transition_list, approver_list)
+            if transition_list[-1] == Pickup_Milestone_Status.unassigned_pickup:
+                reprocess_pickups.append((ticket, 1))
+            elif (transition_list[-1] == Inventory_Milestone_Status.checked_into_inventory 
+                and transition_list[-2] != Creation_Milestone_Status.ticket_created):
+                reprocess_deliveries.append((ticket, 1))
+
+        while reprocess_pickups:
+            ticket, retry = reprocess_pickups.pop(0)
+            end_state = random.choice(reprocessPickupsSet)
+            transition_list = (
+                random.choice(list(stateTable[end_state].values())) 
+                if type(stateTable[end_state]) is dict
+                else stateTable[end_state]
+            )
+            if transition_list and transition_list[0] == Creation_Milestone_Status.unassigned_pickup:
+                transition_list.pop(0)
+            generate_transitions(ticket, transition_list, approver_list, Pickup_Milestone_Status.unassigned_pickup.value)
+            if retry < maxReprocess and transition_list and transition_list[-1] == Pickup_Milestone_Status.unassigned_pickup:
+                reprocess_pickups.append((ticket, retry + 1))
+
+        while reprocess_deliveries:
+            ticket, retry = reprocess_deliveries.pop(0)
+            end_state = random.choice(reprocessDeliverySet)
+            transition_list = (
+                random.choice(list(stateTable[end_state].values())) 
+                if type(stateTable[end_state]) is dict
+                else stateTable[end_state]
+            )
+            if transition_list and transition_list[0] == Creation_Milestone_Status.ticket_created:
+                transition_list.pop(0)
+            if transition_list and transition_list[0] == Inventory_Milestone_Status.checked_into_inventory:
+                transition_list.pop(0)
+            generate_transitions(ticket, transition_list, approver_list, Inventory_Milestone_Status.checked_into_inventory.value)
+            if retry < maxReprocess and transition_list and transition_list[-1] == Inventory_Milestone_Status.checked_into_inventory:
+                reprocess_deliveries.append((ticket, retry + 1))
+
     # def generate_generic_milestones_events(scale=50, ticket_map=[], users=[]):
 
     #     gen_milestone_controller = GenericMilestoneController()
@@ -415,22 +610,32 @@ with app.app_context():
 
     #             print("Created Delivery Milestone")
 
-    generate_users(scale=5)
+    generate_users(scale=70)
     users = session.query(Users).all()
 
     # print(random.choice(users))
 
-    generate_customers(scale=5)
+    generate_customers(scale=100)
     customers = session.query(Customers).all()
 
     # pprint(alchemyConverter(users[0]))
 
+    oldTickets = (
+            session.query(TicketEvents)
+            .with_entities(TicketEvents.ticketId)
+            .distinct()
+            .all()
+        )
+    oldTickets = [v for v, in oldTickets]
+
     generate_ticket_events(
-        scale=20,
+        scale=500,
         users=users,
         customers=customers,
     )
     ticketEvents = session.query(TicketEvents).distinct().all()
+
+    generate_milestone_events(oldTickets)
 
     # pprint(alchemyConverter(ticketEvents[0]))
 

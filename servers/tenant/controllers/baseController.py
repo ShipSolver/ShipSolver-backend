@@ -7,9 +7,10 @@ from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
 import sys
 from datetime import datetime
+
 sys.path.insert(0, "..")  # import parent folder
 
-from models.models import Users
+from models.models import TicketStatus
 from models.__init__ import session
 from utils import convert_dict_to_alchemy_filters
 
@@ -59,13 +60,10 @@ class BaseController:
     # update an object
     # primary_key_val is the value of the primary key
     # update_dict is a subset of the models args_dict
-    def _modify(self, primary_key_val, update_dict):
+    def _modify(self, filters: dict, update_dict: dict):
 
-        obj = (
-            self.query(self.model)
-            .filter(getattr(self.model, self.primary_key) == primary_key_val)
-            .first()
-        )
+        session_filters = convert_dict_to_alchemy_filters(self.model, filters)
+        obj = self.query(self.model).filter(*session_filters).all()
         obj.update(update_dict)
 
         session.commit()
@@ -85,19 +83,30 @@ class BaseController:
 
         self.session.commit()
 
-    def _get(self, model, filters, limit=500):
+    def _get(self, filters, limit):
         if not filters:
             filters = []
 
-        objects = self.session.query(self.model) \
-            .filter(*convert_dict_to_alchemy_filters(model, filters)) \
-            .group_by(self.model.non_prim_identifying_column_name) \
-            .order_by(self.model.timestamp) \
-            .limit(limit) 
-        
+        objects = (
+            self.session.query(self.model)
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .limit(limit)
+            .all()
+        )
 
         return objects
 
+    def _get_count(self, filters):
+        if not filters:
+            filters = []
+
+        objects = (
+            self.session.query(getattr(self.model, self.primary_key))
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .all()
+        )
+
+        return len(objects)
 
 
 class BaseTimeSeriesController(BaseController):
@@ -116,17 +125,7 @@ class BaseTimeSeriesController(BaseController):
     """
 
     def _create_base_event(self, args_dict):
-
-        id = random.randint(1, 2147483640)
-
-        args_dict[self.primary_key] = id
-        args_dict[self.model.non_prim_identifying_column_name] = id
-
-        obj = self.model(**args_dict)
-        self.session.add(obj)
-        self.session.commit()
-
-        return obj
+        pass
 
     def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
 
@@ -136,15 +135,19 @@ class BaseTimeSeriesController(BaseController):
         #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
         #     .group_by(self.model.non_prim_identifying_column_name)
         #     .order_by(self.model.timestamp)
-        #     .limit(number_of_res).all() 
+        #     .limit(number_of_res)
+        #     .all()
         # )
 
         print(*convert_dict_to_alchemy_filters(self.model, filters))
-        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-            .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
-            .order_by(self.model.timestamp) \
-            .limit(1).all() 
-    
+        latest_objs = (
+            self.session.query(self.model)
+            .distinct(self.model.non_prim_identifying_column_name)
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .order_by(self.model.timestamp)
+            .limit(1)
+            .all()
+        )
 
         # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
         print("LATEST_OBJS-------")
@@ -166,28 +169,37 @@ class BaseTimeSeriesController(BaseController):
 
     #     return latest_objs
 
-    def  _get_latest_event_objects_from_start_date(self, datetime1, filters, number_of_res=5):
-        return self._get_latest_event_objects_in_range(datetime1, datetime.now(), filters=filters, number_of_res=5)
+    def _get_latest_event_objects_from_start_date(
+        self, datetime1, filters, number_of_res=5
+    ):
+        return self._get_latest_event_objects_in_range(
+            datetime1, datetime.now(), filters=filters, number_of_res=5
+        )
 
-
-    def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}, number_of_res=5):
+    def _get_latest_event_objects_in_range(
+        self, datetime1, datetime2, filters={}, number_of_res=5
+    ):
         assert datetime1 <= datetime2
         time1 = int(time.mktime(datetime1.timetuple()))
         time2 = int(time.mktime(datetime2.timetuple()))
 
-        
         session_filters = convert_dict_to_alchemy_filters(self.model, filters)
 
         session_filters.append(self.model.timestamp >= time1)
         session_filters.append(self.model.timestamp <= time2)
-        
-        print("------------------------RUNNING TICKET GET QUERY----------------------------")
-        results = \
-            self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-            .filter(*session_filters) \
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp) \
-            .limit(number_of_res).all()
-        print("----------complete-----------------")   
+
+        print(
+            "------------------------RUNNING TICKET GET QUERY----------------------------"
+        )
+        results = (
+            self.session.query(self.model)
+            .distinct(self.model.non_prim_identifying_column_name)
+            .filter(*session_filters)
+            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp)
+            .limit(number_of_res)
+            .all()
+        )
+        print("----------complete-----------------")
         for result in results:
             print("TID " + str(result.ticketId))
         return results

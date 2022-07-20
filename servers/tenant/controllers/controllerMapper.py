@@ -1,4 +1,6 @@
 from statistics import mode
+
+from regex import D
 from controllers.baseController import (
     BaseController,
     BaseTimeSeriesController,
@@ -29,28 +31,6 @@ class MilestoneController(BaseController):
         self.model = model  # redudant
         self.ticket_status = TicketStatusController()
 
-    # def _create(self, args_dict, ticket_id):
-
-    # assert isinstance(args_dict, dict)
-    # assert "newStatus" in args_dict
-
-    # obj = self.model(**args_dict)
-    # self.session.add(obj)
-    # self.session.commit()
-
-    # # update current ticket status
-    # self.ticket_status._modify(
-    #     filters={"ticket_id": ticket_id},
-    #     update_dict={"currentStatus": args_dict["newStatus"]},
-    # )
-
-    # return obj
-
-    def __getattr__(self, attr_name):
-        if attr_name != "_create":
-            raise AttributeError
-        return getattr(self._wrapped, attr_name)
-
 
 """ MILESTONES """
 
@@ -58,32 +38,120 @@ class MilestoneController(BaseController):
 class CreationMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(CreationMilestones)
-
+    
+    def convert_to_desc(self, milestones):
+        string_milestones = []
+        for milestone in milestones:
+                string_milestones.append({
+                    "description":  f"Ticket created by {milestone['createdByUser']['username']}",
+                    "timestamp": milestone["createdAt"]
+                })
+        return string_milestones
+         
 
 class PickupMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(PickupMilestones)
 
+    def convert_to_desc(self, milestones):
+        string_milestones = []
+        for milestone in milestones:
+            if milestone["oldStatus"] == Pickup_Milestone_Status.unassigned_pickup.value and  milestone["newStatus"] == Pickup_Milestone_Status.requested_pickup.value:
+                string_milestones.append({
+                    "description":  f"Pickup request sent to {milestone['requestedUser']['username']} by {milestone['requesterUser']['username']}",
+                    "timestamp": milestone["timestamp"]
+                })
+            if milestone["oldStatus"] == Pickup_Milestone_Status.requested_pickup.value and  milestone["newStatus"] == Pickup_Milestone_Status.accepted_pickup.value:
+                string_milestones.append({
+                    "description":  f"Pickup request accepted by {milestone['requestedUser']['username']}",
+                    "timestamp": milestone["timestamp"]
+                })
+            if milestone["oldStatus"] == Pickup_Milestone_Status.requested_pickup.value and milestone["newStatus"] == Pickup_Milestone_Status.declined_pickup.value:
+                string_milestones.append({
+                    "description":  f"Pickup request declined by {milestone['requestedUser']['username']}",
+                    "timestamp": milestone["timestamp"]
+                })
+            if milestone["oldStatus"] == Pickup_Milestone_Status.accepted_pickup.value and  milestone["newStatus"] == Pickup_Milestone_Status.completed_pickup.value:
+                string_milestones.append({
+                    "description":  f"Pickup completed by {milestone['requestedUser']['username']}",
+                    "timestamp": milestone["timestamp"]
+                })
+            if milestone["oldStatus"] == Pickup_Milestone_Status.unassigned_pickup.value and  milestone["newStatus"] == Pickup_Milestone_Status.incomplete_pickup.value:
+                string_milestones.append({
+                    "description":  f"Pickup not completed by {milestone['requestedUser']['username']}",
+                    "timestamp": milestone["timestamp"]
+                })
+        return string_milestones
 
 class InventoryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(InventoryMilestones)
 
+    def convert_to_desc(self, milestones):
+        string_milestones = []
+        for milestone in milestones:
+                if milestone["oldStatus"] == Inventory_Milestone_Status.ticket_created.value and  milestone["newStatus"] == Inventory_Milestone_Status.checked_into_inventory.value:
+                    string_milestones.append({
+                        "description":  f"Item checked into inventory by {milestone['approvedByUser']['username']}",
+                        "timestamp": milestone["timestamp"]
+                    })
+                if milestone["oldStatus"] == Inventory_Milestone_Status.incomplete_delivery.value and  milestone["newStatus"] == Inventory_Milestone_Status.checked_into_inventory.value:
+                    string_milestones.append({
+                        "description":  f"Item checked back into inventory by {milestone['approvedByUser']['username']}",
+                        "timestamp": milestone["timestamp"]
+                    })
+                if milestone["oldStatus"] == Inventory_Milestone_Status.completed_delivery.value and  milestone["newStatus"] == Inventory_Milestone_Status.incomplete_delivery.value:
+                    string_milestones.append({
+                        "description":  f"POD rejected by {milestone['approvedByUser']['username']}",
+                        "timestamp": milestone["timestamp"]
+                    })
+                # TODO fix schema and add remaining inventory milestones
+        return string_milestones
 
 class AssignmentMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(AssignmentMilestones)
-
+        
+    def convert_to_desc(self, milestones):
+        string_milestones = []
+        for milestone in milestones:
+                if milestone["oldStatus"] == Assignment_Milestone_Status.checked_into_inventory.value and  milestone["newStatus"] == Assignment_Milestone_Status.assigned.value:
+                    string_milestones.append({
+                        "description":  f"Delivery assigned to {milestone['requestedUser']['username']} by {milestone['requesterUser']['username']}",
+                        "timestamp": milestone["timestamp"]
+                    })
+                else:
+                    string_milestones.append({
+                        "description":  f"Delivery is now heading toward its destination with {milestone['requestedUser']['username']}",
+                        "timestamp": milestone["timestamp"]
+                    })
+        return string_milestones
 
 class IncompleteDeliveryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(IncompleteDeliveryMilestones)
 
-
+    def convert_to_desc(self, milestones):
+        string_milestones = []
+        for milestone in milestones:
+                string_milestones.append({
+                    "description":  f"Delivery not completed by {milestone['assigneeUser']['username']}",
+                    "timestamp": milestone["timestamp"]
+                })
+        return string_milestones
+         
 class DeliveryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(DeliveryMilestones)
 
+    def convert_to_desc(self, milestones):
+        string_milestones = []
+        for milestone in milestones:
+                string_milestones.append({
+                    "description":  f"Delivery completed by {milestone['assigneeUser']['username']}",
+                    "timestamp": milestone["timestamp"]
+                })
+        return string_milestones
 
 """"""
 
@@ -93,6 +161,7 @@ class TicketController(BaseTimeSeriesController):
         super().__init__(TicketEvents)
         self.ticket_status_controller = TicketStatusController()
         self.creation_milestone_controller = CreationMilestonesController()
+        self.inventory_milestone_controller = InventoryMilestonesController()
         self.assigned_milestones_controller = AssignmentMilestonesController()
 
     def _create_base_event(self, args_dict):
@@ -100,10 +169,10 @@ class TicketController(BaseTimeSeriesController):
         is_pickup = args_dict["isPickup"]
 
         if not is_pickup:
+            # THIS WILL BE CHANGED BACK WHEN INVENTORY CHECK IN IS A FEATURE
             args_dict["newStatus"] = Creation_Milestone_Status.ticket_created.value
-
             fields = {
-                "currentStatus": Creation_Milestone_Status.ticket_created.value,
+                "currentStatus": Inventory_Milestone_Status.checked_into_inventory.value
             }
             if "assignedTo" in args_dict:
                 fields["assignedTo"] = args_dict["assignedTo"]
@@ -138,4 +207,12 @@ class TicketController(BaseTimeSeriesController):
             }
         )
 
+        self.inventory_milestone_controller._create(
+            {
+                "ticketId": obj.ticketId,
+                "oldStatus": new_status,
+                "newStatus": Inventory_Milestone_Status.checked_into_inventory.value,
+                "approvedByUserId": args_dict["userId"],
+            }
+        )
         return obj

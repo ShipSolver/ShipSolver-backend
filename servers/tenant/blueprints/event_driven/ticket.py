@@ -80,18 +80,24 @@ def ticket_get_all_with_status(status):  # create ticket
 
 
 @ticket_bp.route("/", methods=["POST"])
-@auth_required()
+# @auth_required()
 def ticket_post():  # create ticket
-
-    ticket_dict = request.json.get("ticket")
+    print("Creating ticket from the following JSON:")
+    print(request.data)
+    ticket_dict = json.loads(request.data)
 
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
     ticket_dict.pop(TicketEvents.non_prim_identifying_column_name, None)
 
+    # temporary 
+    ticket_dict.pop("noSignatureRequired", None)
+    ticket_dict.pop("tailgateAuthorized", None) 
+
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
-    return make_response("success")
+    response = {"ticketId": ticket_event.ticketId}
+    return make_response(json.dumps(response))
 
 
 # http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea

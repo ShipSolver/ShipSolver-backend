@@ -63,9 +63,7 @@ class BaseController:
     def _modify(self, filters: dict, update_dict: dict):
 
         session_filters = convert_dict_to_alchemy_filters(self.model, filters)
-        obj = self.query(self.model).filter(*session_filters).all()
-        obj.update(update_dict)
-
+        session.query(self.model).filter(*session_filters).update(update_dict) 
         session.commit()
 
     # delete an object
@@ -83,7 +81,7 @@ class BaseController:
 
         self.session.commit()
 
-    def _get(self, filters, limit):
+    def _get(self, filters, limit=5000):
         if not filters:
             filters = []
 

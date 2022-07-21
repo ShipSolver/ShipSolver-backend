@@ -147,6 +147,7 @@ class Documents(Base):
     barcodeNumber = Column(String, nullable=False)
     houseReferenceNumber = Column(String, nullable=False)
     orderS3Link = Column(String, nullable=False)
+    orderS3Path = Column(String, nullable=False)
     weight = Column(String, nullable=False)
     claimedNumberOfPieces = Column(Integer, nullable=False)
     BOLNumber = Column(String, nullable=False)

@@ -20,14 +20,14 @@ customer_controller = CustomerController()
 
 
 @customer_bp.route("/", methods=["POST"])
-# @auth_required()
+@auth_required()
 def customer_post():  # create ticket
     customer = customer_controller._create(json.loads(request.data))
     response = {"customerId": customer.customerId}
     return make_response(json.dumps(response))
 
 @customer_bp.route("/", methods=["GET"])
-# @auth_required()
+@auth_required()
 def customer_get():  # create ticket
     limit = 5000 if "limit" not in request.args else request.args["limit"]
     if "limit" in request.args:

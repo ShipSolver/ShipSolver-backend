@@ -70,7 +70,7 @@ def milestone_get(ticket_id):  # create ticket
 
 
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
-# @auth_required()
+@auth_required()
 def milestone_post(milestone_type):  # create ticket
     milestone_class = getattr(sys.modules[__name__], milestone_type)
     milestone_controller = class_to_cntrl_map[milestone_class]

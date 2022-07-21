@@ -85,6 +85,7 @@ def ticket_post():  # create ticket
     print("Creating ticket from the following JSON:")
     print(request.data)
     ticket_dict = json.loads(request.data)
+    ticket_dict = ticket_dict["data"]
 
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
@@ -103,6 +104,7 @@ def ticket_edit(ticket_id):  # create ticket
     print("Creating ticket from the following JSON:")
     print(request.data)
     ticket_dict = json.loads(request.data)
+    ticket_dict = ticket_dict["data"]
     ticket_dict["ticketId"] = ticket_id
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)

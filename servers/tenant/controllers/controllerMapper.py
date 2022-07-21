@@ -105,6 +105,11 @@ class InventoryMilestonesController(MilestoneController):
                         "description":  f"POD rejected by {milestone['approvedByUser']['username']}",
                         "timestamp": milestone["timestamp"]
                     })
+                # if milestone["oldStatus"] == Inventory_Milestone_Status.completed_delivery.value and milestone["newStatus"] == Inventory_Milestone_Status.approved_pod.value:
+                #     string_milestones.append({
+                #         "description":  f"POD rejected by {milestone['approvedByUser']['username']}",
+                #         "timestamp": milestone["timestamp"]
+                #     })
                 # TODO fix schema and add remaining inventory milestones
         return string_milestones
 
@@ -192,7 +197,7 @@ class TicketController(BaseTimeSeriesController):
 
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
-        args_dict[self.primary_key] = milestone.ticketId
+        # args_dict[self.primary_key] = milestone.ticketId
         args_dict[self.model.non_prim_identifying_column_name] = milestone.ticketId
 
         obj = self.model(**args_dict)

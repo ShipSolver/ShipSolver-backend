@@ -180,6 +180,8 @@ with app.app_context():
                 consigneePhoneNumber = faker.phone_number()
                 pieces = faker.sentence()
                 isPickup = False
+                noSignatureRequired = False
+                tailgateAuthorized = False
 
                 obj = ticket_events_controller._create_base_event(
                     {
@@ -205,6 +207,9 @@ with app.app_context():
                         "consigneePhoneNumber": consigneePhoneNumber,
                         "pieces": pieces,
                         "isPickup": isPickup,
+                        "noSignatureRequired": noSignatureRequired,
+                        "tailgateAuthorized": tailgateAuthorized
+
                     }
                 )
 
@@ -297,7 +302,7 @@ with app.app_context():
                     "ticketId" : ticket,
                     "newStatus" : curr_state,
                     "oldStatus" : prev_state,
-                    "completingdUserId" : curr_driver,
+                    "completingUserId" : curr_driver,
                     "PODLink" : "https://www.youtube.com/watch?v=xvFZjo5PgG0",
                     "picture1Link" : "https://images.unsplash.com/flagged/photo-1572392640988-ba48d1a74457?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=464&q=80",
                     "picture2Link" : "https://images.unsplash.com/photo-1515405295579-ba7b45403062?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",

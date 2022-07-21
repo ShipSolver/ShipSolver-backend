@@ -22,7 +22,7 @@ ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
 ticket_controller = TicketController()
 ticket_status_controller = TicketStatusController()
-
+PIECES_SEPERATOR = ",+-"
 """
 Route expects requests of format:
 
@@ -89,16 +89,29 @@ def ticket_post():  # create ticket
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
     ticket_dict.pop(TicketEvents.non_prim_identifying_column_name, None)
-
-    # temporary 
-    ticket_dict.pop("noSignatureRequired", None)
-    ticket_dict.pop("tailgateAuthorized", None) 
-
+    #join pieces into single string 
+    ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
     response = {"ticketId": ticket_event.ticketId}
     return make_response(json.dumps(response))
 
+
+@ticket_bp.route("/<ticket_id>", methods=["POST"])
+# @auth_required()
+def ticket_edit(ticket_id):  # create ticket
+    print("Creating ticket from the following JSON:")
+    print(request.data)
+    ticket_dict = json.loads(request.data)
+    ticket_dict["ticketId"] = ticket_id
+    # remove ticketId and ticketEventId if present
+    ticket_dict.pop(ticket_controller.primary_key, None)
+    #join pieces into single string 
+    ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
+    ticket_event = ticket_controller._create_base_event(ticket_dict)
+
+    response = {"ticketId": ticket_event.ticketId}
+    return make_response(json.dumps(response))
 
 # http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea
 # curl http://127.0.0.1:6767/api/ticket/?shipperName
@@ -134,7 +147,7 @@ def default_end():
 
 
 @ticket_bp.route("/", methods=["GET"])
-@auth_required()
+# @auth_required()
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
@@ -152,7 +165,10 @@ def ticket_get_all():
     )
 
     res = alchemyConverter(data)
-    
+    for ticket in res:
+        ticket["pieces"] = ticket["pieces"].split(PIECES_SEPERATOR)
+        ticket["ticketStatus"]["currentStatus"] = ticket["ticketStatus"]["currentStatus"].value
+
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
 
@@ -189,23 +205,6 @@ Route expects requests of format:
 
 """
 
-
-# @ticket_bp.route("/attribute/{attribute_name}", methods=["GET"])
-# @require_appkey
-# def ticket_attribute_get(attribute_name):
-
-#     filters.extend({"ticket_id": ticket_id})
-
-#     latest_ticket = ticket_controller._get_latest_event_objects(
-#         number_of_res=number_of_res, filters=filters
-#     )
-
-#     res = alchemyConverter(latest_ticket)
-#     response = json.dumps(res, cls=AlchemyEncoder)
-
-#     return response
-
-
 """
 Route expects requests of format:
 
@@ -224,25 +223,3 @@ Route expects requests of format:
 
 """
 
-
-@ticket_bp.route("/<ticket_id>", methods=["PUT"])
-@auth_required()
-def ticket_update(ticket_id):
-
-    update_dict = request.form["update_dict"]
-
-    # remove ticketId and ticketEventId if present
-    update_dict.pop(ticket_controller.primary_key, None)
-    update_dict.pop(TicketEvents.non_prim_identifying_column_name, None)
-
-    filters = request.form["filters"]
-    filters.extend({"ticket_id": ticket_id})
-
-    updated_object = ticket_controller._modify_latest_object(
-        update_dict, filters=filters
-    )
-
-    res = alchemyConverter(updated_object)
-    response = json.dumps(res, cls=AlchemyEncoder)
-
-    return make_response(response)

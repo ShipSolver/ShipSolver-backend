@@ -18,7 +18,6 @@ class CustomerController(BaseController):
         super().__init__(Customers)
 
 
-<<<<<<< HEAD
 class TicketStatusController(BaseController):
     def __init__(self):
         super().__init__(TicketStatus)
@@ -85,13 +84,6 @@ class PickupMilestonesController(MilestoneController):
 class InventoryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(InventoryMilestones)
-=======
-class TicketController(BaseTimeSeriesController):
-    def __init__(self):
-        super().__init__(TicketEvents)
-
-
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66
 
     def convert_to_desc(self, milestones):
         string_milestones = []
@@ -169,7 +161,6 @@ class DeliveryMilestonesController(MilestoneController):
 
 class TicketController(BaseTimeSeriesController):
     def __init__(self):
-<<<<<<< HEAD
         super().__init__(TicketEvents)
         self.ticket_status_controller = TicketStatusController()
         self.creation_milestone_controller = CreationMilestonesController()
@@ -228,11 +219,3 @@ class TicketController(BaseTimeSeriesController):
             }
         )
         return obj
-=======
-        super().__init__(DeliveryMilestones)
-
-
-class DocumentController(BaseController):
-    def __init__(self):
-        super().__init__(Documents)
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66

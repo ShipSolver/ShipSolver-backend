@@ -32,11 +32,7 @@ def user_post():  # create ticket
 
 
 @user_bp.route("", methods=["PUT"])
-<<<<<<< HEAD
 #@auth_required()
-=======
-@require_appkey
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66
 def user_modify():
 
     userId = request.form["userId"]

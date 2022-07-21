@@ -1,10 +1,6 @@
 *venv*
 __pycache__/
 *.pyc
-<<<<<<< HEAD
 .vscode
 **/.env
 tmp
-=======
-.vscode
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66

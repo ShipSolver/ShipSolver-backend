@@ -104,7 +104,6 @@ class Users(Base):
     def __repr__(self):
         return f"< Users:: userId: {self.userId}>"
 
-<<<<<<< HEAD
 
 class DocumentStatus(Base):
     __tablename__ = "documentstatus"
@@ -122,27 +121,13 @@ class Documents(Base):
     barcodeNumber = Column(String, nullable=False)
     houseReferenceNumber = Column(String, nullable=False)
     orderS3Link = Column(String, nullable=False)
+    orderS3Path = Column(String, nullable=False)
     weight = Column(String, nullable=False)
     claimedNumberOfPieces = Column(Integer, nullable=False)
     BOLNumber = Column(String, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
     # shipper
-=======
-class Documents(Base):
-    __tablename__ = "documents"
-    documentId = Column(Integer, primary_key=True, nullable=False)
-    timestamp = Column(Integer, default=int(time.time()))
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
-    orderS3Link = Column(String, nullable=False)
-    weight = Column(Integer, nullable=False)
-    claimedNumberOfPieces = Column(Integer, nullable=False)
-    BOLNumber = Column(Integer, nullable=False)
-    specialServices = Column(String)
-    specialInstructions = Column(String)
-    # shipper 
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66
     shipperCompany = Column(String, nullable=False)
     shipperName = Column(String, nullable=False)
     shipperAddress = Column(String, nullable=False)
@@ -156,7 +141,6 @@ class Documents(Base):
     consigneePhoneNumber = Column(String, nullable=False)
     # pieces
     pieces = Column(String, nullable=False)
-<<<<<<< HEAD
     noSignatureRequired = Column(Boolean, nullable=False)
     tailgateAuthorized = Column(Boolean, nullable=False)
     customerName = Column(String, nullable=False)
@@ -167,9 +151,6 @@ class TicketStatus(Base):
     ticketId = Column(Integer, primary_key=True, autoincrement=True)
     currentStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
     assignedTo = Column(Integer, ForeignKey(Users.userId), nullable=True, index=True)
-=======
-    customerName = Column(String, nullable=False)
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66
 
 
 
@@ -180,30 +161,19 @@ class TicketEvents(Base):
     # TODO: forgein key
     ticketId = Column(Integer, ForeignKey(TicketStatus.ticketId))
     timestamp = Column(Integer, default=int(time.time()))
-<<<<<<< HEAD
     userId = Column(Integer, ForeignKey(Users.userId), nullable=False, index=True)
     customerId = Column(
         Integer, ForeignKey(Customers.customerId), nullable=False, index=True
     )
     barcodeNumber = Column(String, nullable=False)
     houseReferenceNumber = Column(String, nullable=False)
-=======
-    userId = Column(Integer, ForeignKey(Users.userId), nullable=False)
-    customerId = Column(Integer, ForeignKey(Customers.customerId), nullable=False)
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66
     orderS3Link = Column(String, nullable=False)
     weight = Column(String, nullable=False)
     claimedNumberOfPieces = Column(Integer, nullable=False)
     BOLNumber = Column(String, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
-<<<<<<< HEAD
     # shipper
-=======
-    # shipper 
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66
     shipperCompany = Column(String, nullable=False)
     shipperName = Column(String, nullable=False)
     shipperAddress = Column(String, nullable=False)
@@ -217,7 +187,6 @@ class TicketEvents(Base):
     consigneePhoneNumber = Column(String, nullable=False)
     # pieces
     pieces = Column(String, nullable=False)
-<<<<<<< HEAD
     isPickup = Column(Boolean, nullable=False)
     noSignatureRequired = Column(Boolean, nullable=False)
     tailgateAuthorized = Column(Boolean, nullable=False)
@@ -233,10 +202,6 @@ class CreationMilestones(Base):
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
-=======
-    user = relationship("Users")
-    customer = relationship("Customers")
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66
 
     newStatus = Column(Enum(Creation_Milestone_Status), nullable=False)
 
@@ -273,7 +238,6 @@ class PickupMilestones(Base):
 class InventoryMilestones(Base):
     __tablename__ = "inventorymilestones"
 
-<<<<<<< HEAD
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
@@ -383,40 +347,3 @@ except:
     pass
 
 
-=======
-ticketId_timestamp_idx = Index(
-    "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
-)
-
-INDEXES.append(ticketId_timestamp_idx)
-
-
-ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
-
-INDEXES.append(ticket_userId_idx)
-
-ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
-
-INDEXES.append(ticket_customerId_idx)
-
-gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
-
-INDEXES.append(gen_milestoneId_idx)
-
-inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
-
-INDEXES.append(inv_milestoneId_idx)
-
-del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
-
-INDEXES.append(del_milestoneId_idx)
-
-print("Configuring DB ...")
-Base.metadata.create_all(engine)
-try:
-    # create indexes
-    for index in INDEXES:
-        index.create(bind=engine)
-except:
-    pass
->>>>>>> 32dee55d98864ba43414c8757ab4abe2e4881f66

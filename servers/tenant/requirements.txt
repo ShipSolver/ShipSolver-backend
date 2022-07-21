@@ -1,3 +1,4 @@
+boto3
 amqp==5.0.9
 aniso8601==9.0.1
 attrs==21.4.0
@@ -38,7 +39,6 @@ marshmallow-sqlalchemy==0.24.1
 multilingual-pdf2text==1.1.0
 numpy==1.22.0
 ocrmypdf==13.2.0
-Flask-Cors
 packaging==21.3
 Flask-Cors
 pdf2image==1.16.0

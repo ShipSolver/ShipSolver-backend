@@ -104,49 +104,26 @@ class Users(Base):
     def __repr__(self):
         return f"< Users:: userId: {self.userId}>"
 
+
+class DocumentStatus(Base):
+    __tablename__ = "documentstatus"
+    documentStatusId = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    status = Column(String, nullable=False, default="PENDING")
+    numPages = Column(Integer, nullable=False)
+
+
 class Documents(Base):
     __tablename__ = "documents"
     documentId = Column(Integer, primary_key=True, nullable=False)
+    documentStatusId = Column(Integer, nullable=False)
+    success = Column(Boolean, nullable=False)
     timestamp = Column(Integer, default=int(time.time()))
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
+    barcodeNumber = Column(String, nullable=False)
+    houseReferenceNumber = Column(String, nullable=False)
     orderS3Link = Column(String, nullable=False)
-    weight = Column(Integer, nullable=False)
+    weight = Column(String, nullable=False)
     claimedNumberOfPieces = Column(Integer, nullable=False)
-    BOLNumber = Column(Integer, nullable=False)
-    specialServices = Column(String)
-    specialInstructions = Column(String)
-    # shipper 
-    shipperCompany = Column(String, nullable=False)
-    shipperName = Column(String, nullable=False)
-    shipperAddress = Column(String, nullable=False)
-    shipperPostalCode = Column(String, nullable=False)
-    shipperPhoneNumber = Column(String, nullable=False)
-    # consignee
-    consigneeCompany = Column(String, nullable=False)
-    consigneeName = Column(String, nullable=False)
-    consigneeAddress = Column(String, nullable=False)
-    consigneePostalCode = Column(String, nullable=False)
-    consigneePhoneNumber = Column(String, nullable=False)
-    # pieces
-    pieces = Column(String, nullable=False)
-    customerName = Column(String, nullable=False)
-
-
-
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-class Documents(Base):
-    __tablename__ = "documents"
-    documentId = Column(Integer, primary_key=True, nullable=False)
-    timestamp = Column(Integer, default=int(time.time()))
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
-    orderS3Link = Column(String, nullable=False)
-    weight = Column(Integer, nullable=False)
-    claimedNumberOfPieces = Column(Integer, nullable=False)
-    BOLNumber = Column(Integer, nullable=False)
+    BOLNumber = Column(String, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
     # shipper
@@ -177,13 +154,6 @@ class TicketStatus(Base):
     user = relationship("Users")
 
 
-=======
->>>>>>> modifying db schema
-=======
-    
->>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz
-=======
->>>>>>> Fix commit bugs for mergmerge
 class TicketEvents(Base):
     __tablename__ = "ticketevents"
     non_prim_identifying_column_name = "ticketId"
@@ -191,53 +161,30 @@ class TicketEvents(Base):
     # TODO: forgein key
     ticketId = Column(Integer, ForeignKey(TicketStatus.ticketId))
     timestamp = Column(Integer, default=int(time.time()))
-<<<<<<< HEAD
     userId = Column(Integer, ForeignKey(Users.userId), nullable=False, index=True)
     customerId = Column(
         Integer, ForeignKey(Customers.customerId), nullable=False, index=True
     )
-=======
-    userId = Column(Integer, ForeignKey(Users.userId), nullable=False)
-    customerId = Column(Integer, ForeignKey(Customers.customerId), nullable=False)
->>>>>>> modifying db schema
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
+    barcodeNumber = Column(String, nullable=False)
+    houseReferenceNumber = Column(String, nullable=False)
     orderS3Link = Column(String, nullable=False)
-    weight = Column(Integer, nullable=False)
+    weight = Column(String, nullable=False)
     claimedNumberOfPieces = Column(Integer, nullable=False)
-    BOLNumber = Column(Integer, nullable=False)
+    BOLNumber = Column(String, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
-<<<<<<< HEAD
-<<<<<<< HEAD
     # shipper
-=======
->>>>>>> modifying db schema
-=======
-    # shipper 
->>>>>>> push
     shipperCompany = Column(String, nullable=False)
     shipperName = Column(String, nullable=False)
     shipperAddress = Column(String, nullable=False)
     shipperPostalCode = Column(String, nullable=False)
     shipperPhoneNumber = Column(String, nullable=False)
-<<<<<<< HEAD
-<<<<<<< HEAD
     # consignee
-=======
->>>>>>> modifying db schema
-=======
-    # consignee
->>>>>>> push
     consigneeCompany = Column(String, nullable=False)
     consigneeName = Column(String, nullable=False)
     consigneeAddress = Column(String, nullable=False)
     consigneePostalCode = Column(String, nullable=False)
     consigneePhoneNumber = Column(String, nullable=False)
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> push
     # pieces
     pieces = Column(String, nullable=False)
     isPickup = Column(Boolean, nullable=False)
@@ -255,11 +202,6 @@ class CreationMilestones(Base):
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
-=======
-    pieces = Column(String, nullable=False)
-    user = relationship("Users")
-    customer = relationship("Customers")
->>>>>>> modifying db schema
 
     newStatus = Column(Enum(Creation_Milestone_Status), nullable=False)
 
@@ -296,7 +238,6 @@ class PickupMilestones(Base):
 class InventoryMilestones(Base):
     __tablename__ = "inventorymilestones"
 
-<<<<<<< HEAD
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
@@ -310,14 +251,7 @@ class InventoryMilestones(Base):
     newStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-<<<<<<< HEAD
     approvedByUser = relationship("Users")
-=======
-if __name__ == "__main__":
-    ticketId_timestamp_idx = Index(
-        "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
-    )
->>>>>>> modifying db schema
 
 
 class AssignmentMilestones(Base):
@@ -345,7 +279,6 @@ class AssignmentMilestones(Base):
 class IncompleteDeliveryMilestones(Base):
     __tablename__ = "inconpletedeliverymilestones"
 
-<<<<<<< HEAD
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
@@ -366,15 +299,8 @@ class IncompleteDeliveryMilestones(Base):
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     assigneeUser = relationship("Users")
-=======
-ticketId_timestamp_idx = Index(
-    "ticketId_timestamp_idx", TicketEvents.ticketId, TicketEvents.timestamp
-)
->>>>>>> push
 
-INDEXES.append(ticketId_timestamp_idx)
 
-<<<<<<< HEAD
 class DeliveryMilestones(Base):
     __tablename__ = "deliverymilestones"
 
@@ -403,9 +329,6 @@ class DeliveryMilestones(Base):
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
     completingUser = relationship("Users")
-=======
-    gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
->>>>>>> modifying db schema
 
 
 ticketId_timestamp_idx = Index(
@@ -424,34 +347,3 @@ except:
     pass
 
 
-=======
-
-ticket_userId_idx = Index("ticket_userId_idx", TicketEvents.userId)
-
-INDEXES.append(ticket_userId_idx)
-
-ticket_customerId_idx = Index("ticket_customerId_idx", TicketEvents.customerId)
-
-INDEXES.append(ticket_customerId_idx)
-
-gen_milestoneId_idx = Index("gen_milestoneId_idx", GenericMilestones.milestoneId)
-
-INDEXES.append(gen_milestoneId_idx)
-
-inv_milestoneId_idx = Index("inv_milestoneId_idx", InventoryMilestones.milestoneId)
-
-INDEXES.append(inv_milestoneId_idx)
-
-del_milestoneId_idx = Index("del_milestoneId_idx", DeliveryMilestones.milestoneId)
-
-INDEXES.append(del_milestoneId_idx)
-
-print("Configuring DB ...")
-Base.metadata.create_all(engine)
-try:
-    # create indexes
-    for index in INDEXES:
-        index.create(bind=engine)
-except:
-    pass
->>>>>>> push

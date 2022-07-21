@@ -1,12 +1,10 @@
 from statistics import mode
 
-from regex import D
 from controllers.baseController import (
     BaseController,
     BaseTimeSeriesController,
     BaseNestedDependencyContoller,
 )
-import sys
 from models.models import *
 
 
@@ -20,7 +18,6 @@ class CustomerController(BaseController):
         super().__init__(Customers)
 
 
-<<<<<<< HEAD
 class TicketStatusController(BaseController):
     def __init__(self):
         super().__init__(TicketStatus)
@@ -114,13 +111,6 @@ class PickupMilestonesController(MilestoneController):
 class InventoryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(InventoryMilestones)
-=======
-class TicketController(BaseTimeSeriesController):
-    def __init__(self):
-        super().__init__(TicketEvents)
-
-
->>>>>>> modifying db schema
 
     def convert_to_desc(self, milestones):
         string_milestones = []
@@ -184,7 +174,6 @@ class DeliveryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(DeliveryMilestones)
 
-<<<<<<< HEAD
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
@@ -257,9 +246,3 @@ class TicketController(BaseTimeSeriesController):
             }
         )
         return obj
-=======
-
-class DocumentController(BaseController):
-    def __init__(self):
-        super().__init__(Documents)
->>>>>>> Stefan codeazzzzzzzzzzzzzzzzzzzzzzzzzzzz

@@ -7,10 +7,7 @@ from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
 import sys
 from datetime import datetime
-<<<<<<< HEAD
 
-=======
->>>>>>> get endpoints
 sys.path.insert(0, "..")  # import parent folder
 
 from models.models import TicketStatus
@@ -84,7 +81,6 @@ class BaseController:
 
         self.session.commit()
 
-<<<<<<< HEAD
     def _get(self, filters, limit=5000):
         if not filters:
             filters = []
@@ -95,18 +91,6 @@ class BaseController:
             .limit(limit)
             .all()
         )
-=======
-    def _get(self, model, filters, limit=500):
-        if not filters:
-            filters = []
-
-        objects = self.session.query(self.model) \
-            .filter(*convert_dict_to_alchemy_filters(model, filters)) \
-            .group_by(self.model.non_prim_identifying_column_name) \
-            .order_by(self.model.timestamp) \
-            .limit(limit) 
-        
->>>>>>> modifying db schema
 
         return objects
 
@@ -145,17 +129,11 @@ class BaseTimeSeriesController(BaseController):
     def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
 
         # get up to 'number_of_res' last event objects
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> ALL tickets API done
         # latest_objs = (
         #     self.session.query(self.model)
         #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
         #     .group_by(self.model.non_prim_identifying_column_name)
         #     .order_by(self.model.timestamp)
-<<<<<<< HEAD
-<<<<<<< HEAD
         #     .limit(number_of_res)
         #     .all()
         # )
@@ -174,47 +152,6 @@ class BaseTimeSeriesController(BaseController):
         print("LATEST_OBJS-------")
         print(latest_objs)
         return latest_objs
-=======
-        #     .limit(number_of_res).all()
-        # )
-        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-            .filter_by(*convert_dict_to_alchemy_filters(self.model, filters)) \
-            .limit(number_of_res).all() 
-=======
-        latest_objs = (
-            self.session.query(self.model)
-            .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
-            .group_by(self.model.non_prim_identifying_column_name)
-            .order_by(self.model.timestamp)
-            .limit(number_of_res).all()
-        )
-
-        # print(*convert_dict_to_alchemy_filters(self.model, filters))
-        # latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-        #     .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
-        #     .limit(number_of_res).all() 
->>>>>>> get endpoints
-=======
-        #     .limit(number_of_res).all() 
-        # )
-
-        print(*convert_dict_to_alchemy_filters(self.model, filters))
-        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-            .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
-            .order_by(self.model.timestamp) \
-            .limit(1).all() 
->>>>>>> ALL tickets API done
-    
-
-        # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
-<<<<<<< HEAD
-        return latest_objs[0]
->>>>>>> modifying db schema
-=======
-        print("LATEST_OBJS-------")
-        print(latest_objs)
-        return latest_objs
->>>>>>> fix schema
 
     # def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
 
@@ -231,8 +168,6 @@ class BaseTimeSeriesController(BaseController):
 
     #     return latest_objs
 
-<<<<<<< HEAD
-<<<<<<< HEAD
     def _get_latest_event_objects_from_start_date(
         self, datetime1, filters, number_of_res=5
     ):
@@ -243,41 +178,20 @@ class BaseTimeSeriesController(BaseController):
     def _get_latest_event_objects_in_range(
         self, datetime1, datetime2, filters={}, number_of_res=5
     ):
-=======
-    def  _get_latest_event_objects_from_start_date(self, datetime1, filters={}, number_of_res=5):
-=======
-    def  _get_latest_event_objects_from_start_date(self, datetime1, filters, number_of_res=5):
->>>>>>> Fixing default date bug
-        return self._get_latest_event_objects_in_range(datetime1, datetime.now(), filters=filters, number_of_res=5)
-
-
-    def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}, number_of_res=5):
-<<<<<<< HEAD
-        print("\n\n\nDATETIM1", datetime1, datetime2)
-
->>>>>>> get endpoints
-=======
->>>>>>> ALL tickets API done
         assert datetime1 <= datetime2
         time1 = int(time.mktime(datetime1.timetuple()))
         time2 = int(time.mktime(datetime2.timetuple()))
 
-<<<<<<< HEAD
-=======
-        
->>>>>>> get endpoints
         session_filters = convert_dict_to_alchemy_filters(self.model, filters)
 
         session_filters.append(self.model.timestamp >= time1)
         session_filters.append(self.model.timestamp <= time2)
-<<<<<<< HEAD
 
         print(
             "------------------------RUNNING TICKET GET QUERY----------------------------"
         )
         results = (
             self.session.query(self.model)
-<<<<<<< HEAD
             .distinct(self.model.non_prim_identifying_column_name)
             .filter(*session_filters)
             .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp)
@@ -287,26 +201,6 @@ class BaseTimeSeriesController(BaseController):
         print("----------complete-----------------")
         for result in results:
             print("TID " + str(result.ticketId))
-=======
-            .filter(*session_filters)
-            .limit(number_of_res)
-            .all()
-        )
-        print("results" , results)
-
->>>>>>> get endpoints
-=======
-        
-        print("------------------------RUNNING TICKET GET QUERY----------------------------")
-        results = \
-            self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-            .filter(*session_filters) \
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp) \
-            .limit(number_of_res).all()
-        print("----------complete-----------------")   
-        for result in results:
-            print("TID " + str(result.ticketId))
->>>>>>> ALL tickets API done
         return results
 
     def _find_latest_prim_key_from_non_prim_identifying_column_val(

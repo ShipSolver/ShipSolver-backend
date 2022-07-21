@@ -1,11 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 -- SQLBook: Code
-=======
->>>>>>> modifying db schema
-=======
--- SQLBook: Code
->>>>>>> push
 CREATE INDEX idx_ticketEvents_comp ON TicketEvents(ticketEventId, timestamp);
 
 CREATE INDEX idx_ticketEvents_ts ON TicketEvents(timestamp);

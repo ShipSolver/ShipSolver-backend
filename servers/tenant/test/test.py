@@ -6,11 +6,7 @@ from typing import Generic
 from faker import Faker
 import os
 from flask import Flask, jsonify
-<<<<<<< HEAD
 import uuid
-=======
-import uuid;
->>>>>>> push
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -24,7 +20,6 @@ from controllers.controllerMapper import (
     UserController,
     CustomerController,
     TicketController,
-<<<<<<< HEAD
     CreationMilestonesController,
     PickupMilestonesController,
     InventoryMilestonesController,
@@ -38,11 +33,6 @@ from controllers.controllerMapper import (
     Assignment_Milestone_Status,
     Delivery_Milestone_Status,
     Incomplete_Delivery_Milestone_Status,
-=======
-    GenericMilestoneController,
-    InventoryMilestoneController,
-    DeliveryMilestoneController,
->>>>>>> modifying db schema
 )
 from utils import alchemyConverter
 from utils import AlchemyEncoder
@@ -53,7 +43,6 @@ faker = Faker()
 app = Flask(__name__)
 with app.app_context():
 
-<<<<<<< HEAD
     # Controllers
     creationMilestonesController = CreationMilestonesController()
     pickupMilestonesController = PickupMilestonesController()
@@ -98,8 +87,6 @@ with app.app_context():
         UserType.worker: [],
     }
 
-=======
->>>>>>> modifying db schema
     def generate_users(scale=5):
 
         user_controller = UserController()
@@ -114,16 +101,8 @@ with app.app_context():
                 firstName = faker.unique.first_name()
                 lastName = faker.unique.last_name()
 
-<<<<<<< HEAD
-<<<<<<< HEAD
                 userType = random.choice([ut for ut in UserType])
                 userTypeValue = userType.value.lower()
-=======
-                userType = random.choice([ut for ut in UserType]).value
->>>>>>> push
-=======
-                userType = random.choice([ut for ut in UserType]).value.lower()
->>>>>>> fix schema
                 username = firstName.lower()[0] + lastName.lower()
                 email = f"{username}@faker.com"
                 userId = random.randint(1, 1000000000)
@@ -132,13 +111,8 @@ with app.app_context():
 
                 args_arr.append(
                     {
-<<<<<<< HEAD
                         "userId": userId,
                         "userType": userTypeValue,
-=======
-                        "userId": random.randint(1, 1000000000),
-                        "userType": userType,
->>>>>>> push
                         "username": username,
                         "firstName": firstName,
                         "lastName": lastName,
@@ -169,14 +143,7 @@ with app.app_context():
 
         return customer_controller._create_bulk(args_arr)
 
-<<<<<<< HEAD
     def generate_ticket_events(scale=400, users=[], customers=[]):
-=======
-
-    def generate_ticket_events(
-        scale=20, users=[], customers=[]
-    ):
->>>>>>> modifying db schema
 
         ticket_events_controller = TicketController()
 
@@ -212,12 +179,9 @@ with app.app_context():
                 consigneePostalCode = faker.zipcode()
                 consigneePhoneNumber = faker.phone_number()
                 pieces = faker.sentence()
-<<<<<<< HEAD
                 isPickup = False
                 noSignatureRequired = False
                 tailgateAuthorized = False
-=======
->>>>>>> modifying db schema
 
                 obj = ticket_events_controller._create_base_event(
                     {
@@ -241,19 +205,14 @@ with app.app_context():
                         "consigneeAddress": consigneeAddress,
                         "consigneePostalCode": consigneePostalCode,
                         "consigneePhoneNumber": consigneePhoneNumber,
-<<<<<<< HEAD
                         "pieces": pieces,
                         "isPickup": isPickup,
                         "noSignatureRequired": noSignatureRequired,
                         "tailgateAuthorized": tailgateAuthorized
 
-=======
-                        "pieces": pieces
->>>>>>> modifying db schema
                     }
                 )
 
-<<<<<<< HEAD
                 # for i in range(random.randrange(10, 20)):
 
                 #     userId = random.choice(users).userId
@@ -282,40 +241,9 @@ with app.app_context():
                 #             "specialInstructions": specialInstructions,
                 #         },
                 #     )
-=======
-                for i in range(random.randrange(10, 20)):
-
-                    userId = random.choice(users).userId
-                    userId = random.choice(users).userId
-                    customerId = random.choice(customers).customerId
-                    barcodeNumber = random.randrange(100000000, 900000000)
-                    houseReferenceNumber = random.randrange(100000000, 900000000)
-                    orderS3Link = "s3link"
-                    weight = random.randrange(100, 200)
-                    claimedNumberOfPieces = random.randrange(1, 5)
-                    BOLNumber = random.randrange(100000000, 900000000)
-
-                    created_obj = ticket_events_controller._modify_latest_object(
-                        getattr(obj, TicketEvents.non_prim_identifying_column_name),
-                        {
-                            "ticketId": obj.ticketId,
-                            "userId": userId,
-                            "customerId": customerId,
-                            "barcodeNumber": barcodeNumber,
-                            "houseReferenceNumber": houseReferenceNumber,
-                            "orderS3Link": orderS3Link,
-                            "weight": weight,
-                            "claimedNumberOfPieces": claimedNumberOfPieces,
-                            "BOLNumber": BOLNumber,
-                            "specialServices": specialServices,
-                            "specialInstructions": specialInstructions,
-                        },
-                    )
->>>>>>> fix schema
 
                 print("Created Ticket")
 
-<<<<<<< HEAD
     def list_diff(li1, li2):
         return list(set(li1) - set(li2)) + list(set(li2) - set(li1))
 
@@ -529,48 +457,10 @@ with app.app_context():
     #                         "approvalStatus": approvalStatus,
     #                     }
     #                 )
-=======
-
-    def generate_generic_milestones_events(scale=50, ticket_map=[], users=[]):
-
-        gen_milestone_controller = GenericMilestoneController()
-
-        n = len(session.query(GenericMilestones).distinct().all())
-        if n < scale:
-            print(f"Generating Gen Milestones for {scale - n } Tickets")
-
-            for _ in range(scale - n):
-
-                ticketId = random.choice([k for k in ticket_map])
-
-                for _ in range(
-                    random.randint(4, 10)
-                ):  # number of milestones per ticket
-
-                    milestoneId = random.randint(1, 2147483645)
-                    userId = random.choice(users).userId
-
-                    ticketStatus = random.choice(
-                        [e for e in Generic_Ticket_Status]
-                    ).value.lower()
-
-                    obj = gen_milestone_controller._create(
-                        {
-                            "milestoneId": milestoneId,
-                            "ticketEventId": random.choice(ticket_map[ticketId]),
-                            "userId": userId,
-                            "ticketStatus": ticketStatus,
-                        }
-                    )
->>>>>>> modifying db schema
 
     #             print("Created Inventory Milestone")
 
-<<<<<<< HEAD
     # def generate_delivery_milestones_events(scale=50, ticket_map=[], users=[]):
-=======
-    def generate_inventory_milestones_events(scale=50, ticket_map=[], users=[]):
->>>>>>> modifying db schema
 
     #     gen_milestone_controller = DeliveryMilestoneController()
 
@@ -583,24 +473,9 @@ with app.app_context():
 
     #             ticketId = random.choice([k for k in ticket_map])
 
-<<<<<<< HEAD
     #             for _ in range(
     #                 random.randint(4, 10)
     #             ):  # number of milestones per ticket
-=======
-                print("Created Inventory Milestone")
-
-    def generate_delivery_milestones_events(scale=50, ticket_map=[], users=[]):
-
-        gen_milestone_controller = DeliveryMilestoneController()
-
-        n = len(session.query(DeliveryMilestones).distinct().all())
-
-        if n < scale:
-            print(f"Generating Delivery Milestones for {scale - n } Tickets")
-
-            for _ in range(scale - n):
->>>>>>> modifying db schema
 
     #                 milestoneId = random.randint(1, 2147483645)
     #                 userId = random.choice(users).userId
@@ -625,23 +500,7 @@ with app.app_context():
 
     #             print("Created Delivery Milestone")
 
-<<<<<<< HEAD
     generate_users(scale=70)
-=======
-                    obj = gen_milestone_controller._create(
-                        {
-                            "milestoneId": milestoneId,
-                            "ticketEventId": random.choice(ticket_map[ticketId]),
-                            "userId": userId,
-                            "ticketStatus": ticketStatus,
-                            "approvalStatus": approvalStatus,
-                        }
-                    )
-
-                print("Created Delivery Milestone")
-
-    generate_users(scale=5)
->>>>>>> push
     users = session.query(Users).all()
 
     # print(random.choice(users))
@@ -651,7 +510,6 @@ with app.app_context():
 
     # pprint(alchemyConverter(users[0]))
 
-<<<<<<< HEAD
     oldTickets = (
             session.query(TicketEvents)
             .with_entities(TicketEvents.ticketId)
@@ -662,10 +520,6 @@ with app.app_context():
 
     generate_ticket_events(
         scale=500,
-=======
-    generate_ticket_events(
-        scale=20,
->>>>>>> modifying db schema
         users=users,
         customers=customers,
     )
@@ -677,10 +531,6 @@ with app.app_context():
 
     # exit()
 
-<<<<<<< HEAD
-=======
-
->>>>>>> modifying db schema
     pprint(alchemyConverter(ticketEvents[0]))
 
     exit()

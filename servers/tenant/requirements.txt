@@ -1,3 +1,4 @@
+boto3
 amqp==5.0.9
 billiard==3.6.4.0
 celery==5.2.3
@@ -22,12 +23,8 @@ MarkupSafe==2.0.1
 multilingual-pdf2text==1.1.0
 numpy==1.22.0
 ocrmypdf==13.2.0
-Flask-Cors
 packaging==21.3
-<<<<<<< HEAD
 Flask-Cors
-=======
->>>>>>> modifying db schema
 pdf2image==1.16.0
 pdfminer.six==20211012
 pdfplumber==0.6.0
@@ -53,16 +50,11 @@ wcwidth==0.2.5
 Werkzeug==2.0.2
 wrapt==1.13.3
 zipp==3.7.0
-<<<<<<< HEAD
 aniso8601==9.0.1
 attrs==21.4.0
 certifi==2022.6.15
 charset-normalizer==2.1.0
 ecdsa==0.17.0
-=======
-sqlalchemy
-psycopg2-binary
->>>>>>> modifying db schema
 Faker==13.7.0
 flask-cognito-auth==1.1.0
 flask-marshmallow==0.14.0

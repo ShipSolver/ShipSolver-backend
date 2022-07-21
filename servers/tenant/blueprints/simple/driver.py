@@ -7,7 +7,7 @@ sys.path.insert(0, "..")  # import parent folder
 
 from controllers.controllerMapper import UserController
 from models.models import UserType
-from flask_cognito_lib.decorators import auth_required
+# from flask_cognito_lib.decorators import auth_required
 from utils import (
     AlchemyEncoder,
     alchemyConverter
@@ -20,7 +20,7 @@ user_controller = UserController()
 
 
 @driver_bp.route("/", methods=["GET"])
-@auth_required()
+#@auth_required()
 def driver_get(): 
     
     drivers = user_controller._get({'userType': UserType.driver.value})

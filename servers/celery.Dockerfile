@@ -4,5 +4,5 @@ RUN apt -y install tesseract-ocr && apt -y install libtesseract-dev
 COPY requirements.txt .
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
-WORKDIR /opt/metadata-extraction/server
+WORKDIR /opt/metadata-extraction/tenant
 ENV PYTHONPATH ..

@@ -133,58 +133,19 @@ class BaseTimeSeriesController(BaseController):
         #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
         #     .group_by(self.model.non_prim_identifying_column_name)
         #     .order_by(self.model.timestamp)
-        #     .limit(number_of_res).all() 
+        #     .limit(number_of_res)
+        #     .all()
         # )
 
         print(*convert_dict_to_alchemy_filters(self.model, filters))
-        latest_objs = self.session.query(self.model).distinct(self.model.non_prim_identifying_column_name) \
-            .filter(*convert_dict_to_alchemy_filters(self.model, filters)) \
-            .order_by(self.model.timestamp) \
-            .limit(1).all() 
-    
-
-        # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
-        print("LATEST_OBJS-------")
-        print(latest_objs)
-        return latest_objs
-
-    # def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
-
-    #     starttime = int(time.mktime(start_datetime).timetuple())
-
-    #     filters.append(self.model.timestamp >= starttime)
-
-    #     latest_objs = (
-    #         self.session.query(self.model)
-    #         .filter(*convert_dict_to_alchemy_filters(filters))
-    #         .group_by(self.model.non_prim_identifying_column_name)
-    #         .order_by(self.model.timestamp)
-    #     )
-
-    #     return latest_objs
-
-    def  _get_latest_event_objects_from_start_date(self, datetime1, filters, number_of_res=5):
-        return self._get_latest_event_objects_in_range(datetime1, datetime.now(), filters=filters, number_of_res=5)
-
-
-    def _get_latest_event_objects_in_range(self, datetime1, datetime2, filters={}, number_of_res=5):
-        assert datetime1 <= datetime2
-        time1 = int(time.mktime(datetime1.timetuple()))
-        time2 = int(time.mktime(datetime2.timetuple()))
-
-        
-        session_filters = convert_dict_to_alchemy_filters(self.model, filters)
-
-        session_filters.append(self.model.timestamp >= time1)
-        session_filters.append(self.model.timestamp <= time2)
-
-        results = (
+        latest_objs = (
             self.session.query(self.model)
-            .filter(*session_filters)
-            .limit(number_of_res)
+            .distinct(self.model.non_prim_identifying_column_name)
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .order_by(self.model.timestamp)
+            .limit(1)
             .all()
         )
-        print("results" , results)
 
         # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
         print("LATEST_OBJS-------")

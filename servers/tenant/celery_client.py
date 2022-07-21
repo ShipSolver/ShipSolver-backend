@@ -11,7 +11,7 @@ from celery import group
 
 from tenant.controllers.DocumentController import DocumentController
 import boto3
-
+from botocore.client import Config
 
 # def get_file_s3():
 #     s3_client = boto3.client('s3')
@@ -22,12 +22,14 @@ import boto3
 #     download_url = s3_client.generate_presigned_url(
 #         'get_object',
 #         Params={'Bucket': BUCKET, 'Key': OBJECT, 'ResponseContentDisposition': 'attachment'},
-#         ExpiresIn=600)
+#         ExpiresIn=3600)
 
 #     view_url = s3_client.generate_presigned_url(
 #         'get_object',
 #         Params={'Bucket': BUCKET, 'Key': OBJECT},
-#         ExpiresIn=600)
+#         ExpiresIn=3600)
+
+
 TENANT = "test-tenant1"
 BUCKET = f"{TENANT}-bucket"
 aws_access_key_id = os.getenv("aws_access_key_id")
@@ -40,8 +42,9 @@ FAILURE = -1
 SUCCESS = 0
 PIECES_SEPERATOR = ",+-"
 UPLOAD_FOLDER = "/opt/metadata-extraction/uploads"    
-s3 = boto3.resource('s3', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+s3 = boto3.resource('s3', region_name='ca-central-1', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
 bucket = s3.Bucket(BUCKET)
+s3_client = boto3.client('s3', region_name='ca-central-1', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
 
 def fan_out(file, documentStatusId):
     folder_uuid = uuid4()
@@ -49,6 +52,7 @@ def fan_out(file, documentStatusId):
         read_pdf = PyPDF2.PdfFileReader(open_pdf_file)
         num_pages = read_pdf.getNumPages()
         folder = f"{UPLOAD_FOLDER}/{folder_uuid}"
+        
         os.mkdir(folder)
         for i in range(num_pages):
             output_pdf = PyPDF2.PdfFileWriter()
@@ -74,9 +78,15 @@ def do_all_work(tasks_to_run):
 def work(pdf_folder, documentStatusId):
     document_controller = DocumentController()
     pdf_file = f"{pdf_folder}.pdf"
+    OBJECT = f"documents{pdf_file.replace(UPLOAD_FOLDER, '')}"
+    view_url = s3_client.generate_presigned_url(
+        'get_object',
+        Params={'Bucket': BUCKET, 'Key': OBJECT},
+        ExpiresIn=3600)
     try:
         doclist = ex.work(pdf_folder)
-        doclist["orderS3Link"] = f"s3://{BUCKET}/documents/{pdf_file.replace(UPLOAD_FOLDER, '')}"
+        doclist["orderS3Path"] = f"s3://{BUCKET}/{OBJECT}"
+        doclist["orderS3Link"] = view_url
         doclist["pieces"] = PIECES_SEPERATOR.join(doclist["pieces"])
         doclist["documentStatusId"] = documentStatusId
         doclist["success"] = True
@@ -85,7 +95,8 @@ def work(pdf_folder, documentStatusId):
         logger.info(f"file {pdf_folder}/{pdf_file} error. msg: {str(e)}")
         logger.info(traceback.format_exc())
         doclist = ext.generate_doclist({})
-        doclist["orderS3Link"] = f"s3://{BUCKET}/documents/{pdf_file.replace(UPLOAD_FOLDER, '')}"
+        doclist["orderS3Path"] = f"s3://{BUCKET}/{OBJECT}"
+        doclist["orderS3Link"] = view_url
         doclist["pieces"] = PIECES_SEPERATOR.join(doclist["pieces"])
         doclist["documentStatusId"] = documentStatusId
         doclist["success"] = False

@@ -53,8 +53,6 @@ def alchemyConverter(obj):
     if type(obj) == list:
         res = [] 
         for ele in obj:
-            print("ALCHEMY DEBUG ---------------------------")
-            print("TID: " + str(ele.ticketId))
             json_res = alchemyConvertUtil(ele, {}, visited=set())
             res.append(json_res)
         return res

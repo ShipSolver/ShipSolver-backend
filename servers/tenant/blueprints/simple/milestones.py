@@ -1,8 +1,9 @@
 import json
 import datetime
-from flask import request, Blueprint, make_response
+from typing import Generic
+from flask import request, Blueprint, make_response, jsonify
 from utils import alchemyConverter, AlchemyEncoder
-
+from const.milestones import stateTable
 import sys
 
 sys.path.insert(0, "..")  # import parent folder
@@ -20,6 +21,7 @@ from flask_cognito_lib.decorators import auth_required
 
 from models.models import (
     CreationMilestones,
+    Generic_Milestone_Status,
     PickupMilestones,
     InventoryMilestones,
     AssignmentMilestones,
@@ -27,91 +29,99 @@ from models.models import (
     DeliveryMilestones,
 )
 
+class_to_cntrl_map = {
+    CreationMilestones: CreationMilestonesController(),
+    PickupMilestones: PickupMilestonesController(),
+    InventoryMilestones: InventoryMilestonesController(),
+    AssignmentMilestones: AssignmentMilestonesController(),
+    IncompleteDeliveryMilestones: IncompleteDeliveryMilestonesController(),
+    DeliveryMilestones: DeliveryMilestonesController(),
+}
 
-milestone_bp = Blueprint(
-    f"{CreationMilestones.__tablename__}_bp",
-    __name__,
-    url_prefix=CreationMilestones.__tablename__,
-)
+old_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
+new_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
 
-milestone_controller  = CreationMilestonesController()
+ticket_status_controller = TicketStatusController()
+
+milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
+
 
 @milestone_bp.route("/<ticket_id>", methods=["GET"])
 @auth_required()
-def miltestone_get(ticket_id):  # create ticket
+def milestone_get(ticket_id):  # create ticket
 
     filters = {
         "ticketId" : ticket_id
     }
+    all_milestones = []
+    for cls, milestone_controller in class_to_cntrl_map.items():
+        data = milestone_controller._get(filters, 1000)
+        milestones = alchemyConverter(data)
+        for milestone in milestones:
+            for status in "oldStatus", "newStatus":
+                if status in milestone:
+                    milestone[status] = str(milestone[status]).split(".")[-1]
 
-    data = milestone_controller._get(filters, 1000)
+        string_milestones = milestone_controller.convert_to_desc(milestones)
+        all_milestones.extend(string_milestones)
 
-    milestones = alchemyConverter(data)
+   
+    return make_response(json.dumps(all_milestones, cls=AlchemyEncoder))
 
+
+@milestone_bp.route("/<milestone_type>", methods=["POST"])
+@auth_required()
+def milestone_post(milestone_type):  # create ticket
+    milestone_class = getattr(sys.modules[__name__], milestone_type)
+    milestone_controller = class_to_cntrl_map[milestone_class]
     
-    return make_response(json.dumps(milestones, cls=AlchemyEncoder))
+    request_dict = json.loads(request.data)
+    if "ticketId" not in request_dict:
+        message = 'ticketId is required'
+        print(message)
+        res = jsonify({'message': message})
+        res.status_code = 400
+        return res
 
+    # status checking 
+    if milestone_class in old_status_exemptions: 
+        request_dict["oldStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
+    else:
+        if "oldStatus" not in request_dict:
+            message = 'oldStatus is required'
+            print(message)
+            res = jsonify({'message': message})
+            res.status_code = 400
+            return res
+    if milestone_class in new_status_exemptions:
+        request_dict["newStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
+    else:
+        if "newStatus" not in request_dict:     
+            message = 'newStatus is required'
+            print(message)
+            res = jsonify({'message': message})
+            res.status_code = 400
+            return res
 
-# class_to_cntrl_map = {
-#     CreationMilestones: CreationMilestonesController,
-#     PickupMilestones: PickupMilestonesController,
-#     InventoryMilestones: InventoryMilestonesController,
-#     AssignmentMilestones: AssignmentMilestonesController,
-#     IncompleteDeliveryMilestones: IncompleteDeliveryMilestonesController,
-#     DeliveryMilestones: DeliveryMilestonesController,
-# }
+    # state verification
+    # paths_possible = stateTable[request_dict["oldStatus"]]
+    # if request_dict["newStatus"] not in paths_possible[]
 
-# ticket_status_controller = TicketStatusController()
-# for milestoneCls in class_to_cntrl_map:
+    # ticketId = request_dict["ticketId"]
+    update_dict = {"currentStatus": request_dict["newStatus"]}
+    if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
+        update_dict["assignedTo"] = request_dict["assignedToUserId"]
+    
+    if milestone_class == PickupMilestones:
+         if request_dict["newStatus"] == Generic_Milestone_Status.requested_pickup.value:
+            update_dict["requesterUserId"] = request_dict["assignedToassignedToUserId"]
+         if request_dict["newStatus"] == Generic_Milestone_Status.declined_pickup.value:
+            update_dict["requesterUserId"] = None
 
-#     milestone_bp = Blueprint(
-#         f"{milestoneCls.__tablename__}_bp",
-#         __name__,
-#         url_prefix=milestoneCls.__tablename__,
-#     )
+    if milestone_class == IncompleteDeliveryMilestones or milestone_class == DeliveryMilestones:
+        update_dict["requesterUserId"] = None
+    
+    ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)    
+    milestone_controller._create(request_dict)
 
-#     milestone_controller = class_to_cntrl_map[milestoneCls]
-
-#     @milestone_bp.route("/", methods=["POST"])
-#     @auth_required()
-#     def miltestone_post():  # create ticket
-#         ticketId = request.form["ticketId"]
-
-#         ticket_status_controller._modify(
-#             ticketId, {"ticket_status": request.form["new_status"]}
-#         )
-#         milestone_controller._create(**request.form["object"])
-
-#         return "success"
-
-#     @milestone_bp.route("/<ticket_id>", methods=["GET"])
-#     @auth_required()
-#     def miltestone_get(ticket_id):  # create ticket
-
-#         filters = {
-#             "ticketId" : ticket_id
-#         }
-
-#         data = milestone_controller._get(**filters)
-
-#         milestones = alchemyConverter(data)
-
-        
-#         return make_response(json.dumps(milestones, cls=AlchemyEncoder))
-
-#     @milestone_bp.route("/modify", methods=["POST"])
-#     @auth_required()
-#     def milestone_modify():
-
-#     # milestone_controller._modify(milestoneId, **update_dict)
-
-#     # return "success"
-
-#         return "success"
-
-#     @milestone_bp.route("/", methods=["DELETE"])
-#     @auth_required()
-#     def milestone_delete():
-#         milestoneId = request.args.get("milestoneId")
-#         milestone_controller._delete(milestoneId)
-#         return "success"
+    return make_response("success")

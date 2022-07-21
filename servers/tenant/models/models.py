@@ -131,6 +131,8 @@ class Documents(Base):
     consigneePhoneNumber = Column(String, nullable=False)
     # pieces
     pieces = Column(String, nullable=False)
+    noSignatureRequired = Column(Boolean, nullable=False)
+    tailgateAuthorized = Column(Boolean, nullable=False)
     customerName = Column(String, nullable=False)
 
 
@@ -177,7 +179,8 @@ class TicketEvents(Base):
     # pieces
     pieces = Column(String, nullable=False)
     isPickup = Column(Boolean, nullable=False)
-
+    noSignatureRequired = Column(Boolean, nullable=False)
+    tailgateAuthorized = Column(Boolean, nullable=False)
     ticketStatus = relationship("TicketStatus")
     user = relationship("Users")
     customer = relationship("Customers")
@@ -306,7 +309,7 @@ class DeliveryMilestones(Base):
         default=Generic_Milestone_Status.in_transit.value,
     )
 
-    completingdUserId = Column(
+    completingUserId = Column(
         Integer, ForeignKey(Users.userId), nullable=False, index=True
     )
     PODLink = Column(String, nullable=False)
@@ -333,3 +336,5 @@ try:
         index.create(bind=engine)
 except:
     pass
+
+

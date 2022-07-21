@@ -5,6 +5,8 @@ from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
 from blueprints.simple.milestones import milestone_bp
+from blueprints.simple.driver import driver_bp
+
 from flask_cors import CORS
 from flask_cognito_lib import CognitoAuth
 
@@ -29,6 +31,8 @@ parent.register_blueprint(ticket_bp)
 parent.register_blueprint(customer_bp)
 parent.register_blueprint(user_bp)
 parent.register_blueprint(milestone_bp)
+parent.register_blueprint(driver_bp)
+
 
 
 if __name__ == "__main__":

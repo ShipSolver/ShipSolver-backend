@@ -36,6 +36,7 @@ from controllers.controllerMapper import (
 )
 from utils import alchemyConverter
 from utils import AlchemyEncoder
+from const.milestones import *
 
 faker = Faker()
 
@@ -49,122 +50,6 @@ with app.app_context():
     assignmentMilestonesController = AssignmentMilestonesController()
     deliveryMilestonesController = DeliveryMilestonesController()
     incompleteDeliveryMilestonesController = IncompleteDeliveryMilestonesController()
-
-    stateTable = {
-        Generic_Milestone_Status.ticket_created: [
-            Creation_Milestone_Status.ticket_created
-        ],
-        Generic_Milestone_Status.unassigned_pickup: {
-            "happyPath": [Creation_Milestone_Status.unassigned_pickup],
-            "failedPath1": [
-                Creation_Milestone_Status.unassigned_pickup,
-                Pickup_Milestone_Status.requested_pickup,
-                Pickup_Milestone_Status.declined_pickup,
-                Pickup_Milestone_Status.unassigned_pickup,
-            ],
-            "failedPath2": [
-                Creation_Milestone_Status.unassigned_pickup,
-                Pickup_Milestone_Status.requested_pickup,
-                Pickup_Milestone_Status.accepted_pickup,
-                Pickup_Milestone_Status.incomplete_pickup,
-                Pickup_Milestone_Status.unassigned_pickup,
-            ],
-        },
-        Generic_Milestone_Status.requested_pickup: [
-            Creation_Milestone_Status.unassigned_pickup,
-            Pickup_Milestone_Status.requested_pickup,
-        ],
-        Generic_Milestone_Status.accepted_pickup: [
-            Creation_Milestone_Status.unassigned_pickup,
-            Pickup_Milestone_Status.requested_pickup,
-            Pickup_Milestone_Status.accepted_pickup,
-        ],
-        Generic_Milestone_Status.declined_pickup: [
-            Creation_Milestone_Status.unassigned_pickup,
-            Pickup_Milestone_Status.requested_pickup,
-            Pickup_Milestone_Status.declined_pickup,
-        ],
-        Generic_Milestone_Status.completed_pickup: [
-            Creation_Milestone_Status.unassigned_pickup,
-            Pickup_Milestone_Status.requested_pickup,
-            Pickup_Milestone_Status.accepted_pickup,
-            Pickup_Milestone_Status.completed_pickup,
-        ],
-        Generic_Milestone_Status.incomplete_pickup: [
-            Creation_Milestone_Status.unassigned_pickup,
-            Pickup_Milestone_Status.requested_pickup,
-            Pickup_Milestone_Status.accepted_pickup,
-            Pickup_Milestone_Status.incomplete_pickup,
-        ],
-        Generic_Milestone_Status.checked_into_inventory: {
-            "happyPath": [
-                Creation_Milestone_Status.ticket_created,
-                Inventory_Milestone_Status.checked_into_inventory,
-            ],
-            "failedPath1": [
-                Creation_Milestone_Status.ticket_created,
-                Inventory_Milestone_Status.checked_into_inventory,
-                Assignment_Milestone_Status.assigned,
-                Assignment_Milestone_Status.in_transit,
-                Incomplete_Delivery_Milestone_Status.incomplete_delivery,
-                Inventory_Milestone_Status.checked_into_inventory,
-            ],
-            "failedPath2": [
-                Creation_Milestone_Status.ticket_created,
-                Inventory_Milestone_Status.checked_into_inventory,
-                Assignment_Milestone_Status.assigned,
-                Assignment_Milestone_Status.in_transit,
-                Delivery_Milestone_Status.completed_delivery,
-                Inventory_Milestone_Status.incomplete_delivery,
-                Inventory_Milestone_Status.checked_into_inventory,
-            ]
-        },
-        Generic_Milestone_Status.completed_delivery: {
-            "completed" : [
-                Creation_Milestone_Status.ticket_created,
-                Inventory_Milestone_Status.checked_into_inventory,
-                Assignment_Milestone_Status.assigned,
-                Assignment_Milestone_Status.in_transit,
-                Delivery_Milestone_Status.completed_delivery,
-            ],
-            "approved" : [
-                Creation_Milestone_Status.ticket_created,
-                Inventory_Milestone_Status.checked_into_inventory,
-                Assignment_Milestone_Status.assigned,
-                Assignment_Milestone_Status.in_transit,
-                Delivery_Milestone_Status.completed_delivery,
-                Inventory_Milestone_Status.completed_delivery
-            ]
-        },
-        Generic_Milestone_Status.incomplete_delivery: {
-            "incomplete" : [
-                Creation_Milestone_Status.ticket_created,
-                Inventory_Milestone_Status.checked_into_inventory,
-                Assignment_Milestone_Status.assigned,
-                Assignment_Milestone_Status.in_transit,
-                Incomplete_Delivery_Milestone_Status.incomplete_delivery,
-            ],
-            "declined" : [
-                Creation_Milestone_Status.ticket_created,
-                Inventory_Milestone_Status.checked_into_inventory,
-                Assignment_Milestone_Status.assigned,
-                Assignment_Milestone_Status.in_transit,
-                Delivery_Milestone_Status.completed_delivery,
-                Inventory_Milestone_Status.incomplete_delivery
-            ]
-        },
-        Generic_Milestone_Status.assigned: [
-            Creation_Milestone_Status.ticket_created,
-            Inventory_Milestone_Status.checked_into_inventory,
-            Assignment_Milestone_Status.assigned,
-        ],
-        Generic_Milestone_Status.in_transit: [
-            Creation_Milestone_Status.ticket_created,
-            Inventory_Milestone_Status.checked_into_inventory,
-            Assignment_Milestone_Status.assigned,
-            Assignment_Milestone_Status.in_transit,
-        ],
-    }
 
     reprocessPickupsSet = [
         Generic_Milestone_Status.unassigned_pickup,
@@ -295,6 +180,8 @@ with app.app_context():
                 consigneePhoneNumber = faker.phone_number()
                 pieces = faker.sentence()
                 isPickup = False
+                noSignatureRequired = False
+                tailgateAuthorized = False
 
                 obj = ticket_events_controller._create_base_event(
                     {
@@ -320,6 +207,9 @@ with app.app_context():
                         "consigneePhoneNumber": consigneePhoneNumber,
                         "pieces": pieces,
                         "isPickup": isPickup,
+                        "noSignatureRequired": noSignatureRequired,
+                        "tailgateAuthorized": tailgateAuthorized
+
                     }
                 )
 
@@ -412,7 +302,7 @@ with app.app_context():
                     "ticketId" : ticket,
                     "newStatus" : curr_state,
                     "oldStatus" : prev_state,
-                    "completingdUserId" : curr_driver,
+                    "completingUserId" : curr_driver,
                     "PODLink" : "https://www.youtube.com/watch?v=xvFZjo5PgG0",
                     "picture1Link" : "https://images.unsplash.com/flagged/photo-1572392640988-ba48d1a74457?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=464&q=80",
                     "picture2Link" : "https://images.unsplash.com/photo-1515405295579-ba7b45403062?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",

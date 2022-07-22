@@ -1,15 +1,21 @@
+from pprint import pprint
 import json
 from datetime import datetime
 from wsgiref import validate
 
-from numpy import number
+from numpy import imag, number
 from flask import make_response, request, jsonify, Blueprint
 
 import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
-from controllers.controllerMapper import TicketController, TicketStatusController
+from controllers.controllerMapper import (
+    TicketController,
+    TicketStatusController,
+    DeliveryMilestonesController,
+)
+from controllers.storageController import StorageController
 from models.models import TicketEvents
 from utils import (
     AlchemyEncoder,
@@ -23,6 +29,9 @@ ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
 ticket_controller = TicketController()
 ticket_status_controller = TicketStatusController()
+delivery_milestone_controller = DeliveryMilestonesController()
+storage_controller = StorageController()
+
 PIECES_SEPERATOR = ",+-"
 """
 Route expects requests of format:
@@ -62,8 +71,10 @@ def ticket_get_all_with_status(status):  # create ticket
 
     limit = 5000 if "limit" not in request.args else request.args["limit"]
     ticket_sql_filters = get_clean_filters_dict(request.args)
-    
-    tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
+
+    tickets = ticket_status_controller._get_tickets_with_status(
+        status, ticket_sql_filters, limit
+    )
     num_tickets = ticket_status_controller._get_count(ticket_sql_filters)
 
     res = {"tickets": alchemyConverter(tickets), "count": num_tickets}
@@ -84,12 +95,13 @@ def ticket_post():  # create ticket
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
     ticket_dict.pop(TicketEvents.non_prim_identifying_column_name, None)
-    #join pieces into single string 
-    ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
+    # join pieces into single string
+    ticket_dict["pieces"] = PIECES_SEPERATOR.join(ticket_dict["pieces"])
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
     response = {"ticketId": ticket_event.ticketId}
     return make_response(json.dumps(response))
+
 
 # TODO fix primary key issue, ticketeventID needs to be unique for edits
 @ticket_bp.route("/<ticket_id>", methods=["POST"])
@@ -102,17 +114,19 @@ def ticket_edit(ticket_id):  # create ticket
     ticket_dict["ticketId"] = ticket_id
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
-    #join pieces into single string 
-    ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
+    # join pieces into single string
+    ticket_dict["pieces"] = PIECES_SEPERATOR.join(ticket_dict["pieces"])
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
     response = {"ticketId": ticket_event.ticketId}
     return make_response(json.dumps(response))
 
+
 # http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea
 # curl http://127.0.0.1:6767/api/ticket/?shipperName
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
+
 
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
@@ -163,7 +177,9 @@ def ticket_get_all():
     res = alchemyConverter(data)
     for ticket in res:
         ticket["pieces"] = ticket["pieces"].split(PIECES_SEPERATOR)
-        ticket["ticketStatus"]["currentStatus"] = ticket["ticketStatus"]["currentStatus"].value
+        ticket["ticketStatus"]["currentStatus"] = ticket["ticketStatus"][
+            "currentStatus"
+        ].value
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
@@ -177,16 +193,41 @@ def get_single(ticket_id):
         default_start(), default_end(), filters=sql_filters
     )
 
-    logger.info("DATA", str(data))
+    # logger.info("DATA", str(data))
 
     return data[0] if isinstance(data, list) else data
 
+
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
-@auth_required()
+# @auth_required()
 def ticket_get(ticket_id):
     data = get_single(ticket_id)
+
     res = alchemyConverter(data)
+    # print(res)
+    res = convert_ticket_with_presigned(res)
+
     return make_response(json.dumps(res, cls=AlchemyEncoder))
+
+
+def convert_ticket_with_presigned(ticket: str):
+    ticket_id = ticket["ticketId"]
+    deliv_ms = delivery_milestone_controller._get(filters={"ticketId": ticket_id})[0]
+
+    deliv_ms = alchemyConverter(deliv_ms)
+    # print(deliv_ms)
+
+    image_links = {}
+    for k in deliv_ms:
+        if "Link" in k:
+            presinged_link = storage_controller.generate_presigned_url(deliv_ms[k])
+            print(k, presinged_link)
+            if presinged_link:
+                image_links[k] = presinged_link
+
+    ticket.update(image_links)
+
+    return ticket
 
 
 """
@@ -220,4 +261,3 @@ Route expects requests of format:
 }
 
 """
-

@@ -59,7 +59,8 @@ def alchemyConvertUtil(object, res, visited):
             res[field] = getattr(object, field)
 
     return res
-    
+
+
 def alchemyConverter(obj):
     if type(obj) == list:
         res = []

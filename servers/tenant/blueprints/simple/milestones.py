@@ -38,8 +38,12 @@ class_to_cntrl_map = {
     DeliveryMilestones: DeliveryMilestonesController(),
 }
 
-old_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
-new_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
+old_status_exemptions = set(
+    [DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones]
+)
+new_status_exemptions = set(
+    [DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones]
+)
 
 ticket_status_controller = TicketStatusController()
 
@@ -50,9 +54,7 @@ milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
 @auth_required()
 def milestone_get(ticket_id):  # create ticket
 
-    filters = {
-        "ticketId" : ticket_id
-    }
+    filters = {"ticketId": ticket_id}
     all_milestones = []
     for cls, milestone_controller in class_to_cntrl_map.items():
         data = milestone_controller._get(filters, 1000)
@@ -65,7 +67,6 @@ def milestone_get(ticket_id):  # create ticket
         string_milestones = milestone_controller.convert_to_desc(milestones)
         all_milestones.extend(string_milestones)
 
-   
     return make_response(json.dumps(all_milestones, cls=AlchemyEncoder))
 
 
@@ -74,33 +75,33 @@ def milestone_get(ticket_id):  # create ticket
 def milestone_post(milestone_type):  # create ticket
     milestone_class = getattr(sys.modules[__name__], milestone_type)
     milestone_controller = class_to_cntrl_map[milestone_class]
-    
+
     request_dict = json.loads(request.data)
-    
+
     if "ticketId" not in request_dict:
-        message = 'ticketId is required'
+        message = "ticketId is required"
         print(message)
-        res = jsonify({'message': message})
+        res = jsonify({"message": message})
         res.status_code = 400
         return res
 
-    # status checking 
-    if milestone_class in old_status_exemptions: 
+    # status checking
+    if milestone_class in old_status_exemptions:
         request_dict["oldStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
     else:
         if "oldStatus" not in request_dict:
-            message = 'oldStatus is required'
+            message = "oldStatus is required"
             print(message)
-            res = jsonify({'message': message})
+            res = jsonify({"message": message})
             res.status_code = 400
             return res
     if milestone_class in new_status_exemptions:
         request_dict["newStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
     else:
-        if "newStatus" not in request_dict:     
-            message = 'newStatus is required'
+        if "newStatus" not in request_dict:
+            message = "newStatus is required"
             print(message)
-            res = jsonify({'message': message})
+            res = jsonify({"message": message})
             res.status_code = 400
             return res
 
@@ -110,19 +111,27 @@ def milestone_post(milestone_type):  # create ticket
 
     # ticketId = request_dict["ticketId"]
     update_dict = {"currentStatus": request_dict["newStatus"]}
-    if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
+    if (
+        milestone_class == AssignmentMilestones
+        and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value
+    ):
         update_dict["assignedTo"] = request_dict["assignedToUserId"]
-    
+
     if milestone_class == PickupMilestones:
-         if request_dict["newStatus"] == Generic_Milestone_Status.requested_pickup.value:
+        if request_dict["newStatus"] == Generic_Milestone_Status.requested_pickup.value:
             update_dict["requesterUserId"] = request_dict["assignedToassignedToUserId"]
-         if request_dict["newStatus"] == Generic_Milestone_Status.declined_pickup.value:
+        if request_dict["newStatus"] == Generic_Milestone_Status.declined_pickup.value:
             update_dict["requesterUserId"] = None
 
-    if milestone_class == IncompleteDeliveryMilestones or milestone_class == DeliveryMilestones:
+    if (
+        milestone_class == IncompleteDeliveryMilestones
+        or milestone_class == DeliveryMilestones
+    ):
         update_dict["requesterUserId"] = None
-    
-    ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)    
+
+    ticket_status_controller._modify(
+        {"ticketId": request_dict["ticketId"]}, update_dict
+    )
     milestone_controller._create(request_dict)
 
     return make_response("success")

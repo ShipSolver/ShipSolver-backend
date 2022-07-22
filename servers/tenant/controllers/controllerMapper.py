@@ -1,6 +1,5 @@
 from statistics import mode
 
-from regex import D
 from controllers.baseController import (
     BaseController,
     BaseTimeSeriesController,

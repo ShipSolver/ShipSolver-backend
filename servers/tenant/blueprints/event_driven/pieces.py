@@ -33,18 +33,18 @@ Route expects requests of format:
 
 """
 
+# TODO NOT TESTED
+# @pieces_bp.route("/{piece_id}", methods=["GET"])
+# @auth_required()
+# def pieces_get_history(piece_id):
+#     filters = request.args.get("filters")
+#     filters.extend({"piece_id": piece_id})
 
-@pieces_bp.route("/{piece_id}", methods=["GET"])
-@auth_required()
-def pieces_get_history(piece_id):
-    filters = request.args.get("filters")
-    filters.extend({"piece_id": piece_id})
+#     pieces = pieces_controller._get_latest_event_objects(
+#         page=1, number_of_res=20, filters=filters
+#     )
 
-    pieces = pieces_controller._get_latest_event_objects(
-        page=1, number_of_res=20, filters=filters
-    )
+#     res = alchemyConverter(pieces)
+#     response = json.dumps(res, cls=AlchemyEncoder)
 
-    res = alchemyConverter(pieces)
-    response = json.dumps(res, cls=AlchemyEncoder)
-
-    return response
+#     return response

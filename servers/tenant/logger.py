@@ -3,6 +3,8 @@ import os
 import datetime
 
 
+with open("logs/log.txt", "a+") as f:
+    f.write("")
 
 logging.basicConfig(filename="logs/log.txt",
                     filemode='a',

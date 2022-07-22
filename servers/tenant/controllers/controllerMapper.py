@@ -1,12 +1,10 @@
 from statistics import mode
 
-from regex import D
 from controllers.baseController import (
     BaseController,
     BaseTimeSeriesController,
     BaseNestedDependencyContoller,
 )
-import sys
 from models.models import *
 
 
@@ -186,7 +184,6 @@ class DeliveryMilestonesController(MilestoneController):
         return string_milestones
 
 """"""
-
 
 class TicketController(BaseTimeSeriesController):
     def __init__(self):

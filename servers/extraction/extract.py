@@ -271,25 +271,23 @@ def generate_doclist(_list):
         HOUSE_REF: _list[HOUSE_REF] if HOUSE_REF in _list else "",
         BARCODE: _list[BARCODE] if BARCODE in _list else "",
         PCS: _list[PCS] if PCS in _list else [],
-        NUM_PCS: _list[NUM_PCS] if NUM_PCS in _list else "",
+        NUM_PCS: _list[NUM_PCS] if NUM_PCS in _list else 0,
         WEIGHT: _list[WEIGHT] if WEIGHT in _list else "",
         BOL_NUM: _list[BOL_NUM] if BOL_NUM in _list else "",
         SPECIAL_SERVICES: _list[SPECIAL_SERVICES] if SPECIAL_SERVICES in _list else "",
         SPECIAL_INSTRUCTIONS: _list[SPECIAL_INSTRUCTIONS] if SPECIAL_INSTRUCTIONS in _list else "",
-        CONSIGNEE: {
-            COMPANY: _list[CONSIGNEE][COMPANY] if CONSIGNEE in _list and COMPANY in _list[CONSIGNEE] else "",
-            NAME: _list[CONSIGNEE][NAME] if CONSIGNEE in _list and NAME in _list[CONSIGNEE] else "",
-            ADDRESS: _list[CONSIGNEE][ADDRESS] if CONSIGNEE in _list and ADDRESS in _list[CONSIGNEE] else "",
-            POSTAL_CODE: _list[CONSIGNEE][POSTAL_CODE] if CONSIGNEE in _list and POSTAL_CODE in _list[CONSIGNEE] else "",
-            PHONE_NUMBER: _list[CONSIGNEE][PHONE_NUMBER] if CONSIGNEE in _list and PHONE_NUMBER in _list[CONSIGNEE] else ""
-        },
-        SHIPPER: {
-            COMPANY: _list[SHIPPER][COMPANY] if SHIPPER in _list and COMPANY in _list[SHIPPER] else "",
-            NAME: _list[SHIPPER][NAME] if SHIPPER in _list and NAME in _list[SHIPPER] else "",
-            ADDRESS: _list[SHIPPER][ADDRESS] if SHIPPER in _list and ADDRESS in _list[SHIPPER] else "",
-            POSTAL_CODE: _list[SHIPPER][POSTAL_CODE] if SHIPPER in _list and POSTAL_CODE in _list[SHIPPER] else "",
-            PHONE_NUMBER: _list[SHIPPER][PHONE_NUMBER] if SHIPPER in _list and PHONE_NUMBER in _list[SHIPPER] else ""
-        }
+        CONSIGNEE+COMPANY: _list[CONSIGNEE][COMPANY] if CONSIGNEE in _list and COMPANY in _list[CONSIGNEE] else "",
+        CONSIGNEE+NAME: _list[CONSIGNEE][NAME] if CONSIGNEE in _list and NAME in _list[CONSIGNEE] else "",
+        CONSIGNEE+ADDRESS: _list[CONSIGNEE][ADDRESS] if CONSIGNEE in _list and ADDRESS in _list[CONSIGNEE] else "",
+        CONSIGNEE+POSTAL_CODE: _list[CONSIGNEE][POSTAL_CODE] if CONSIGNEE in _list and POSTAL_CODE in _list[CONSIGNEE] else "",
+        CONSIGNEE+PHONE_NUMBER: _list[CONSIGNEE][PHONE_NUMBER] if CONSIGNEE in _list and PHONE_NUMBER in _list[CONSIGNEE] else "",
+        SHIPPER+COMPANY: _list[SHIPPER][COMPANY] if SHIPPER in _list and COMPANY in _list[SHIPPER] else "",
+        SHIPPER+NAME: _list[SHIPPER][NAME] if SHIPPER in _list and NAME in _list[SHIPPER] else "",
+        SHIPPER+ADDRESS: _list[SHIPPER][ADDRESS] if SHIPPER in _list and ADDRESS in _list[SHIPPER] else "",
+        SHIPPER+POSTAL_CODE: _list[SHIPPER][POSTAL_CODE] if SHIPPER in _list and POSTAL_CODE in _list[SHIPPER] else "",
+        SHIPPER+PHONE_NUMBER: _list[SHIPPER][PHONE_NUMBER] if SHIPPER in _list and PHONE_NUMBER in _list[SHIPPER] else "",
+        NO_SIGNATURE_REQUIRED: _list[NO_SIGNATURE_REQUIRED] if NO_SIGNATURE_REQUIRED in _list else False,     
+        TAILGATE_AUTHORIZED: _list[TAILGATE_AUTHORIZED] if TAILGATE_AUTHORIZED in _list else False    
     }
 
 

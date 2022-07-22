@@ -4,6 +4,7 @@ from wsgiref import validate
 
 from numpy import number
 from flask import make_response, request, jsonify, Blueprint
+from flask_cors import cross_origin
 
 import sys
 
@@ -16,7 +17,7 @@ from utils import (
     alchemyConverter,
 )
 
-from logger import logger
+# from logger import logger
 from flask_cognito_lib.decorators import auth_required
 
 ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
@@ -68,7 +69,7 @@ def ticket_get_all_with_status(status):  # create ticket
 
     res = {"tickets": alchemyConverter(tickets), "count": num_tickets}
 
-    logger.info(res)
+    # logger.info(res)
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
@@ -114,6 +115,12 @@ def ticket_edit(ticket_id):  # create ticket
 # # curl http://127.0.0.1:6767/api/ticket?key=a
 # # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
+def corsify(resp):
+    resp = make_response(json.dumps(resp))
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    resp.headers['Access-Control-Allow-Headers'] = ['Origin', 'X-Requested-With', 'Content-Type', 'Accept']
+    return resp
+
 def get_clean_filters_dict(immutable_args):
     sql_filters = dict(immutable_args)
     if "start" in sql_filters:
@@ -124,6 +131,10 @@ def get_clean_filters_dict(immutable_args):
         del sql_filters["limit"]
     return sql_filters
 
+# http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00&end=2022-04-04T00:00:00&shipperName=Eric%20Shea
+# curl http://127.0.0.1:6767/api/ticket/?shipperName
+# # curl http://127.0.0.1:6767/api/ticket?key=a
+# # curl http://127.0.0.1:6767/api/ticket/?start=2022-01-01T00:00:00Z&end=2022-04-04T00:00:00Z
 
 def validate_date_format(date_text):
     try:
@@ -131,16 +142,13 @@ def validate_date_format(date_text):
     except ValueError:
         raise ValueError("Incorrect data format, should be %Y-%m-%dT%H:%M:%S")
 
-
 def default_start():
     dt_start = validate_date_format("1900-01-01T00:00:00")
     return dt_start
 
-
 def default_end():
     dt_end = validate_date_format("2100-01-01T00:00:00")
     return dt_end
-
 
 @ticket_bp.route("/", methods=["GET"])
 @auth_required()
@@ -188,7 +196,6 @@ def ticket_get(ticket_id):
     res = alchemyConverter(data)
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
-
 """
 Route expects requests of format:
 
@@ -220,4 +227,3 @@ Route expects requests of format:
 }
 
 """
-

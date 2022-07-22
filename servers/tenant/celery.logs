@@ -1,0 +1,5 @@
+[2022-07-22 18:15:17,887: INFO/MainProcess] Connected to redis://redis:6379/0
+[2022-07-22 18:15:17,889: INFO/MainProcess] mingle: searching for neighbors
+[2022-07-22 18:15:18,897: INFO/MainProcess] mingle: all alone
+[2022-07-22 18:15:18,905: INFO/MainProcess] celery@celery.wlp.com ready.
+[2022-07-22 18:15:21,601: INFO/MainProcess] Events of group {task} enabled by remote.

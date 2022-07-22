@@ -6,30 +6,33 @@ CEVA_NUM = "1-888-327-8247"
 
 #doclist_keys
 
-HOUSE_REF = "house_ref"
-BARCODE = "barcode"
-FIRST_PARTY = "first_party"
-NUM_PCS = "num_pcs"
-PCS = "pcs"
+BARCODE = "barcodeNumber"
+HOUSE_REF = "houseReferenceNumber"
 WEIGHT = "weight"
+NUM_PCS = "claimedNumberOfPieces"
+BOL_NUM = "BOLNumber"
+SPECIAL_SERVICES = "specialServices"
+SPECIAL_INSTRUCTIONS = "specialInstructions"
+CONSIGNEE = "consignee"
+SHIPPER = "shipper"
+COMPANY = "Company"
+NAME = "Name"
+ADDRESS = "Address"
+POSTAL_CODE = "PostalCode"
+PHONE_NUMBER = "PhoneNumber"
+
+NO_SIGNATURE_REQUIRED = "noSignatureRequired"
+TAILGATE_AUTHORIZED = "tailgateAuthorized"
+
+FIRST_PARTY = "customerName"
+
+PCS = "pieces"
 
 PKG = "pkg"
-WT_LBS = "wt(lbs)"
+WT_LBS = "weight"
 COMMODITY_DESCRIPTION = "commodity_description"
 DIMS_IN = "dims(in)"
 
-BOL_NUM = "bol_num"
-SPECIAL_SERVICES = "special_services"
-SPECIAL_INSTRUCTIONS = "special_instructions"
-
-COMPANY = "company"
-NAME = "name"
-ADDRESS = "address"
-POSTAL_CODE = "postal_code"
-PHONE_NUMBER = "phone_number"
-
-CONSIGNEE = "consignee"
-SHIPPER = "shipper"
 
 CEVA_SHIPPER_FIELDS = [COMPANY, ADDRESS]
 CEVA_CONSIGNEE_FIELDS = [NAME, ADDRESS]

@@ -23,7 +23,7 @@ services:
       dockerfile: celery.Dockerfile
     volumes:
       - .:/opt/metadata-extraction
-    command: celery -A __init__.client worker --loglevel=info -f celery.logs -Ofair -c 2
+    command: celery -A config.client worker --loglevel=info -f celery.logs -Ofair -c 2
     tty: true
   app:
     hostname: app.wlp.com
@@ -36,8 +36,8 @@ services:
       - .:/opt/metadata-extraction
     container_name: app01
     ports:
-      - "5000:5000"
-    command: python3 server/__init__.py
+      - "6767:6767"
+    command: python3 tenant/server.py
     tty: true
   flower:
     hostname: flower.wlp.com

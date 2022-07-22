@@ -1,10 +1,12 @@
 import os
-# from multilingual_pdf2text.pdf2text import PDF2Text
-# from multilingual_pdf2text.models.document_model.document import Document
-# import pdfplumber
-# import extraction.extract as e
+from multilingual_pdf2text.pdf2text import PDF2Text
+from multilingual_pdf2text.models.document_model.document import Document
+import pdfplumber
+import extraction.extract as e
 import json
+from celery.utils.log import get_logger
 
+logger = get_logger(__name__)
 
 def read_pdfplumber(file_name):
     with pdfplumber.open(file_name) as pdf:
@@ -26,8 +28,9 @@ def work(folder_path):
 
     ml_page_text = list(content)[0]["text"]
     pp_text = read_pdfplumber(pdf_file)
-
-    extract_json = e.extract(ml_page_text, plumber_page=pp_text)
+    for i in range(14):
+        logger.info("WE HERE----------------")
+    extract_json = e.generate_doclist(e.extract(ml_page_text, plumber_page=pp_text))
 
     with open(f"{folder_path}/{pdf_uuid}.json", "w") as f:
         json.dump(extract_json, f, indent=2)

@@ -105,16 +105,28 @@ class Users(Base):
         return f"< Users:: userId: {self.userId}>"
 
 
+class DocumentStatus(Base):
+    __tablename__ = "documentstatus"
+    documentStatusId = Column(
+        Integer, primary_key=True, nullable=False, autoincrement=True
+    )
+    status = Column(String, nullable=False, default="PENDING")
+    numPages = Column(Integer, nullable=False)
+
+
 class Documents(Base):
     __tablename__ = "documents"
     documentId = Column(Integer, primary_key=True, nullable=False)
+    documentStatusId = Column(Integer, nullable=False)
+    success = Column(Boolean, nullable=False)
     timestamp = Column(Integer, default=int(time.time()))
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
+    barcodeNumber = Column(String, nullable=False)
+    houseReferenceNumber = Column(String, nullable=False)
     orderS3Link = Column(String, nullable=False)
-    weight = Column(Integer, nullable=False)
+    orderS3Path = Column(String, nullable=False)
+    weight = Column(String, nullable=False)
     claimedNumberOfPieces = Column(Integer, nullable=False)
-    BOLNumber = Column(Integer, nullable=False)
+    BOLNumber = Column(String, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
     # shipper
@@ -156,12 +168,12 @@ class TicketEvents(Base):
     customerId = Column(
         Integer, ForeignKey(Customers.customerId), nullable=False, index=True
     )
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
+    barcodeNumber = Column(String, nullable=False)
+    houseReferenceNumber = Column(String, nullable=False)
     orderS3Link = Column(String, nullable=False)
-    weight = Column(Integer, nullable=False)
+    weight = Column(String, nullable=False)
     claimedNumberOfPieces = Column(Integer, nullable=False)
-    BOLNumber = Column(Integer, nullable=False)
+    BOLNumber = Column(String, nullable=False)
     specialServices = Column(String)
     specialInstructions = Column(String)
     # shipper
@@ -336,5 +348,3 @@ try:
         index.create(bind=engine)
 except:
     pass
-
-

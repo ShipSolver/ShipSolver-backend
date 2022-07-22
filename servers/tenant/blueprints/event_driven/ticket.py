@@ -57,7 +57,7 @@ Route expects requests of format:
 
 
 @ticket_bp.route("/status/<status>", methods=["GET"])
-@auth_required()
+# @auth_required()
 def ticket_get_all_with_status(status):  # create ticket
 
     limit = 5000 if "limit" not in request.args else request.args["limit"]
@@ -73,10 +73,9 @@ def ticket_get_all_with_status(status):  # create ticket
         ticket = get_single(ticketId)
         if ticket:
             tickets.append(ticket)
-    tickets = alchemyConverter(data)
 
     res = {"tickets": tickets, "count": num_tickets}
-
+    print(res)
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
 

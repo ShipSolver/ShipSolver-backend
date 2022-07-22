@@ -186,9 +186,6 @@ class BaseTimeSeriesController(BaseController):
         session_filters.append(self.model.timestamp >= time1)
         session_filters.append(self.model.timestamp <= time2)
 
-        print(
-            "------------------------RUNNING TICKET GET QUERY----------------------------"
-        )
         results = (
             self.session.query(self.model)
             .distinct(self.model.non_prim_identifying_column_name)
@@ -197,9 +194,6 @@ class BaseTimeSeriesController(BaseController):
             .limit(number_of_res)
             .all()
         )
-        print("----------complete-----------------")
-        for result in results:
-            print("TID " + str(result.ticketId))
         return results
 
     def _find_latest_prim_key_from_non_prim_identifying_column_val(

@@ -16,7 +16,7 @@ from utils import (
     alchemyConverter,
 )
 
-# from flask_cognito_lib.decorators import auth_required
+from flask_cognito_lib.decorators import auth_required
 
 ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
@@ -56,7 +56,7 @@ Route expects requests of format:
 
 
 @ticket_bp.route("/status/<status>", methods=["GET"])
-#@auth_required()
+@auth_required()
 def ticket_get_all_with_status(status):  # create ticket
 
     limit = 5000 if "limit" not in request.args else request.args["limit"]
@@ -80,7 +80,7 @@ def ticket_get_all_with_status(status):  # create ticket
 
 
 @ticket_bp.route("/", methods=["POST"])
-#@auth_required()
+@auth_required()
 def ticket_post():  # create ticket
     print("Creating ticket from the following JSON:")
     print(request.data)
@@ -98,7 +98,7 @@ def ticket_post():  # create ticket
 
 # TODO fix primary key issue, ticketeventID needs to be unique for edits
 @ticket_bp.route("/<ticket_id>", methods=["POST"])
-#@auth_required()
+@auth_required()
 def ticket_edit(ticket_id):  # create ticket
     print("Creating ticket from the following JSON:")
     print(request.data)
@@ -155,7 +155,7 @@ def default_end():
 
 
 @ticket_bp.route("/", methods=["GET"])
-#@auth_required()
+@auth_required()
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
@@ -192,7 +192,7 @@ def get_single(ticket_id):
     return data[0] if isinstance(data, list) else data
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
-#@auth_required()
+@auth_required()
 def ticket_get(ticket_id):
     data = get_single(ticket_id)
     res = alchemyConverter(data)

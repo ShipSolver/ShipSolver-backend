@@ -17,7 +17,7 @@ from controllers.controllerMapper import (
     DeliveryMilestonesController,
     TicketStatusController,
 )
-# from flask_cognito_lib.decorators import auth_required
+from flask_cognito_lib.decorators import auth_required
 
 from models.models import (
     CreationMilestones,
@@ -47,7 +47,7 @@ milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
 
 
 @milestone_bp.route("/<ticket_id>", methods=["GET"])
-#@auth_required()
+@auth_required()
 def milestone_get(ticket_id):  # create ticket
 
     filters = {
@@ -70,7 +70,7 @@ def milestone_get(ticket_id):  # create ticket
 
 
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
-#@auth_required()
+@auth_required()
 def milestone_post(milestone_type):  # create ticket
     milestone_class = getattr(sys.modules[__name__], milestone_type)
     milestone_controller = class_to_cntrl_map[milestone_class]

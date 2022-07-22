@@ -16,6 +16,7 @@ from utils import (
     alchemyConverter,
 )
 
+from logger import logger
 from flask_cognito_lib.decorators import auth_required
 
 ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
@@ -72,9 +73,9 @@ def ticket_get_all_with_status(status):  # create ticket
         ticket = get_single(ticketId)
         if ticket:
             tickets.append(ticket)
-    tickets = alchemyConverter(data)
+    
 
-    res = {"tickets": tickets, "count": num_tickets}
+    res = {"tickets": data, "count": num_tickets}
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
@@ -182,6 +183,8 @@ def get_single(ticket_id):
     data = ticket_controller._get_latest_event_objects_in_range(
         default_start(), default_end(), filters=sql_filters
     )
+
+    logger.info("DATA", str(data))
 
     return data[0] if isinstance(data, list) else data
 

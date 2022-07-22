@@ -17,7 +17,7 @@ from utils import (
     alchemyConverter,
 )
 
-from logger import logger
+# from logger import logger
 from flask_cognito_lib.decorators import auth_required
 
 ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
@@ -69,7 +69,7 @@ def ticket_get_all_with_status(status):  # create ticket
 
     res = {"tickets": alchemyConverter(tickets), "count": num_tickets}
 
-    logger.info(res)
+    # logger.info(res)
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 

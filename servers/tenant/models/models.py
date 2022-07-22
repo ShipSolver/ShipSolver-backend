@@ -104,39 +104,15 @@ class Users(Base):
     def __repr__(self):
         return f"< Users:: userId: {self.userId}>"
 
-class Documents(Base):
-    __tablename__ = "documents"
-    documentId = Column(Integer, primary_key=True, nullable=False)
-    timestamp = Column(Integer, default=int(time.time()))
-    barcodeNumber = Column(Integer, nullable=False)
-    houseReferenceNumber = Column(Integer, nullable=False)
-    orderS3Link = Column(String, nullable=False)
-    weight = Column(Integer, nullable=False)
-    claimedNumberOfPieces = Column(Integer, nullable=False)
-    BOLNumber = Column(Integer, nullable=False)
-    specialServices = Column(String)
-    specialInstructions = Column(String)
-    # shipper 
-    shipperCompany = Column(String, nullable=False)
-    shipperName = Column(String, nullable=False)
-    shipperAddress = Column(String, nullable=False)
-    shipperPostalCode = Column(String, nullable=False)
-    shipperPhoneNumber = Column(String, nullable=False)
-    # consignee
-    consigneeCompany = Column(String, nullable=False)
-    consigneeName = Column(String, nullable=False)
-    consigneeAddress = Column(String, nullable=False)
-    consigneePostalCode = Column(String, nullable=False)
-    consigneePhoneNumber = Column(String, nullable=False)
-    # pieces
-    pieces = Column(String, nullable=False)
-    customerName = Column(String, nullable=False)
 
 class DocumentStatus(Base):
     __tablename__ = "documentstatus"
-    documentStatusId = Column(Integer, primary_key=True, nullable=False, autoincrement=True)
+    documentStatusId = Column(
+        Integer, primary_key=True, nullable=False, autoincrement=True
+    )
     status = Column(String, nullable=False, default="PENDING")
     numPages = Column(Integer, nullable=False)
+
 
 class Documents(Base):
     __tablename__ = "documents"
@@ -372,5 +348,3 @@ try:
         index.create(bind=engine)
 except:
     pass
-
-

@@ -10,7 +10,7 @@ from blueprints.simple.document import document_bp
 
 
 from flask_cors import CORS
-# from flask_cognito_lib import CognitoAuth
+from flask_cognito_lib import CognitoAuth
 
 # from models.__init__ import engine, Base
 # from models.models import INDEXES
@@ -25,7 +25,7 @@ app.config["AWS_COGNITO_USER_POOL_ID"] = os.environ["AWS_COGNITO_USER_POOL_ID"]
 app.config["AWS_COGNITO_USER_POOL_CLIENT_ID"] = os.environ["AWS_COGNITO_USER_POOL_CLIENT_ID"]
 app.config["AWS_COGNITO_DOMAIN"] = os.environ["AWS_COGNITO_DOMAIN"]
 
-# auth = CognitoAuth(app)
+auth = CognitoAuth(app)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 parent = Blueprint("api", __name__, url_prefix="/api")

@@ -23,6 +23,33 @@ class CustomerController(BaseController):
 class TicketStatusController(BaseController):
     def __init__(self):
         super().__init__(TicketStatus)
+        self.ticket_controller = BaseTimeSeriesController(TicketEvents)
+
+
+    def _get_tickets_with_status(self, status, filters: dict, limit):
+        tickets = [] 
+
+        ticketIds = (
+            self.session.query(TicketStatus.ticketId)
+            .filter(TicketStatus.currentStatus == status)
+            .all()
+        )
+
+        print(filters, ticketIds)
+        for i, tid_tup in enumerate(ticketIds):
+            
+            filters_cpy = filters.copy()
+            filters_cpy["ticketId"] = tid_tup[0]
+            print(filters_cpy)
+
+            ticket = self.ticket_controller._get_latest_event_objects(filters=filters_cpy)
+            tickets.append(ticket[0])
+            
+            if i == limit:
+                break
+
+
+        return tickets
 
 
 class MilestoneController(BaseController):

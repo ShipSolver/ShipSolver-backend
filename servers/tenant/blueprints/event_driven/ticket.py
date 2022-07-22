@@ -61,21 +61,14 @@ Route expects requests of format:
 def ticket_get_all_with_status(status):  # create ticket
 
     limit = 5000 if "limit" not in request.args else request.args["limit"]
-    sql_filters = get_clean_filters_dict(request.args)
-    sql_filters["currentStatus"] = status
-    data = ticket_status_controller._get(sql_filters, limit=limit)
-    num_tickets = ticket_status_controller._get_count(sql_filters)
-
-    data = alchemyConverter(data)
-    ticketIds = [x["ticketId"] for x in data]
-    tickets = []
-    for ticketId in ticketIds:
-        ticket = get_single(ticketId)
-        if ticket:
-            tickets.append(ticket)
+    ticket_sql_filters = get_clean_filters_dict(request.args)
     
+    tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
+    num_tickets = ticket_status_controller._get_count(ticket_sql_filters)
 
-    res = {"tickets": data, "count": num_tickets}
+    res = {"tickets": alchemyConverter(tickets), "count": num_tickets}
+
+    logger.info(res)
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 

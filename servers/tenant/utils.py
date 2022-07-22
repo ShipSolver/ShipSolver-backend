@@ -14,9 +14,20 @@ class AlchemyEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-
 # DFS function used to convert alchemy objects to JSON
 def alchemyConvertUtil(object, res, visited):
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
+    # TODO: {"field" : [ obj1, obj ... ]  } fails
     visited.add(str(object.__class__))
     for field in [
         x
@@ -51,7 +62,7 @@ def alchemyConvertUtil(object, res, visited):
     
 def alchemyConverter(obj):
     if type(obj) == list:
-        res = [] 
+        res = []
         for ele in obj:
             json_res = alchemyConvertUtil(ele, {}, visited=set())
             res.append(json_res)

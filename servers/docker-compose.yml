@@ -36,7 +36,7 @@ services:
       - .:/opt/metadata-extraction
     container_name: app01
     ports:
-      - "6768:6767"
+      - "6767:6767"
     command: python3 tenant/server.py
     tty: true
   flower:

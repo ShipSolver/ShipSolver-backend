@@ -10,7 +10,8 @@ from tenant.controllers.DocumentController import DocumentController, DocumentSt
 import PyPDF2
 import extraction.app as ex
 from celery import group
-import json 
+import json
+from flask_cognito_lib.decorators import auth_required
 from utils import (
     AlchemyEncoder,
     alchemyConverter,
@@ -24,6 +25,7 @@ UPLOAD_FOLDER = "/opt/metadata-extraction/uploads"
 document_status_controller = DocumentStatusController()
 document_controller = DocumentController()
 @document_bp.route("/", methods=["POST"])
+@auth_required()
 def document_post():
     if "file" not in request.files:
         res = jsonify({"message": "No file part in the request"})
@@ -52,6 +54,7 @@ def document_post():
 
 
 @document_bp.route("/<document_id>", methods=["GET"])
+@auth_required()
 def document_get(document_id):
     filters = {"documentStatusId": document_id}
     documents = document_controller._get(filters)

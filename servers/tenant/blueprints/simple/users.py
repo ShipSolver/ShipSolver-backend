@@ -8,7 +8,7 @@ sys.path.insert(0, "..")  # import parent folder
 
 from controllers.controllerMapper import UserController
 from models.models import Users
-# from flask_cognito_lib.decorators import auth_required
+from flask_cognito_lib.decorators import auth_required
 
 user_bp = Blueprint("user_bp", __name__, url_prefix="user")
 
@@ -16,14 +16,14 @@ user_bp = Blueprint("user_bp", __name__, url_prefix="user")
 user_controller = UserController()
 
 @user_bp.route("/", methods=["GET"])
-#@auth_required()
+@auth_required()
 def user_get():  # create ticket
     user_controller._get(**request.form["user"])
     return "success"
 
 
 @user_bp.route("/", methods=["POST"])
-#@auth_required()
+@auth_required()
 def user_post():  # create ticket
 
     (request.get_json(force=True)['user'])
@@ -32,7 +32,7 @@ def user_post():  # create ticket
 
 
 @user_bp.route("", methods=["PUT"])
-#@auth_required()
+@auth_required()
 def user_modify():
 
     userId = request.form["userId"]
@@ -43,7 +43,7 @@ def user_modify():
 
 
 @user_bp.route("/", methods=["DELETE"])
-#@auth_required()
+@auth_required()
 def user_delete():
     userId = request.args.get("userId")
     user_controller._delete(userId)

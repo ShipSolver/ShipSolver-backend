@@ -7,7 +7,7 @@ sys.path.insert(0, "..")  # import parent folder
 
 from controllers.controllerMapper import CustomerController
 from models.models import Users
-# from flask_cognito_lib.decorators import auth_required
+from flask_cognito_lib.decorators import auth_required
 from utils import (
     AlchemyEncoder,
     alchemyConverter
@@ -20,14 +20,14 @@ customer_controller = CustomerController()
 
 
 @customer_bp.route("/", methods=["POST"])
-#@auth_required()
+@auth_required()
 def customer_post():  # create ticket
     customer = customer_controller._create(json.loads(request.data))
     response = {"customerId": customer.customerId}
     return make_response(json.dumps(response))
 
 @customer_bp.route("/", methods=["GET"])
-#@auth_required()
+@auth_required()
 def customer_get():  # create ticket
     limit = 5000 if "limit" not in request.args else request.args["limit"]
     if "limit" in request.args:

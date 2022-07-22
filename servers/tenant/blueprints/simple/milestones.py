@@ -76,7 +76,7 @@ def milestone_post(milestone_type):  # create ticket
     milestone_controller = class_to_cntrl_map[milestone_class]
     
     request_dict = json.loads(request.data)
-    request_dict = request_dict["data"]
+
     if "ticketId" not in request_dict:
         message = 'ticketId is required'
         print(message)

@@ -17,6 +17,8 @@ Deprecated==1.2.13
 ecdsa==0.17.0
 Faker==13.7.0
 Flask==2.0.2
+flask-cognito-auth==1.1.0
+-e git+ssh://git@github.com/ShipSolver/flask-cognito-lib.git@9010f492d52d64d43ccd76878405fa1b098fe35c#egg=flask_cognito_lib
 Flask-Cors==3.0.10
 flask-marshmallow==0.14.0
 flask-restplus==0.13.0
@@ -47,7 +49,7 @@ pikepdf==4.3.1
 Pillow==9.0.0
 pluggy==1.0.0
 prompt-toolkit==3.0.24
-psycopg2==2.9.3
+psycopg2-binary==2.9.3
 pyasn1==0.4.8
 pycparser==2.21
 pydantic==1.9.0

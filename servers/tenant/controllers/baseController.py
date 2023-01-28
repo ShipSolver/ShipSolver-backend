@@ -87,6 +87,7 @@ class BaseController:
         if not filters:
             filters = []
 
+        print("\n\n\n\nPrinting filters:", filters)
         objects = (
             self.session.query(self.model)
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))

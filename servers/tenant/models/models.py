@@ -60,12 +60,12 @@ class Generic_Milestone_Status(enum):
         list(Inventory_Milestone_Status),
         list(Assignment_Milestone_Status),
         list(Delivery_Milestone_Status),
+        list(Pickup_Milestone_Status),
         list(Incomplete_Delivery_Milestone_Status),
     ):
         if member.name not in cls:
             cls[member.name] = member.value
 
-    del member, cls
 
 
 """ END  MILESTONE STATUSES """

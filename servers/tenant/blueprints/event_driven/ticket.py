@@ -139,6 +139,8 @@ def ticket_get_all():
     sql_filters = get_clean_filters_dict(filters)
     limit = 5000 if "limit" not in filters else filters["limit"]
 
+
+    print("SDFSDF")
     dt_start = (
         validate_date_format(filters["start"])
         if "start" in filters

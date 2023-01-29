@@ -1,42 +1,38 @@
-from config import app
+import os
+from flask import Flask, Blueprint, jsonify, session
+# from config import app
 from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
-from flask_cors import cross_origin
+from blueprints.simple.milestones import milestone_bp
+# from blueprints.simple.driver import driver_bp
 
-# from servers.tenant.blueprints.simple.document import (
-#     pdf_bp,
-# )  # TODO: Move this in seperate microservice
+from flask_cors import CORS
+from flask_cognito_lib import CognitoAuth
 
 # from models.__init__ import engine, Base
 # from models.models import INDEXES
-from flask import Blueprint
 from dotenv import load_dotenv
 
 load_dotenv(".env", override=True)
 
+app = Flask(__name__)
+
+app.config["AWS_REGION"] = os.environ["AWS_REGION"]
+app.config["AWS_COGNITO_USER_POOL_ID"] = os.environ["AWS_COGNITO_USER_POOL_ID"]
+app.config["AWS_COGNITO_USER_POOL_CLIENT_ID"] = os.environ["AWS_COGNITO_USER_POOL_CLIENT_ID"]
+app.config["AWS_COGNITO_DOMAIN"] = os.environ["AWS_COGNITO_DOMAIN"]
+
+auth = CognitoAuth(app)
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 parent = Blueprint("api", __name__, url_prefix="/api")
-# parent.register_blueprint(pdf_bp)
 parent.register_blueprint(ticket_bp)
 parent.register_blueprint(customer_bp)
 parent.register_blueprint(user_bp)
+parent.register_blueprint(milestone_bp)
+# parent.register_blueprint(driver_bp)
 
-
-# def instantiate_database():  # creates tables and indexes from models if not instantiated
-#     try:
-#         # create indexes
-#         for index in INDEXES:
-#             index.create(bind=engine)
-#     except:
-#         pass
-
-#     # create all tables
-#     Base.metadata.create_all(engine)
-
-
-@app.route("/")
-def hello_world():
-    return "Server Started!"
 
 
 if __name__ == "__main__":

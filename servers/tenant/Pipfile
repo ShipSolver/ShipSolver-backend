@@ -21,6 +21,8 @@ flask-marshmallow = "==0.14.0"
 marshmallow-sqlalchemy = "==0.24.1"
 python-dotenv = "==0.20.0"
 celery = "==5.2.3"
+flask-cognito-auth = "==1.1.0"
+flask-cognito-lib = {editable = true, ref = "9010f492d52d64d43ccd76878405fa1b098fe35c", git = "ssh://****@github.com/ShipSolver/flask-cognito-lib.git"}
 
 [dev-packages]
 

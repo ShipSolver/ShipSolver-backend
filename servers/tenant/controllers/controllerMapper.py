@@ -35,14 +35,14 @@ class TicketStatusController(BaseController):
 
         print(filters, ticketIds)
         for i, tid_tup in enumerate(ticketIds):
-            
+
             filters_cpy = filters.copy()
             filters_cpy["ticketId"] = tid_tup[0]
             print(filters_cpy)
 
             ticket = self.ticket_controller._get_latest_event_objects(filters=filters_cpy)
             tickets.append(ticket[0])
-            
+
             if i == limit:
                 break
 

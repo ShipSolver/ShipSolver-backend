@@ -204,29 +204,11 @@ def get_single(ticket_id):
     return data[0] if isinstance(data, list) else data
 
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
-@auth_required()
+# @auth_required()
 def ticket_get(ticket_id):
     data = get_single(ticket_id)
     res = alchemyConverter(data)
     return make_response(json.dumps(res, cls=AlchemyEncoder))
-
-
-
-@ticket_bp.route("/<ticket_id>", methods=["GET"])
-@cross_origin(supports_credentials=True)
-# @require_appkey
-def ticket_get(ticket_id):
-    filters = request.args.get("filters") or {}
-    
-    
-    sql_filters = get_clean_filters_dict(filters)
-    sql_filters["ticketId"] = ticket_id
-    data = ticket_controller._get_latest_event_objects_in_range(
-        default_start(), default_end(), filters=sql_filters
-    )
-
-    res = alchemyConverter(data[0])
-    return corsify(res)
 
 """
 Route expects requests of format:

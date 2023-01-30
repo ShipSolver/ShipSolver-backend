@@ -137,19 +137,18 @@ class BaseTimeSeriesController(BaseController):
         #     .all()
         # )
 
-        print(*convert_dict_to_alchemy_filters(self.model, filters))
         latest_objs = (
             self.session.query(self.model)
             .distinct(self.model.non_prim_identifying_column_name)
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
-            .order_by(self.model.timestamp)
+            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp)
             .limit(1)
             .all()
         )
 
         # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
-        print("LATEST_OBJS-------")
-        print(latest_objs)
+        # print("LATEST_OBJS-------")
+        # print(latest_objs)
         return latest_objs
 
     # def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
@@ -178,7 +177,7 @@ class BaseTimeSeriesController(BaseController):
         self, datetime1, datetime2, filters={}, number_of_res=5
     ):
         assert datetime1 <= datetime2
-        time1 = int(time.mktime(datetime1.timetuple()))
+        time1 = max(0, int(time.mktime(datetime1.timetuple())))
         time2 = int(time.mktime(datetime2.timetuple()))
 
         session_filters = convert_dict_to_alchemy_filters(self.model, filters)

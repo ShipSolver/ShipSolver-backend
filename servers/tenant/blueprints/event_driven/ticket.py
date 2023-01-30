@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from wsgiref import validate
 
-from numpy import number
 from flask import make_response, request, jsonify, Blueprint
 
 import sys
@@ -55,31 +54,46 @@ Route expects requests of format:
 """
 
 
+# @ticket_bp.route("/status/<status>", methods=["GET"])
+# # @auth_required()
+# def ticket_get_all_with_status(status):  # create ticket
+
+#     limit = 5000 if "limit" not in request.args else request.args["limit"]
+#     sql_filters = get_clean_filters_dict(request.args)
+#     sql_filters["currentStatus"] = status
+#     data = ticket_status_controller._get(sql_filters, limit=limit)
+#     num_tickets = ticket_status_controller._get_count(sql_filters)
+
+#     data = alchemyConverter(data)
+#     ticketIds = [x["ticketId"] for x in data]
+#     tickets = []
+#     for ticketId in ticketIds:
+#         ticket = get_single(ticketId)
+#         if ticket:
+#             tickets.append(ticket)
+#     tickets = alchemyConverter(data)
+
+#     res = {"tickets": tickets, "count": num_tickets}
+#     print(res)
+#     return make_response(json.dumps(res, cls=AlchemyEncoder))
 @ticket_bp.route("/status/<status>", methods=["GET"])
 # @auth_required()
 def ticket_get_all_with_status(status):  # create ticket
 
     limit = 5000 if "limit" not in request.args else request.args["limit"]
-    sql_filters = get_clean_filters_dict(request.args)
-    sql_filters["currentStatus"] = status
-    data = ticket_status_controller._get(sql_filters, limit=limit)
-    num_tickets = ticket_status_controller._get_count(sql_filters)
+    ticket_sql_filters = get_clean_filters_dict(request.args)
+    tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
+    num_tickets = ticket_status_controller._get_count(ticket_sql_filters)
 
-    data = alchemyConverter(data)
-    ticketIds = [x["ticketId"] for x in data]
-    tickets = []
-    for ticketId in ticketIds:
-        ticket = get_single(ticketId)
-        if ticket:
-            tickets.append(ticket)
+    res = {"tickets": alchemyConverter(tickets), "count": num_tickets}
 
-    res = {"tickets": tickets, "count": num_tickets}
-    print(res)
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
-
+"""
+127.0.0.1:6767:/api/ticket/
+"""
 @ticket_bp.route("/", methods=["POST"])
-@auth_required()
+# @auth_required()
 def ticket_post():  # create ticket
     print("Creating ticket from the following JSON:")
     print(request.data)
@@ -97,7 +111,7 @@ def ticket_post():  # create ticket
 
 # TODO fix primary key issue, ticketeventID needs to be unique for edits
 @ticket_bp.route("/<ticket_id>", methods=["POST"])
-@auth_required()
+# @auth_required()
 def ticket_edit(ticket_id):  # create ticket
     print("Creating ticket from the following JSON:")
     print(request.data)
@@ -154,7 +168,7 @@ def default_end():
 
 
 @ticket_bp.route("/", methods=["GET"])
-@auth_required()
+# @auth_required()
 def ticket_get_all():
     filters = request.args or {}
     sql_filters = get_clean_filters_dict(filters)
@@ -170,7 +184,7 @@ def ticket_get_all():
     data = ticket_controller._get_latest_event_objects_in_range(
         dt_start, dt_end, sql_filters, number_of_res=limit
     )
-
+    print(data)
     res = alchemyConverter(data)
     for ticket in res:
         ticket["pieces"] = ticket["pieces"].split(PIECES_SEPERATOR)

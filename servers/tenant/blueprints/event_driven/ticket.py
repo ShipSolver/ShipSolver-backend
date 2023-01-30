@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from wsgiref import validate
 
-from numpy import number
 from flask import make_response, request, jsonify, Blueprint
 
 import sys
@@ -90,6 +89,9 @@ def ticket_get_all_with_status(status):  # create ticket
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
+"""
+127.0.0.1:6767:/api/ticket/
+"""
 @ticket_bp.route("/", methods=["POST"])
 # @auth_required()
 def ticket_post():  # create ticket

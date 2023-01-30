@@ -177,7 +177,7 @@ class BaseTimeSeriesController(BaseController):
         self, datetime1, datetime2, filters={}, number_of_res=5
     ):
         assert datetime1 <= datetime2
-        time1 = int(time.mktime(datetime1.timetuple()))
+        time1 = max(0, int(time.mktime(datetime1.timetuple())))
         time2 = int(time.mktime(datetime2.timetuple()))
 
         session_filters = convert_dict_to_alchemy_filters(self.model, filters)

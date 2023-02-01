@@ -20,7 +20,7 @@ user_controller = UserController()
 
 
 @driver_bp.route("/", methods=["GET"])
-@auth_required()
+#@auth_required()
 def driver_get(): 
     
     drivers = user_controller._get({'userType': UserType.driver.value})

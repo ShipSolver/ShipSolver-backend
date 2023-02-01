@@ -1,9 +1,27 @@
-# metadata-extraction
+# HOW TO START SERVER
+
+```
+cd servers/tenant;
+cd postgres;
+docker-compose up -d;
+cd ../;
+cd test/;
+python3 test.py; # load data
+cd ..;
+python3 server.py
+```
+
+
 
 ## Docker Environment Setup
 
 Install <a href="https://docs.docker.com/get-docker/">docker</a> and <a href="https://docs.docker.com/compose/install/">docker-compose</a> so you can run the services locally.
 
+
+
+
+
+# Deprecated
 ## Starting a Local Celery Cluster
 Always pull new changes with 
 ```

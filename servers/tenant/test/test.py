@@ -533,8 +533,6 @@ with app.app_context():
 
     pprint(alchemyConverter(ticketEvents[0]))
 
-    exit()
-
     ticketIds = (
         session.query(TicketEvents.ticketId, TicketEvents.ticketEventId)
         # .limit(2000)

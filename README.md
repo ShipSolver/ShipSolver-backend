@@ -1,7 +1,12 @@
 # HOW TO START SERVER
 
 ```
+
 cd servers/tenant;
+python3 -m venv venv; # if not already exists
+source venv/bin/activate
+pip3 install -r requirements.txt
+
 cd postgres;
 docker-compose up -d;
 cd ../;

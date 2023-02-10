@@ -158,8 +158,8 @@ with app.app_context():
             print(f"Generating {scale - n } Tickets")
 
             for _ in range(scale - n):
-                userId = random.choice(users).userId
-                customerId = random.choice(customers).customerId
+                # userId = random.choice(users).userId
+                customerName = faker.company()
                 barcodeNumber = random.randrange(100000000, 900000000)
                 houseReferenceNumber = random.randrange(100000000, 900000000)
                 orderS3Link = "s3link"
@@ -185,8 +185,8 @@ with app.app_context():
 
                 obj = ticket_events_controller._create_base_event(
                     {
-                        "userId": userId,
-                        "customerId": customerId,
+                        # "userId": userId,
+                        "customerName": customerName,
                         "barcodeNumber": barcodeNumber,
                         "houseReferenceNumber": houseReferenceNumber,
                         "orderS3Link": orderS3Link,
@@ -213,6 +213,34 @@ with app.app_context():
                     }
                 )
 
+
+                print({
+                        "userId": userId,
+                        "customerName": customerName,
+                        "barcodeNumber": barcodeNumber,
+                        "houseReferenceNumber": houseReferenceNumber,
+                        "orderS3Link": orderS3Link,
+                        "weight": weight,
+                        "claimedNumberOfPieces": claimedNumberOfPieces,
+                        "BOLNumber": BOLNumber,
+                        "specialServices": specialServices,
+                        "specialInstructions": specialInstructions,
+                        "shipperCompany": shipperCompany,
+                        "shipperName": shipperName,
+                        "shipperAddress": shipperAddress,
+                        "shipperPostalCode": shipperPostalCode,
+                        "shipperPhoneNumber": shipperPhoneNumber,
+                        "consigneeCompany": consigneeCompany,
+                        "consigneeName": consigneeName,
+                        "consigneeAddress": consigneeAddress,
+                        "consigneePostalCode": consigneePostalCode,
+                        "consigneePhoneNumber": consigneePhoneNumber,
+                        "pieces": pieces,
+                        "isPickup": isPickup,
+                        "noSignatureRequired": noSignatureRequired,
+                        "tailgateAuthorized": tailgateAuthorized
+
+                    })
                 # for i in range(random.randrange(10, 20)):
 
                 #     userId = random.choice(users).userId

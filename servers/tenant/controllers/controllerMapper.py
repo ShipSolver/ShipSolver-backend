@@ -233,7 +233,7 @@ class TicketController(BaseTimeSeriesController):
             {
                 "ticketId": obj.ticketId,
                 "newStatus": new_status,
-                "createdByUserId": args_dict["userId"],
+                # "createdByUserId": args_dict["userId"],
             }
         )
 
@@ -242,7 +242,7 @@ class TicketController(BaseTimeSeriesController):
                 "ticketId": obj.ticketId,
                 "oldStatus": new_status,
                 "newStatus": Inventory_Milestone_Status.checked_into_inventory.value,
-                "approvedByUserId": args_dict["userId"],
+                # "approvedByUserId": args_dict["userId"],
             }
         )
         return obj

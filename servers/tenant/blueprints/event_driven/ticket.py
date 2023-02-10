@@ -94,8 +94,9 @@ def ticket_get_all_with_status(status):  # create ticket
 # @auth_required()
 def ticket_post():  # create ticket
     print("Creating ticket from the following JSON:")
-    print(request.data)
     ticket_dict = json.loads(request.data)
+    ticket_dict = json.loads(ticket_dict["data"])
+    print(ticket_dict)
 
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
@@ -106,7 +107,6 @@ def ticket_post():  # create ticket
 
     response = {"ticketId": ticket_event.ticketId}
     return make_response(json.dumps(response))
-
 # TODO fix primary key issue, ticketeventID needs to be unique for edits
 @ticket_bp.route("/<ticket_id>", methods=["POST"])
 # @auth_required()

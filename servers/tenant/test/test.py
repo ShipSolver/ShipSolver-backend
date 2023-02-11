@@ -215,7 +215,7 @@ with app.app_context():
 
 
                 print({
-                        "userId": userId,
+                        # "userId": userId,
                         "customerName": customerName,
                         "barcodeNumber": barcodeNumber,
                         "houseReferenceNumber": houseReferenceNumber,

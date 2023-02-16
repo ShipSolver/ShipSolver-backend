@@ -9,17 +9,28 @@ sys.path.insert(0, "..")  # import parent folder
 from controllers.controllerMapper import UserController
 from models.models import Users
 from flask_cognito_lib.decorators import auth_required
+from utils import (
+    AlchemyEncoder,
+    alchemyConverter
+)
+from flask import make_response, request, jsonify, Blueprint, abort
 
 user_bp = Blueprint("user_bp", __name__, url_prefix="user")
 
 
 user_controller = UserController()
 
-@user_bp.route("/", methods=["GET"])
+@user_bp.route("/<user_id>", methods=["GET"])
 ##@auth_required()
-def user_get():  # create ticket
-    user_controller._get(**request.form["user"])
-    return "success"
+def user_get(user_id):  # create ticket
+    data = user_controller._get(
+        filters={
+            "userId" : user_id
+        }
+    )
+
+    res = alchemyConverter(data)
+    return make_response(json.dumps(res[0], cls=AlchemyEncoder))
 
 
 @user_bp.route("/", methods=["POST"])

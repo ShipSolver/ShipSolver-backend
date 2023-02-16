@@ -1,5 +1,4 @@
-from statistics import mode
-
+from pprint import pprint
 from controllers.baseController import (
     BaseController,
     BaseTimeSeriesController,
@@ -33,15 +32,14 @@ class TicketStatusController(BaseController):
             .all()
         )
 
-        print(filters, ticketIds)
         for i, tid_tup in enumerate(ticketIds):
 
             filters_cpy = filters.copy()
             filters_cpy["ticketId"] = tid_tup[0]
-            print(filters_cpy)
 
             ticket = self.ticket_controller._get_latest_event_objects(filters=filters_cpy)
-            tickets.append(ticket[0])
+            if len(ticket) > 0:
+                tickets.append(ticket[0])
 
             if i == limit:
                 break
@@ -204,10 +202,11 @@ class TicketController(BaseTimeSeriesController):
             fields = {
                 "currentStatus": Inventory_Milestone_Status.checked_into_inventory.value
             }
+            fields["ticketId"] = args_dict["ticketId"]
             if "assignedTo" in args_dict:
                 fields["assignedTo"] = args_dict["assignedTo"]
 
-            milestone = self.ticket_status_controller._create(fields)
+            milestone = self.ticket_status_controller._create_or_update_if_present(fields)
 
         else:
             args_dict["newStatus"] = Creation_Milestone_Status.unassigned_pickup.value
@@ -215,13 +214,19 @@ class TicketController(BaseTimeSeriesController):
             fields = {
                 "currentStatus": Creation_Milestone_Status.unassigned_pickup.value,
             }
+            fields["ticketId"] = args_dict["ticketId"]
             if "assignedTo" in args_dict:
                 fields["assignedTo"] = args_dict["assignedTo"]
 
-            milestone = self.ticket_status_controller._create(fields)
+            milestone = self.ticket_status_controller._create_or_update_if_present(fields)
 
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
+        args_dict.pop("ticketStatus", None)
+        args_dict.pop("user", None)
+
+        print("NEW TICKET EVENT:")
+        pprint(args_dict)
         # args_dict[self.primary_key] = milestone.ticketId
         args_dict[self.model.non_prim_identifying_column_name] = milestone.ticketId
 
@@ -233,7 +238,7 @@ class TicketController(BaseTimeSeriesController):
             {
                 "ticketId": obj.ticketId,
                 "newStatus": new_status,
-                # "createdByUserId": args_dict["userId"],
+                "createdByUserId": args_dict["userId"],
             }
         )
 
@@ -242,7 +247,7 @@ class TicketController(BaseTimeSeriesController):
                 "ticketId": obj.ticketId,
                 "oldStatus": new_status,
                 "newStatus": Inventory_Milestone_Status.checked_into_inventory.value,
-                # "approvedByUserId": args_dict["userId"],
+                "approvedByUserId": args_dict["userId"],
             }
         )
         return obj

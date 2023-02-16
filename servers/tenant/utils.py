@@ -13,7 +13,15 @@ class AlchemyEncoder(json.JSONEncoder):
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)
 
-
+def get_clean_filters_dict(immutable_args):
+    sql_filters = dict(immutable_args)
+    if "start" in sql_filters:
+        del sql_filters["start"]
+    if "end" in sql_filters:
+        del sql_filters["end"]
+    if "limit" in sql_filters:
+        del sql_filters["limit"]
+    return sql_filters
 
 # DFS function used to convert alchemy objects to JSON
 def alchemyConvertUtil(object, res, visited):

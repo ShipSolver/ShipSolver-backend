@@ -92,7 +92,7 @@ class Customers(Base):
 
 class Users(Base):
     __tablename__ = "users"
-    userId = Column(Integer, primary_key=True, autoincrement=True)
+    userId = Column(String, primary_key=True)
     userType = Column(String, nullable=False)
     username = Column(String, nullable=False)
     firstName = Column(String, nullable=False)
@@ -147,9 +147,9 @@ class Documents(Base):
 
 class TicketStatus(Base):
     __tablename__ = "ticketstatus"
-    ticketId = Column(Integer, primary_key=True, autoincrement=True)
+    ticketId = Column(Integer, primary_key=True)
     currentStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
-    assignedTo = Column(Integer, ForeignKey(Users.userId), nullable=True, index=True)
+    assignedTo = Column(String, ForeignKey(Users.userId), nullable=True, index=True)
 
     user = relationship("Users")
 
@@ -158,10 +158,11 @@ class TicketEvents(Base):
     __tablename__ = "ticketevents"
     non_prim_identifying_column_name = "ticketId"
     ticketEventId = Column(Integer, primary_key=True, autoincrement=True)
-    # TODO: forgein key
     ticketId = Column(Integer, ForeignKey(TicketStatus.ticketId))
     timestamp = Column(Integer, default=int(time.time()))
-    # userId = Column(Integer, ForeignKey(Users.userId), nullable=False, index=True)
+    userId = Column(String, ForeignKey(Users.userId), nullable=False, index=True)
+
+    # TODO: forgein key customer ID
     customerName = Column(String, nullable=False)
     barcodeNumber = Column(String, nullable=False)
     houseReferenceNumber = Column(String, nullable=False)
@@ -189,7 +190,7 @@ class TicketEvents(Base):
     noSignatureRequired = Column(Boolean, nullable=False)
     tailgateAuthorized = Column(Boolean, nullable=False)
     ticketStatus = relationship("TicketStatus")
-    # user = relationship("Users")
+    user = relationship("Users")
     # customer = relationship("Customers")
 
 
@@ -203,11 +204,11 @@ class CreationMilestones(Base):
 
     newStatus = Column(Enum(Creation_Milestone_Status), nullable=False)
 
-    # createdByUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
+    createdByUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
     createdAt = Column(Integer, nullable=False, default=int(time.time()))
-    # createdByUser = relationship("Users")
+    createdByUser = relationship("Users")
 
 
 class PickupMilestones(Base):
@@ -218,19 +219,19 @@ class PickupMilestones(Base):
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
 
-    # requestedUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
-    # requesterUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
+    requestedUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
+    requesterUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
 
     oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    # requesterUser = relationship("Users", foreign_keys=[requesterUserId])
-    # requestedUser = relationship("Users", foreign_keys=[requestedUserId])
+    requesterUser = relationship("Users", foreign_keys=[requesterUserId])
+    requestedUser = relationship("Users", foreign_keys=[requestedUserId])
 
 
 class InventoryMilestones(Base):
@@ -241,15 +242,15 @@ class InventoryMilestones(Base):
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
 
-    # approvedByUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
+    approvedByUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
 
     oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    # approvedByUser = relationship("Users")
+    approvedByUser = relationship("Users")
 
 
 class AssignmentMilestones(Base):
@@ -259,19 +260,19 @@ class AssignmentMilestones(Base):
     ticketId = Column(
         Integer, ForeignKey(TicketStatus.ticketId), nullable=False, index=True
     )
-    # assignedByUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
-    # assignedToUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
+    assignedByUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
+    assignedToUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
 
     oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
     newStatus = Column(Enum(Assignment_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    # requesterUser = relationship("Users", foreign_keys=[assignedByUserId])
-    # requestedUser = relationship("Users", foreign_keys=[assignedToUserId])
+    requesterUser = relationship("Users", foreign_keys=[assignedByUserId])
+    requestedUser = relationship("Users", foreign_keys=[assignedToUserId])
 
 
 class IncompleteDeliveryMilestones(Base):
@@ -289,14 +290,14 @@ class IncompleteDeliveryMilestones(Base):
         Enum(Generic_Milestone_Status),
         default=Generic_Milestone_Status.in_transit.value,
     )
-    # assigneeUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
+    assigneeUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
     reasonForIncomplete = Column(String, nullable=False)
     dueToEndedShift = Column(Boolean, default=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    # assigneeUser = relationship("Users")
+    assigneeUser = relationship("Users")
 
 
 class DeliveryMilestones(Base):
@@ -316,9 +317,9 @@ class DeliveryMilestones(Base):
         default=Generic_Milestone_Status.in_transit.value,
     )
 
-    # completingUserId = Column(
-    #     Integer, ForeignKey(Users.userId), nullable=False, index=True
-    # )
+    completingUserId = Column(
+        String, ForeignKey(Users.userId), nullable=False, index=True
+    )
     
     PODLink = Column(String, nullable=False)
     picture1Link = Column(String, nullable=False)
@@ -327,7 +328,7 @@ class DeliveryMilestones(Base):
 
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
-    # completingUser = relationship("Users")
+    completingUser = relationship("Users")
 
 
 ticketId_timestamp_idx = Index(

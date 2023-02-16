@@ -24,10 +24,14 @@ def user_get():  # create ticket
 
 @user_bp.route("/", methods=["POST"])
 ##@auth_required()
-def user_post():  # create ticket
+def user_post():  
+    request_dict = json.loads(request.data)['data']
+    request_dict.pop("withCredentials", None)
+    
 
-    (request.get_json(force=True)['user'])
-    user_controller._create((request.get_json(force=True)['user']))
+    print(request_dict)
+    user_controller._create((request_dict))
+
     return "success"
 
 
@@ -37,9 +41,10 @@ def user_modify():
 
     userId = request.form["userId"]
     update_dict = request.form["update_dict"]
-
     user_controller._modify(userId, **update_dict)
     return "success"
+
+
 
 
 @user_bp.route("/", methods=["DELETE"])

@@ -45,7 +45,6 @@ class BaseController:
 
         return prim_ids
 
-    # create objects in bulk
     # args_dict is the input to models
     def _create(self, args_dict):  # this does not create objs (need to commit)
 
@@ -55,19 +54,41 @@ class BaseController:
         self.session.add(obj)
         self.session.commit()
         return obj
+    
+    def _create_or_update_if_present(self, args_dict):
+        assert isinstance(args_dict, dict)
+
+        rows = self._get(
+            filters={
+                self.primary_key: args_dict[self.primary_key] # index only query hopefullys
+            }
+        )
+
+        obj = self.model(**args_dict)
+        if len(rows) == 0:
+            self.session.add(obj)
+            self.session.commit()
+        else:
+            self._modify(
+                filters={self.primary_key: args_dict[self.primary_key]},
+                update_dict=args_dict
+            )
+
+        return obj
+
 
     # update an object
+    # filters is the filters of an object
     # primary_key_val is the value of the primary key
-    # update_dict is a subset of the models args_dict
     def _modify(self, filters: dict, update_dict: dict):
 
         session_filters = convert_dict_to_alchemy_filters(self.model, filters)
-        session.query(self.model).filter(*session_filters).update(update_dict) 
-        session.commit()
+        self.session.query(self.model).filter(*session_filters).update(update_dict) 
+        self.session.commit()
 
     # delete an object
     # primary_key_val is the value of the primary key
-    def _delete(self, filters=[]):
+    def _delete(self, filters={}):
 
         objs = (
             session.query(self.model)
@@ -82,7 +103,7 @@ class BaseController:
 
     def _get(self, filters, limit=5000):
         if not filters:
-            filters = []
+            filters = {}
 
         objects = (
             self.session.query(self.model)
@@ -127,44 +148,17 @@ class BaseTimeSeriesController(BaseController):
 
     def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
 
-        # get up to 'number_of_res' last event objects
-        # latest_objs = (
-        #     self.session.query(self.model)
-        #     .filter_by(*convert_dict_to_alchemy_filters(self.model, filters))
-        #     .group_by(self.model.non_prim_identifying_column_name)
-        #     .order_by(self.model.timestamp)
-        #     .limit(number_of_res)
-        #     .all()
-        # )
-
         latest_objs = (
             self.session.query(self.model)
             .distinct(self.model.non_prim_identifying_column_name)
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp)
+            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp.desc())
             .limit(1)
             .all()
         )
 
-        # latest_objs = self.session.query(self.model, subquery).order_by(self.model.timestamp).all()
-        # print("LATEST_OBJS-------")
-        # print(latest_objs)
         return latest_objs
 
-    # def _get_latest_event_objects_from_start_date(self, start_datetime, filters={}):
-
-    #     starttime = int(time.mktime(start_datetime).timetuple())
-
-    #     filters.append(self.model.timestamp >= starttime)
-
-    #     latest_objs = (
-    #         self.session.query(self.model)
-    #         .filter(*convert_dict_to_alchemy_filters(filters))
-    #         .group_by(self.model.non_prim_identifying_column_name)
-    #         .order_by(self.model.timestamp)
-    #     )
-
-    #     return latest_objs
 
     def _get_latest_event_objects_from_start_date(
         self, datetime1, filters, number_of_res=5
@@ -187,12 +181,12 @@ class BaseTimeSeriesController(BaseController):
 
         results = (
             self.session.query(self.model)
-            .distinct(self.model.non_prim_identifying_column_name)
             .filter(*session_filters)
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp)
+            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp.desc())
             .limit(number_of_res)
             .all()
         )
+
         return results
 
     def _find_latest_prim_key_from_non_prim_identifying_column_val(

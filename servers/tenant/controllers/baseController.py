@@ -55,36 +55,18 @@ class BaseController:
         self.session.commit()
         return obj
     
-    def _create_or_update_if_present(self, args_dict):
-        assert isinstance(args_dict, dict)
-
-        rows = self._get(
-            filters={
-                self.primary_key: args_dict[self.primary_key] # index only query hopefullys
-            }
-        )
-
-        obj = self.model(**args_dict)
-        if len(rows) == 0:
-            self.session.add(obj)
-            self.session.commit()
-        else:
-            self._modify(
-                filters={self.primary_key: args_dict[self.primary_key]},
-                update_dict=args_dict
-            )
-
-        return obj
 
 
     # update an object
     # filters is the filters of an object
     # primary_key_val is the value of the primary key
     def _modify(self, filters: dict, update_dict: dict):
-
+        
         session_filters = convert_dict_to_alchemy_filters(self.model, filters)
         self.session.query(self.model).filter(*session_filters).update(update_dict) 
         self.session.commit()
+
+
 
     # delete an object
     # primary_key_val is the value of the primary key

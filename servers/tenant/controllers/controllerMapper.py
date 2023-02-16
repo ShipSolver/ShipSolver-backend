@@ -202,23 +202,26 @@ class TicketController(BaseTimeSeriesController):
             fields = {
                 "currentStatus": Inventory_Milestone_Status.checked_into_inventory.value
             }
-            fields["ticketId"] = args_dict["ticketId"]
-            if "assignedTo" in args_dict:
-                fields["assignedTo"] = args_dict["assignedTo"]
-
-            milestone = self.ticket_status_controller._create_or_update_if_present(fields)
-
         else:
             args_dict["newStatus"] = Creation_Milestone_Status.unassigned_pickup.value
 
             fields = {
                 "currentStatus": Creation_Milestone_Status.unassigned_pickup.value,
             }
-            fields["ticketId"] = args_dict["ticketId"]
-            if "assignedTo" in args_dict:
-                fields["assignedTo"] = args_dict["assignedTo"]
 
-            milestone = self.ticket_status_controller._create_or_update_if_present(fields)
+        if "assignedTo" in args_dict:
+            fields["assignedTo"] = args_dict["assignedTo"]
+
+        if "ticketId" in args_dict:
+            self.ticket_status_controller._modify(
+                filters={
+                    "ticketId" : args_dict["ticketId"]
+                }, 
+                update_dict=fields)
+            
+            ticket_id = args_dict["ticketId"]
+        else:
+            ticket_id = self.ticket_status_controller._create(fields).ticketId
 
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
@@ -228,7 +231,7 @@ class TicketController(BaseTimeSeriesController):
         print("NEW TICKET EVENT:")
         pprint(args_dict)
         # args_dict[self.primary_key] = milestone.ticketId
-        args_dict[self.model.non_prim_identifying_column_name] = milestone.ticketId
+        args_dict[self.model.non_prim_identifying_column_name] = ticket_id
 
         obj = self.model(**args_dict)
         self.session.add(obj)

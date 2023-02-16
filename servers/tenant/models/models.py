@@ -147,7 +147,7 @@ class Documents(Base):
 
 class TicketStatus(Base):
     __tablename__ = "ticketstatus"
-    ticketId = Column(Integer, primary_key=True)
+    ticketId = Column(Integer, primary_key=True, autoincrement=True)
     currentStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
     assignedTo = Column(String, ForeignKey(Users.userId), nullable=True, index=True)
 

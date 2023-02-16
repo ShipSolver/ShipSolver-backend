@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from wsgiref import validate
 
-from flask import make_response, request, jsonify, Blueprint
+from flask import make_response, request, jsonify, Blueprint, abort
 from flask_cors import cross_origin
 
 import sys
@@ -159,4 +159,7 @@ def ticket_get(ticket_id):
     )
     res = alchemyConverter(data)
 
-    return make_response(json.dumps(res, cls=AlchemyEncoder))
+    if len(res) > 0:
+        return make_response(json.dumps(res[0], cls=AlchemyEncoder))
+    else:
+        abort(404)

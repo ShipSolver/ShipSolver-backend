@@ -268,12 +268,14 @@ class TicketController(BaseTimeSeriesController):
         if len(edits) == 0:
             return None
 
-
-        latest = edits[0]
-
         updates_arr = []
         
-        for ticket_dict in edits[1:]:
+        latest = None
+        for ticket_dict in edits:
+            if latest is None:
+                latest = ticket_dict
+                continue
+
             updates = {}
             for k in ticket_dict:
                 if k not in latest or latest[k]!= ticket_dict[k]:
@@ -281,6 +283,8 @@ class TicketController(BaseTimeSeriesController):
 
             updates.pop(self.primary_key)
             updates_arr.append(updates)
+
+            latest = ticket_dict
         return updates_arr
 
         

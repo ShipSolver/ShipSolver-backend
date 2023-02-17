@@ -108,14 +108,15 @@ def ticket_post():  # create ticket
 @ticket_bp.route("/<ticket_id>", methods=["POST"])
 # @auth_required()
 def ticket_edit(ticket_id):  # create ticket
-    print("Creating ticket from the following JSON:")
     ticket_dict = json.loads(request.data)
     ticket_dict = json.loads(ticket_dict["data"])
     ticket_dict["ticketId"] = ticket_id
 
+    
     # remove ticketId
     ticket_dict.pop("timestamp", None)
     ticket_dict.pop(ticket_controller.primary_key, None)
+    
     #join pieces into single string 
     ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
     ticket_event = ticket_controller._create_base_event(ticket_dict)

@@ -33,12 +33,21 @@ PIECES_SEPERATOR = ",+-"
 # @auth_required()
 def ticket_get_all_with_status(status):  # create ticket
 
-    limit = 5000 if "limit" not in request.args else request.args["limit"]
-    ticket_sql_filters = get_clean_filters_dict(request.args)
-    tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
-    num_tickets = ticket_status_controller._get_count(ticket_sql_filters)
+    # grab and remove userType arg
+    # We remove it since it will cause sql query errors if passed to filters
+    args = request.args.copy()
+    userType_arg = args.get("userType")
+    if userType_arg is not None:
+        del args["userType"]
 
-    res = {"tickets": alchemyConverter(tickets), "count": num_tickets}
+    limit = 5000 if "limit" not in args else args["limit"]
+    ticket_sql_filters = get_clean_filters_dict(args)
+    tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
+
+    if userType_arg is not None: # filter on user types
+        tickets = [ticket for ticket in tickets if ticket.user.userType == userType_arg]
+
+    res = {"tickets": alchemyConverter(tickets), "count": len(tickets)}
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 

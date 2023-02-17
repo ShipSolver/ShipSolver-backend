@@ -4,6 +4,7 @@ from controllers.baseController import (
     BaseTimeSeriesController,
     BaseNestedDependencyContoller,
 )
+from utils import alchemyConverter
 from models.models import *
 
 
@@ -254,7 +255,35 @@ class TicketController(BaseTimeSeriesController):
             }
         )
         return obj
+    
+    def get_ticket_edits(self, ticket_id):
+        data = self._get_latest_event_objects(
+            filters={
+                TicketEvents.non_prim_identifying_column_name : ticket_id
+            }
+        )
 
+        edits = alchemyConverter(data)
+
+        if len(edits) == 0:
+            return None
+
+
+        latest = edits[0]
+
+        updates_arr = []
+        
+        for ticket_dict in edits[1:]:
+            updates = {}
+            for k in ticket_dict:
+                if k not in latest or latest[k]!= ticket_dict[k]:
+                    updates[k] = ticket_dict[k]
+
+            updates.pop(self.primary_key)
+            updates_arr.append(updates)
+        return updates_arr
+
+        
 class DocumentController(BaseController):
     def __init__(self):
         super().__init__(Documents)

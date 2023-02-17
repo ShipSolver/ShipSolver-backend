@@ -129,17 +129,13 @@ def ticket_edit(ticket_id):  # create ticket
 # @auth_required()
 def ticket_get_edits(ticket_id):
 
-    data = ticket_controller._get_latest_event_objects(
-        filters={
-            TicketEvents.non_prim_identifying_column_name : ticket_id
-        }
-    )
-    res = alchemyConverter(data)
+    data = ticket_controller.get_ticket_edits(ticket_id)
+    print(data)
 
-    if len(res) > 0:
-        return make_response(json.dumps(res, cls=AlchemyEncoder))
-    else:
+    if data is None:
         abort(404)
+
+    return make_response(json.dumps(data, cls=AlchemyEncoder))
 
 
 

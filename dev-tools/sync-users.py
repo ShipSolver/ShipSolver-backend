@@ -40,6 +40,12 @@ print("connecting to db....")
 Session = sessionmaker(bind=engine)
 session = Session()
 
+user_controller = UserController()
+existing_users = user_controller._get(None)
+existing_users_lookup = {}
+for eu in existing_users:
+    existing_users_lookup[eu.userId] = True
+
 sync_users = []
 
 list_users_args = {
@@ -69,6 +75,8 @@ while pagination:
             usr[att['Name']] = att["Value"]
         first_name = usr["name"].split(" ")[0]
         last_name = "" if len(usr["name"].split(" ")) < 2 else usr["name"].split(" ")[1]
+        if usr["sub"] in existing_users_lookup:
+            continue
         sync_users.append(
             {
                 "userId": usr["sub"],
@@ -82,7 +90,6 @@ while pagination:
             }
         )
 
-user_controller = UserController()
 inserted = user_controller._create_bulk(sync_users)
 
 print(f"Successfully Synchronised {len(inserted)} Users.")

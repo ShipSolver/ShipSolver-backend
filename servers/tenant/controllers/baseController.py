@@ -132,10 +132,8 @@ class BaseTimeSeriesController(BaseController):
 
         latest_objs = (
             self.session.query(self.model)
-            .distinct(self.model.non_prim_identifying_column_name)
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
             .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp.desc())
-            .limit(1)
             .all()
         )
 

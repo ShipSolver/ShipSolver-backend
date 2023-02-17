@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from wsgiref import validate
-
+from pprint import pprint
 from flask import make_response, request, jsonify, Blueprint, abort
 from flask_cors import cross_origin
 
@@ -122,6 +122,26 @@ def ticket_edit(ticket_id):  # create ticket
 
     response = {"ticketId": ticket_event.ticketId}
     return make_response(json.dumps(response))
+
+
+
+@ticket_bp.route("/edits/<ticket_id>", methods=["GET"])
+# @auth_required()
+def ticket_get_edits(ticket_id):
+
+    data = ticket_controller._get_latest_event_objects(
+        filters={
+            TicketEvents.non_prim_identifying_column_name : ticket_id
+        }
+    )
+    res = alchemyConverter(data)
+
+    if len(res) > 0:
+        return make_response(json.dumps(res, cls=AlchemyEncoder))
+    else:
+        abort(404)
+
+
 
 
 @ticket_bp.route("/", methods=["GET"])

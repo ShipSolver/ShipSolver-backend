@@ -133,7 +133,7 @@ class BaseTimeSeriesController(BaseController):
         latest_objs = (
             self.session.query(self.model)
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp.desc())
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
             .all()
         )
 
@@ -162,7 +162,7 @@ class BaseTimeSeriesController(BaseController):
         results = (
             self.session.query(self.model)
             .filter(*session_filters)
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp.desc())
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
             .limit(number_of_res)
             .all()
         )
@@ -187,7 +187,7 @@ class BaseTimeSeriesController(BaseController):
                 self.model.timestamp,
                 getattr(self.model, self.primary_key),
             )
-            .order_by(self.model.timestamp.desc())
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
             .first(),
         )
 

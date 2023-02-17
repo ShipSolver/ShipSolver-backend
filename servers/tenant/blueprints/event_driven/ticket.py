@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, "..")  # import parent folder
 
 from controllers.controllerMapper import TicketController, TicketStatusController, UserController
-from models.models import TicketEvents
+from models.models import TicketEvents, UserType
 from utils import (
     AlchemyEncoder,
     alchemyConverter,
@@ -39,6 +39,9 @@ def ticket_get_all_with_status(status):  # create ticket
     userType_arg = args.get("userType")
     if userType_arg is not None:
         del args["userType"]
+        if not UserType.has_value(userType_arg): # if the value is invalid, return 400
+            response = {"error": f"Invalid userType: {userType_arg}"}
+            return make_response(response, 400)
 
     limit = 5000 if "limit" not in args else args["limit"]
     ticket_sql_filters = get_clean_filters_dict(args)

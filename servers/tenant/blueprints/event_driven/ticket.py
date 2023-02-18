@@ -166,7 +166,7 @@ def ticket_get_all():
     )
     dt_end = validate_date_format(filters["end"]) if "end" in filters else default_end
 
-    data = ticket_controller._get_latest_event_objects_in_range(
+    data = ticket_controller._get_latest_base_object_in_range(
         dt_start, dt_end, sql_filters, number_of_res=limit
     )
 

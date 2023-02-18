@@ -14,12 +14,12 @@ INDEXES = []
 """ MILESTONE STATUSES BEGIIN """
 
 
-class Creation_Milestone_Status(enum):
+class Creation_Milestone_Status(str, enum):
     ticket_created = "ticket_created"
     unassigned_pickup = "unassigned_pickup"
 
 
-class Pickup_Milestone_Status(enum):
+class Pickup_Milestone_Status(str, enum):
     unassigned_pickup = "unassigned_pickup"
     requested_pickup = "requested_pickup"
     accepted_pickup = "accepted_pickup"
@@ -28,30 +28,30 @@ class Pickup_Milestone_Status(enum):
     incomplete_pickup = "incomplete_pickup"
 
 
-class Inventory_Milestone_Status(enum):
+class Inventory_Milestone_Status(str, enum):
     ticket_created = "ticket_created"
     checked_into_inventory = "checked_into_inventory"
     completed_delivery = "completed_delivery"
     incomplete_delivery = "incomplete_delivery"
 
 
-class Assignment_Milestone_Status(enum):
+class Assignment_Milestone_Status(str, enum):
     checked_into_inventory = "checked_into_inventory"
     assigned = "assigned"
     in_transit = "in_transit"
 
 
-class Delivery_Milestone_Status(enum):
+class Delivery_Milestone_Status(str, enum):
     in_transit = "in_transit"
     completed_delivery = "completed_delivery"
 
 
-class Incomplete_Delivery_Milestone_Status(enum):
+class Incomplete_Delivery_Milestone_Status(str, enum):
     in_transit = "in_transit"
     incomplete_delivery = "incomplete_delivery"
 
 
-class Generic_Milestone_Status(enum):
+class Generic_Milestone_Status(str, enum):
     _ignore_ = "member cls"
     cls = vars()
 
@@ -69,11 +69,19 @@ class Generic_Milestone_Status(enum):
 
     # del member, cls
 
+GenericMilestonesType: Enum = Enum(
+    Generic_Milestone_Status,
+    name="generic_milestones_type",
+    create_constraint=True,
+    metadata=Base.metadata,
+    validate_strings=True,
+)
+
 
 """ END  MILESTONE STATUSES """
 
 
-class UserType(enum):
+class UserType(str, enum):
     manager = "manager"
     dispatch = "dispatch"
     customer = "customer"
@@ -152,7 +160,7 @@ class Documents(Base):
 class TicketStatus(Base):
     __tablename__ = "ticketstatus"
     ticketId = Column(Integer, primary_key=True, autoincrement=True)
-    currentStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
+    currentStatus = Column(GenericMilestonesType, nullable=False)
     assignedTo = Column(String, ForeignKey(Users.userId), nullable=True, index=True)
 
     user = relationship("Users")
@@ -230,7 +238,7 @@ class PickupMilestones(Base):
         String, ForeignKey(Users.userId), nullable=False, index=True
     )
 
-    oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
+    oldStatus = Column(GenericMilestonesType, nullable=False)
     newStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
@@ -250,7 +258,7 @@ class InventoryMilestones(Base):
         String, ForeignKey(Users.userId), nullable=False, index=True
     )
 
-    oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
+    oldStatus = Column(GenericMilestonesType, nullable=False)
     newStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
@@ -271,7 +279,7 @@ class AssignmentMilestones(Base):
         String, ForeignKey(Users.userId), nullable=False, index=True
     )
 
-    oldStatus = Column(Enum(Generic_Milestone_Status), nullable=False)
+    oldStatus = Column(GenericMilestonesType, nullable=False)
     newStatus = Column(Enum(Assignment_Milestone_Status), nullable=False)
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 
@@ -291,7 +299,7 @@ class IncompleteDeliveryMilestones(Base):
         default=Incomplete_Delivery_Milestone_Status.incomplete_delivery.value,
     )
     oldStatus = Column(
-        Enum(Generic_Milestone_Status),
+        GenericMilestonesType,
         default=Generic_Milestone_Status.in_transit.value,
     )
     assigneeUserId = Column(
@@ -317,7 +325,7 @@ class DeliveryMilestones(Base):
     )
 
     oldStatus = Column(
-        Enum(Generic_Milestone_Status),
+        GenericMilestonesType,
         default=Generic_Milestone_Status.in_transit.value,
     )
 

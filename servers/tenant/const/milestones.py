@@ -9,6 +9,21 @@ from controllers.controllerMapper import (
 )
 
 
+pickupMilestones = [
+    Generic_Milestone_Status.unassigned_pickup,
+    Generic_Milestone_Status.requested_pickup,
+    Generic_Milestone_Status.accepted_pickup,
+    Generic_Milestone_Status.declined_pickup,
+    Generic_Milestone_Status.completed_pickup,
+    Generic_Milestone_Status.incomplete_pickup
+]
+deliveryMilestones = [
+    Generic_Milestone_Status.checked_into_inventory,
+    Generic_Milestone_Status.completed_delivery,
+    Generic_Milestone_Status.incomplete_delivery,
+    Generic_Milestone_Status.assigned,
+    Generic_Milestone_Status.in_transit
+]
 stateTable = {
         Generic_Milestone_Status.ticket_created: [
             Creation_Milestone_Status.ticket_created

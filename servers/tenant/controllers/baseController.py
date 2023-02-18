@@ -108,6 +108,9 @@ class BaseController:
         )
 
         return len(objects)
+    
+    def _get_session(self):
+        return self.session
 
 
 class BaseTimeSeriesController(BaseController):
@@ -128,10 +131,13 @@ class BaseTimeSeriesController(BaseController):
     def _create_base_event(self, args_dict):
         pass
 
-    def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
+    def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}, queryObj=None):
+
+        if not queryObj:
+            queryObj = self.session.query(self.model)
 
         latest_objs = (
-            self.session.query(self.model)
+            queryObj
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
             .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
             .all()

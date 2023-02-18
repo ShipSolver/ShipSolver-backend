@@ -168,6 +168,30 @@ class BaseTimeSeriesController(BaseController):
         )
 
         return results
+    
+
+    def _get_latest_base_object_in_range(
+        self, datetime1, datetime2, filters={}, number_of_res=5
+    ):
+        assert datetime1 <= datetime2
+        time1 = max(0,time.mktime(datetime1.timetuple()))
+        time2 = int(time.mktime(datetime2.timetuple()))
+
+        session_filters = convert_dict_to_alchemy_filters(self.model, filters)
+
+        session_filters.append(self.model.timestamp >= time1)
+        session_filters.append(self.model.timestamp <= time2)
+
+        results = (
+            self.session.query(self.model)
+            .filter(*session_filters)
+            .distinct(self.model.non_prim_identifying_column_name)
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
+            .limit(number_of_res)
+            .all()
+        )
+
+        return results
 
     def _find_latest_prim_key_from_non_prim_identifying_column_val(
         self, non_prim_identifying_col_val

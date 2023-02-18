@@ -13,4 +13,15 @@ python-dotenv==0.21.1
 requests==2.28.2
 SQLAlchemy==2.0.3
 flask-cognito-auth==1.1.0
--e git+ssh://git@github.com/ShipSolver/flask-cognito-lib.git@9010f492d52d64d43ccd76878405fa1b098fe35c#egg=flask_cognito_lib
+-e git+ssh://git@github.com/ShipSolver/flask-cognito-lib.git@main#egg=flask_cognito_lib
+itsdangerous==2.0.1
+Jinja2==3.0.3
+MarkupSafe==2.0.1
+Flask-Cors
+six==1.16.0
+Werkzeug==2.0.2
+psycopg2-binary
+flask-restplus==0.13.0
+flask-sqlalchemy==2.4.4
+flask-marshmallow==0.14.0
+marshmallow-sqlalchemy==0.24.1

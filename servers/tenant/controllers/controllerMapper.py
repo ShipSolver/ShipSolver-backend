@@ -4,6 +4,7 @@ from controllers.baseController import (
     BaseTimeSeriesController,
     BaseNestedDependencyContoller,
 )
+from utils import alchemyConverter
 from models.models import *
 
 
@@ -212,7 +213,8 @@ class TicketController(BaseTimeSeriesController):
         if "assignedTo" in args_dict:
             fields["assignedTo"] = args_dict["assignedTo"]
 
-        if "ticketId" in args_dict:
+        new_ticket_creation = "ticketId" not in args_dict
+        if not new_ticket_creation:
             self.ticket_status_controller._modify(
                 filters={
                     "ticketId" : args_dict["ticketId"]
@@ -230,31 +232,75 @@ class TicketController(BaseTimeSeriesController):
 
         print("NEW TICKET EVENT:")
         pprint(args_dict)
-        # args_dict[self.primary_key] = milestone.ticketId
         args_dict[self.model.non_prim_identifying_column_name] = ticket_id
 
         obj = self.model(**args_dict)
         self.session.add(obj)
         self.session.commit()
 
-        self.creation_milestone_controller._create(
-            {
-                "ticketId": obj.ticketId,
-                "newStatus": new_status,
-                "createdByUserId": args_dict["userId"],
-            }
-        )
+        print("\n TIME:", obj.timestamp)
 
-        self.inventory_milestone_controller._create(
-            {
-                "ticketId": obj.ticketId,
-                "oldStatus": new_status,
-                "newStatus": Inventory_Milestone_Status.checked_into_inventory.value,
-                "approvedByUserId": args_dict["userId"],
-            }
-        )
+        
+        if new_ticket_creation:
+            self.creation_milestone_controller._create(
+                {
+                    "ticketId": obj.ticketId,
+                    "newStatus": new_status,
+                    "createdByUserId": args_dict["userId"],
+                }
+            )
+
+            self.inventory_milestone_controller._create(
+                {
+                    "ticketId": obj.ticketId,
+                    "oldStatus": new_status,
+                    "newStatus": Inventory_Milestone_Status.checked_into_inventory.value,
+                    "approvedByUserId": args_dict["userId"],
+                }
+            )
         return obj
+    
+    def get_ticket_edits(self, ticket_id):
+        data = self._get_latest_event_objects(
+            filters={
+                TicketEvents.non_prim_identifying_column_name : ticket_id
+            }
+        )
 
+        edits = alchemyConverter(data)
+
+        if len(edits) == 0:
+            return None
+
+        updates_arr = []
+        
+        latest = None
+        for ticket_dict in edits:
+            if latest is None:
+                latest = ticket_dict
+                continue
+
+            updates = {}
+            for k in ticket_dict:
+                if k not in latest or latest[k]!= ticket_dict[k]:
+                    updates[k] = ticket_dict[k]
+
+                if k == "user":
+                    updates["userId"] = ticket_dict[k]["userId"]
+                    updates["firstName"] = ticket_dict[k]["firstName"]
+                    if "lastName" in ticket_dict[k]:
+                        updates["lastName"] = ticket_dict[k]["lastName"]
+
+                if k == "timestamp": # if two edits are made at the same second
+                    updates[k] = ticket_dict[k]
+
+            updates.pop(self.primary_key)
+            updates_arr.append(updates)
+
+            latest = ticket_dict
+        return updates_arr
+
+        
 class DocumentController(BaseController):
     def __init__(self):
         super().__init__(Documents)

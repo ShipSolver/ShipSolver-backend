@@ -108,6 +108,9 @@ class BaseController:
         )
 
         return len(objects)
+    
+    def _get_session(self):
+        return self.session
 
 
 class BaseTimeSeriesController(BaseController):
@@ -128,14 +131,15 @@ class BaseTimeSeriesController(BaseController):
     def _create_base_event(self, args_dict):
         pass
 
-    def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}):
+    def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}, queryObj=None):
+
+        if not queryObj:
+            queryObj = self.session.query(self.model)
 
         latest_objs = (
-            self.session.query(self.model)
-            .distinct(self.model.non_prim_identifying_column_name)
+            queryObj
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp.desc())
-            .limit(1)
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
             .all()
         )
 
@@ -164,7 +168,31 @@ class BaseTimeSeriesController(BaseController):
         results = (
             self.session.query(self.model)
             .filter(*session_filters)
-            .order_by(self.model.non_prim_identifying_column_name, self.model.timestamp.desc())
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
+            .limit(number_of_res)
+            .all()
+        )
+
+        return results
+    
+
+    def _get_latest_base_object_in_range(
+        self, datetime1, datetime2, filters={}, number_of_res=5
+    ):
+        assert datetime1 <= datetime2
+        time1 = max(0,time.mktime(datetime1.timetuple()))
+        time2 = int(time.mktime(datetime2.timetuple()))
+
+        session_filters = convert_dict_to_alchemy_filters(self.model, filters)
+
+        session_filters.append(self.model.timestamp >= time1)
+        session_filters.append(self.model.timestamp <= time2)
+
+        results = (
+            self.session.query(self.model)
+            .filter(*session_filters)
+            .distinct(self.model.non_prim_identifying_column_name)
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
             .limit(number_of_res)
             .all()
         )
@@ -189,7 +217,7 @@ class BaseTimeSeriesController(BaseController):
                 self.model.timestamp,
                 getattr(self.model, self.primary_key),
             )
-            .order_by(self.model.timestamp.desc())
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
             .first(),
         )
 

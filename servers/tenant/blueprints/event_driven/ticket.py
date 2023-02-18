@@ -1,9 +1,10 @@
 import json
 from datetime import datetime
 from wsgiref import validate
-
-from flask import make_response, request, jsonify, Blueprint, abort
+from pprint import pprint
+from flask import make_response, request, jsonify, session, Blueprint, abort
 from flask_cors import cross_origin
+from helpers.identity_helpers import IdentityHelper
 
 import sys
 
@@ -27,10 +28,8 @@ user_controller = UserController()
 
 PIECES_SEPERATOR = ",+-"
 
-
-
 @ticket_bp.route("/status/<status>", methods=["GET"])
-# @auth_required()
+@auth_required()
 def ticket_get_all_with_status(status):  # create ticket
 
     # grab and remove userType arg
@@ -106,16 +105,17 @@ def ticket_post():  # create ticket
 
 # TODO fix primary key issue, ticketeventID needs to be unique for edits
 @ticket_bp.route("/<ticket_id>", methods=["POST"])
-# @auth_required()
+@auth_required()
 def ticket_edit(ticket_id):  # create ticket
-    print("Creating ticket from the following JSON:")
     ticket_dict = json.loads(request.data)
     ticket_dict = json.loads(ticket_dict["data"])
     ticket_dict["ticketId"] = ticket_id
-
+    ticket_dict["userId"] = IdentityHelper.get_logged_in_userId()
+    
     # remove ticketId
     ticket_dict.pop("timestamp", None)
     ticket_dict.pop(ticket_controller.primary_key, None)
+    
     #join pieces into single string 
     ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
     ticket_event = ticket_controller._create_base_event(ticket_dict)
@@ -124,8 +124,23 @@ def ticket_edit(ticket_id):  # create ticket
     return make_response(json.dumps(response))
 
 
+
+@ticket_bp.route("/edits/<ticket_id>", methods=["GET"])
+@auth_required()
+def ticket_get_edits(ticket_id):
+
+    data = ticket_controller.get_ticket_edits(ticket_id)
+    print(data)
+
+    if data is None:
+        abort(404)
+
+    return make_response(json.dumps(data, cls=AlchemyEncoder))
+
+
+
 @ticket_bp.route("/", methods=["GET"])
-# @auth_required()
+@auth_required()
 def ticket_get_all():
 
     def validate_date_format(date_text):
@@ -149,7 +164,7 @@ def ticket_get_all():
     )
     dt_end = validate_date_format(filters["end"]) if "end" in filters else default_end
 
-    data = ticket_controller._get_latest_event_objects_in_range(
+    data = ticket_controller._get_latest_base_object_in_range(
         dt_start, dt_end, sql_filters, number_of_res=limit
     )
 

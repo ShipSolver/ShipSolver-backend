@@ -25,3 +25,4 @@ flask-restplus==0.13.0
 flask-sqlalchemy==2.4.4
 flask-marshmallow==0.14.0
 marshmallow-sqlalchemy==0.24.1
+flask-session

@@ -86,7 +86,7 @@ Route expects requests of format:
 
 """
 @ticket_bp.route("/", methods=["POST"])
-# @auth_required()
+@auth_required()
 def ticket_post():  # create ticket
     print("Creating ticket from the following JSON:")
     ticket_dict = json.loads(request.data)
@@ -98,6 +98,7 @@ def ticket_post():  # create ticket
 
     #join pieces into single string 
     ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
+    ticket_dict["userId"] = IdentityHelper.get_logged_in_userId()
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
     response = {"ticketId": ticket_event.ticketId}

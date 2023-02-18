@@ -28,8 +28,6 @@ user_controller = UserController()
 
 PIECES_SEPERATOR = ",+-"
 
-
-
 @ticket_bp.route("/status/<status>", methods=["GET"])
 @auth_required()
 def ticket_get_all_with_status(status):  # create ticket

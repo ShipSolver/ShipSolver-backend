@@ -11,7 +11,7 @@ celery==5.2.3
 # cryptography==36.0.1
 # Deprecated==1.2.13
 flask-cognito-auth==1.1.0
--e git+ssh://git@github.com/ShipSolver/flask-cognito-lib.git@9010f492d52d64d43ccd76878405fa1b098fe35c#egg=flask_cognito_lib
+-e git+ssh://git@github.com/ShipSolver/flask-cognito-lib.git@main#egg=flask_cognito_lib
 Flask==2.0.2
 # humanfriendly==10.0
 # img2pdf==0.4.3

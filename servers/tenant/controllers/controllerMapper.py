@@ -285,6 +285,12 @@ class TicketController(BaseTimeSeriesController):
                 if k not in latest or latest[k]!= ticket_dict[k]:
                     updates[k] = ticket_dict[k]
 
+                if k == "user":
+                    updates["userId"] = ticket_dict[k]["userId"]
+                    updates["firstName"] = ticket_dict[k]["firstName"]
+                    if "lastName" in ticket_dict[k]:
+                        updates["lastName"] = ticket_dict[k]["lastName"]
+
                 if k == "timestamp": # if two edits are made at the same second
                     updates[k] = ticket_dict[k]
 

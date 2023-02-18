@@ -2,8 +2,9 @@ import json
 from datetime import datetime
 from wsgiref import validate
 from pprint import pprint
-from flask import make_response, request, jsonify, Blueprint, abort
+from flask import make_response, request, jsonify, session, Blueprint, abort
 from flask_cors import cross_origin
+from helpers.identity_helpers import IdentityHelper
 
 import sys
 
@@ -30,9 +31,10 @@ PIECES_SEPERATOR = ",+-"
 
 
 @ticket_bp.route("/status/<status>", methods=["GET"])
-# @auth_required()
+@auth_required()
 def ticket_get_all_with_status(status):  # create ticket
 
+    print(f"USER: {IdentityHelper.get_logged_in_userId()}")
     limit = 5000 if "limit" not in request.args else request.args["limit"]
     ticket_sql_filters = get_clean_filters_dict(request.args)
     tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
@@ -94,12 +96,12 @@ def ticket_post():  # create ticket
 
 # TODO fix primary key issue, ticketeventID needs to be unique for edits
 @ticket_bp.route("/<ticket_id>", methods=["POST"])
-# @auth_required()
+@auth_required()
 def ticket_edit(ticket_id):  # create ticket
     ticket_dict = json.loads(request.data)
     ticket_dict = json.loads(ticket_dict["data"])
     ticket_dict["ticketId"] = ticket_id
-
+    ticket_dict["userId"] = IdentityHelper.get_logged_in_userId()
     
     # remove ticketId
     ticket_dict.pop("timestamp", None)
@@ -115,7 +117,7 @@ def ticket_edit(ticket_id):  # create ticket
 
 
 @ticket_bp.route("/edits/<ticket_id>", methods=["GET"])
-# @auth_required()
+@auth_required()
 def ticket_get_edits(ticket_id):
 
     data = ticket_controller.get_ticket_edits(ticket_id)
@@ -128,9 +130,8 @@ def ticket_get_edits(ticket_id):
 
 
 
-
 @ticket_bp.route("/", methods=["GET"])
-# @auth_required()
+@auth_required()
 def ticket_get_all():
 
     def validate_date_format(date_text):

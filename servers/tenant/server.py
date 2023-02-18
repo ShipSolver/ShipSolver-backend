@@ -1,5 +1,6 @@
 import os
 from flask import Flask, Blueprint, jsonify, session
+from flask_session import Session
 # from config import app
 from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
@@ -24,8 +25,11 @@ app.config["AWS_REGION"] = os.environ["AWS_REGION"]
 app.config["AWS_COGNITO_USER_POOL_ID"] = os.environ["AWS_COGNITO_USER_POOL_ID"]
 app.config["AWS_COGNITO_USER_POOL_CLIENT_ID"] = os.environ["AWS_COGNITO_USER_POOL_CLIENT_ID"]
 app.config["AWS_COGNITO_DOMAIN"] = os.environ["AWS_COGNITO_DOMAIN"]
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
 
 auth = CognitoAuth(app)
+ses = Session(app)
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
 parent = Blueprint("api", __name__, url_prefix="/api")

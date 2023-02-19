@@ -43,7 +43,7 @@ from const.milestones import *
 faker = Faker()
 
 ############# SET YOUR USER ID HERE #############
-MANAGER_USER = ""
+MANAGER_USER = "aec56ed3-8f42-4471-8de5-2ef0083c2bcc"
 
 if not MANAGER_USER:
     print("SET YOUR MANAGER USER ID IN TEST.PY LINE 46")
@@ -228,8 +228,6 @@ with app.app_context():
                         "tailgateAuthorized": tailgateAuthorized
                     }
                 )
-
-                print("Created Ticket")
 
     def list_diff(li1, li2):
         '''

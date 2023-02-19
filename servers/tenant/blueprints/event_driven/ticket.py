@@ -132,7 +132,7 @@ def ticket_get_edits(ticket_id):
 @ticket_bp.route("/<ticket_id>", methods=["DELETE"])
 @auth_required()
 def ticket_delete(ticket_id):
-    delete_performed = ticket_controller._delete_base_ticket(ticket_id)
+    delete_performed = ticket_controller._delete_base_ticket(ticket_id, IdentityHelper.get_logged_in_userId())
     if not delete_performed:
         abort(403)
 

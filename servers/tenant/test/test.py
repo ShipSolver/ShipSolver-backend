@@ -356,7 +356,7 @@ with app.app_context():
                 else stateTable[end_state]
             )
             generate_transitions(ticket, transition_list, approver_list, Pickup_Milestone_Status.unassigned_pickup.value)
-            if transition_list[-1] == Pickup_Milestone_Status.unassigned_pickup:
+            if len(transition_list) > 0 and transition_list[-1] == Pickup_Milestone_Status.unassigned_pickup:
                 reprocess_pickups.append((ticket, 1))
         
         # Iterate over all new delivery tickets and generate state transitions (milestones)
@@ -372,7 +372,7 @@ with app.app_context():
             if transition_list and transition_list[0] == Inventory_Milestone_Status.checked_into_inventory:
                 transition_list.pop(0)
             generate_transitions(ticket, transition_list, approver_list, Inventory_Milestone_Status.checked_into_inventory.value)
-            if (transition_list[-1] == Inventory_Milestone_Status.checked_into_inventory 
+            if (len(transition_list) > 1 and transition_list[-1] == Inventory_Milestone_Status.checked_into_inventory 
                 and transition_list[-2] != Creation_Milestone_Status.ticket_created):
                 reprocess_deliveries.append((ticket, 1))
 

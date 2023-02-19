@@ -45,6 +45,10 @@ faker = Faker()
 ############# SET YOUR USER ID HERE #############
 MANAGER_USER = ""
 
+if not MANAGER_USER:
+    print("SET YOUR MANAGER USER ID IN TEST.PY LINE 46")
+    exit()
+
 ############# SET TO FLASE ONLY IF YOU WANT OTHER MANAGER USERS TO APPROVE TICKETS ############
 APPROVER_ONLY_SELF = True
 

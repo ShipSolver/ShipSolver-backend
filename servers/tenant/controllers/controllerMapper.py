@@ -43,6 +43,8 @@ class TicketStatusController(BaseController):
             subq, TicketEvents.ticketId == subq.c.ticketId
         )
 
+        tickets = self.ticket_controller._get_latest_event_object(filters=filters, queryObj=q)
+
         return tickets
 
 
@@ -51,6 +53,33 @@ class MilestoneController(BaseController):
         super().__init__(model=model)
         self.model = model  # redudant
         self.ticket_status = TicketStatusController()
+
+    def _create(self, args_dict):
+        fltrs = {}
+        updt = {}
+        if "ticketId" in args_dict:
+            fltrs[TicketStatus.ticketId.name] = args_dict["ticketId"]
+
+            if "newStatus" in args_dict:
+                updt[TicketStatus.currentStatus.name] = args_dict["newStatus"]
+            
+            if "requestedUserId" in args_dict:
+                updt[TicketStatus.assignedTo.name] = args_dict["requestedUserId"]
+            elif "approvedByUserId" in args_dict:
+                updt[TicketStatus.assignedTo.name] = args_dict["approvedByUserId"]
+            elif "assignedToUserId" in args_dict:
+                updt[TicketStatus.assignedTo.name] = args_dict["assignedToUserId"]
+            elif "assigneeUserId" in args_dict:
+                updt[TicketStatus.assignedTo.name] = args_dict["assigneeUserId"]
+            elif "completingUserId" in args_dict:
+                updt[TicketStatus.assignedTo.name] = args_dict["completingUserId"]
+            
+            self.ticket_status._modify(
+                filters=fltrs,
+                update_dict=updt
+            )
+
+        return super()._create(args_dict)
 
 
 """ MILESTONES """
@@ -77,7 +106,7 @@ class PickupMilestonesController(MilestoneController):
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
-            if milestone["oldStatus"] == Pickup_Milestone_Status.unassigned_pickup.value and  milestone["newStatus"] == Pickup_Milestone_Status.requested_pickup.value:
+            if milestone["oldStatus"] == Pickup_Milestone_Status.unassigned_pickup.value and milestone["newStatus"] == Pickup_Milestone_Status.requested_pickup.value:
                 string_milestones.append({
                     "description":  f"Pickup request sent to {milestone['requestedUser']['username']} by {milestone['requesterUser']['username']}",
                     "timestamp": milestone["timestamp"]
@@ -194,22 +223,20 @@ class TicketController(BaseTimeSeriesController):
     def _create_base_event(self, args_dict):
 
         is_pickup = args_dict["isPickup"]
+        fields = {}
 
         if not is_pickup:
             # THIS WILL BE CHANGED BACK WHEN INVENTORY CHECK IN IS A FEATURE
-            args_dict["newStatus"] = Creation_Milestone_Status.ticket_created.value
-            fields = {
-                "currentStatus": Inventory_Milestone_Status.checked_into_inventory.value
-            }
+            args_dict["newStatus"] = Creation_Milestone_Status.ticket_created
+            fields["currentStatus"] = Generic_Milestone_Status(Inventory_Milestone_Status.checked_into_inventory.value)
         else:
-            args_dict["newStatus"] = Creation_Milestone_Status.unassigned_pickup.value
-
-            fields = {
-                "currentStatus": Creation_Milestone_Status.unassigned_pickup.value,
-            }
+            args_dict["newStatus"] = Generic_Milestone_Status(Creation_Milestone_Status.unassigned_pickup.value)
+            fields["currentStatus"] = Generic_Milestone_Status(Creation_Milestone_Status.unassigned_pickup.value)
 
         if "assignedTo" in args_dict:
             fields["assignedTo"] = args_dict["assignedTo"]
+        elif "userId" in args_dict:
+            fields["assignedTo"] = args_dict["userId"]
 
         new_ticket_creation = "ticketId" not in args_dict
         if not new_ticket_creation:
@@ -222,6 +249,9 @@ class TicketController(BaseTimeSeriesController):
             ticket_id = args_dict["ticketId"]
         else:
             ticket_id = self.ticket_status_controller._create(fields).ticketId
+
+        if "timestamp" not in args_dict:
+            args_dict["timestamp"] = int(time.time())
 
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
@@ -243,14 +273,15 @@ class TicketController(BaseTimeSeriesController):
                 }
             )
 
-            self.inventory_milestone_controller._create(
-                {
-                    "ticketId": obj.ticketId,
-                    "oldStatus": new_status,
-                    "newStatus": Inventory_Milestone_Status.checked_into_inventory.value,
-                    "approvedByUserId": args_dict["userId"],
-                }
-            )
+            if not is_pickup:
+                self.inventory_milestone_controller._create(
+                    {
+                        "ticketId": obj.ticketId,
+                        "oldStatus": new_status,
+                        "newStatus": Inventory_Milestone_Status.checked_into_inventory.value,
+                        "approvedByUserId": args_dict["userId"],
+                    }
+                )
         return obj
     
     def _delete_base_ticket(self, ticket_id, actioner_user_id):
@@ -261,10 +292,7 @@ class TicketController(BaseTimeSeriesController):
         
         self._delete(filters={"ticketId" : ticket_id})
         return True
-        
-        
 
-        
     
     def _get_ticket_edits(self, ticket_id):
         data = self._get_event_objects_by_latest(

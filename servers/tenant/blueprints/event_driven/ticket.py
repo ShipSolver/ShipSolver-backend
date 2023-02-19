@@ -32,15 +32,31 @@ PIECES_SEPERATOR = ",+-"
 @ticket_bp.route("/status/<status>", methods=["GET"])
 @auth_required()
 def ticket_get_all_with_status(status):  # create ticket
-    user_id = IdentityHelper.get_logged_in_userId()
-    if user_controller.get_user_type(user_id) == UserType.driver.value:
-        if "milestoneType" not in request.args:
-            make_response(json.dumps({"error" : "Missing required query parameter 'milestoneType'"}, 400))
+    user = IdentityHelper.get_logged_in_userId()
+    assigned_to_attr = None
+    ticket_sql_filters = get_clean_filters_dict(request.args)
+
+    # Check if we are on driver app. If so, we need to filter for tickets assigned to driver.
+    # This section fetches the correct attribute given milestoneType which indicates assignee.
+    if user_controller.get_user_type(user) == UserType.driver.value:
+        if "milestoneType" not in ticket_sql_filters:
+            return make_response(json.dumps({"error" : "Missing required query parameter 'milestoneType'"}, 400))
         
+        milestoneType = ticket_sql_filters["milestoneType"]
+        milestoneTypeController = Controllers.get_controller_by_model_name(milestoneType)
+        
+        if not callable(getattr(milestoneTypeController, 'get_assigned_to_attr', None)):
+            return make_response(json.dumps({"error" : f"Incompatible milestoneType. '{milestoneType}' is not recognized"}, 400))
+        assigned_to_attr = milestoneTypeController.get_assigned_to_attr()
         pass
 
-    limit = 5000 if "limit" not in request.args else request.args["limit"]
-    ticket_sql_filters = get_clean_filters_dict(request.args)
+    # Build & Modify Filters Arguments
+    ticket_sql_filters.pop("milestoneType")
+    limit = 5000 if "limit" not in ticket_sql_filters else ticket_sql_filters["limit"]
+    if assigned_to_attr:
+        ticket_sql_filters["filterAssignedTo"] = { "userId" : user, "assignedToAttr" : assigned_to_attr }
+
+    # Make call to get tickets
     tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
 
     res = {"tickets": alchemyConverter(tickets), "count": len(tickets)}

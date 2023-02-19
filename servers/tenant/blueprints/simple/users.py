@@ -32,15 +32,13 @@ def user_get(user_id):  # create ticket
     res = alchemyConverter(data)
     return make_response(json.dumps(res[0], cls=AlchemyEncoder))
 
-
+# Frontend should not be creating users from a rest endpoint like this
 @user_bp.route("/", methods=["POST"])
-##@auth_required()
+@auth_required()
 def user_post():
     request_dict = json.loads(request.data)['data']
     request_dict.pop("withCredentials", None)
     
-
-    print(request_dict)
     user_controller._create((request_dict))
 
     return "success"

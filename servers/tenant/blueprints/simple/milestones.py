@@ -8,15 +8,7 @@ import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
-from controllers.controllerMapper import (
-    CreationMilestonesController,
-    PickupMilestonesController,
-    InventoryMilestonesController,
-    AssignmentMilestonesController,
-    IncompleteDeliveryMilestonesController,
-    DeliveryMilestonesController,
-    TicketStatusController,
-)
+import controllers as Controllers
 from flask_cognito_lib.decorators import auth_required
 
 from models.models import (
@@ -29,19 +21,28 @@ from models.models import (
     DeliveryMilestones,
 )
 
-class_to_cntrl_map = {
-    CreationMilestones: CreationMilestonesController(),
-    PickupMilestones: PickupMilestonesController(),
-    InventoryMilestones: InventoryMilestonesController(),
-    AssignmentMilestones: AssignmentMilestonesController(),
-    IncompleteDeliveryMilestones: IncompleteDeliveryMilestonesController(),
-    DeliveryMilestones: DeliveryMilestonesController(),
+# Dependencies
+milestones_controllers_list = {
+    Controllers.creation_milestones_controller,
+    Controllers.pickup_milestones_controller,
+    Controllers.inventory_milestones_controller,
+    Controllers.assignment_milestones_controller,
+    Controllers.incomplete_delivery_milestones_controller,
+    Controllers.delivery_milestones_controller,
 }
+class_to_cntrl_map = {
+    CreationMilestones: Controllers.creation_milestones_controller,
+    PickupMilestones: Controllers.pickup_milestones_controller,
+    InventoryMilestones: Controllers.inventory_milestones_controller,
+    AssignmentMilestones: Controllers.assignment_milestones_controller,
+    IncompleteDeliveryMilestones: Controllers.incomplete_delivery_milestones_controller,
+    DeliveryMilestones: Controllers.delivery_milestones_controller,
+}
+ticket_status_controller = Controllers.ticket_status_controller
 
 old_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
 new_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
 
-ticket_status_controller = TicketStatusController()
 
 milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
 
@@ -54,7 +55,7 @@ def milestone_get(ticket_id):  # create ticket
         "ticketId" : ticket_id
     }
     all_milestones = []
-    for cls, milestone_controller in class_to_cntrl_map.items():
+    for milestone_controller in milestones_controllers_list:
         data = milestone_controller._get(filters, 1000)
         milestones = alchemyConverter(data)
         for milestone in milestones:

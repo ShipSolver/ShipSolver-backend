@@ -5,6 +5,7 @@ from sqlalchemy import create_engine
 import inspect as insp
 from sqlalchemy.inspection import inspect
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.sql.expression import func
 import sys
 from datetime import datetime
 sys.path.insert(0, "..")  # import parent folder
@@ -83,12 +84,15 @@ class BaseController:
 
         self.session.commit()
 
-    def _get(self, filters, limit=5000):
+    def _get(self, filters, queryObj = None, limit=5000):
         if not filters:
             filters = {}
+        
+        if not queryObj:
+            queryObj = self.session.query(self.model)
 
         objects = (
-            self.session.query(self.model)
+            queryObj
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
             .limit(limit)
             .all()
@@ -131,7 +135,21 @@ class BaseTimeSeriesController(BaseController):
     def _create_base_event(self, args_dict):
         pass
 
-    def _get_latest_event_objects(self, page=1, number_of_res=1, filters={}, queryObj=None):
+    def _get_latest_event_object(self, page=1, number_of_res=1, filters={}, queryObj=None):
+
+        if not queryObj:
+            queryObj = self.session.query(self.model, func.max(self.model.timestamp))
+
+        latest_objs = (
+            queryObj
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
+            .all()
+        )
+
+        return latest_objs
+    
+    def _get_event_objects_by_latest(self, page=1, number_of_res=1, filters={}, queryObj=None):
 
         if not queryObj:
             queryObj = self.session.query(self.model)

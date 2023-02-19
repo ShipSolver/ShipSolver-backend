@@ -35,7 +35,7 @@ def user_get(user_id):  # create ticket
 
 @user_bp.route("/", methods=["POST"])
 ##@auth_required()
-def user_post():  
+def user_post():
     request_dict = json.loads(request.data)['data']
     request_dict.pop("withCredentials", None)
     

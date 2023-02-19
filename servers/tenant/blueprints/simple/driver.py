@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
-from controllers.controllerMapper import UserController
+import controllers as Controllers
 from models.models import UserType
 from flask_cognito_lib.decorators import auth_required
 from utils import (
@@ -15,8 +15,8 @@ from utils import (
 
 driver_bp = Blueprint("driver_bp", __name__, url_prefix="driver")
 
-
-user_controller = UserController()
+# Dependencies
+user_controller = Controllers.user_controller
 
 
 @driver_bp.route("/", methods=["GET"])

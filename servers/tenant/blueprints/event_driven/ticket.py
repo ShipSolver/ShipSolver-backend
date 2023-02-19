@@ -5,12 +5,12 @@ from pprint import pprint
 from flask import make_response, request, jsonify, session, Blueprint, abort
 from flask_cors import cross_origin
 from helpers.identity_helpers import IdentityHelper
+import controllers as Controllers
 
 import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
-from controllers.controllerMapper import TicketController, TicketStatusController, UserController
 from models.models import TicketEvents, UserType
 from utils import (
     AlchemyEncoder,
@@ -22,37 +22,30 @@ from flask_cognito_lib.decorators import auth_required
 
 ticket_bp = Blueprint("ticket_bp", __name__, url_prefix="ticket")
 
-ticket_controller = TicketController()
-ticket_status_controller = TicketStatusController()
-user_controller = UserController()
+# Dependencies
+ticket_controller = Controllers.ticket_controller
+ticket_status_controller = Controllers.ticket_status_controller
+user_controller = Controllers.user_controller
 
 PIECES_SEPERATOR = ",+-"
 
 @ticket_bp.route("/status/<status>", methods=["GET"])
 @auth_required()
 def ticket_get_all_with_status(status):  # create ticket
+    user = IdentityHelper.get_logged_in_userId()
+    if user_controller.get_user_type(user) == UserType.driver.value:
+        if "milestoneType" not in request.args:
+            make_response(json.dumps({"error" : "Missing required query parameter 'milestoneType'"}, 400))
+        
+        pass
 
-    # grab and remove userType arg
-    # We remove it since it will cause sql query errors if passed to filters
-    args = request.args.copy()
-    userType_arg = args.get("userType")
-    if userType_arg is not None:
-        del args["userType"]
-        if not UserType.has_value(userType_arg): # if the value is invalid, return 400
-            response = {"error": f"Invalid userType: {userType_arg}"}
-            return make_response(response, 400)
-
-    limit = 5000 if "limit" not in args else args["limit"]
-    ticket_sql_filters = get_clean_filters_dict(args)
+    limit = 5000 if "limit" not in request.args else request.args["limit"]
+    ticket_sql_filters = get_clean_filters_dict(request.args)
     tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
-
-    if userType_arg is not None: # filter on user types
-        tickets = [ticket for ticket in tickets if ticket.user.userType == userType_arg]
 
     res = {"tickets": alchemyConverter(tickets), "count": len(tickets)}
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
-
 
 
 """
@@ -180,7 +173,7 @@ def ticket_get_all():
 @ticket_bp.route("/<ticket_id>", methods=["GET"])
 # @auth_required()
 def ticket_get(ticket_id):
-    data = ticket_controller._get_latest_event_objects(
+    data = ticket_controller._get_event_objects_by_latest(
         filters={
             TicketEvents.non_prim_identifying_column_name : ticket_id
         }

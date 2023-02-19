@@ -32,8 +32,8 @@ PIECES_SEPERATOR = ",+-"
 @ticket_bp.route("/status/<status>", methods=["GET"])
 @auth_required()
 def ticket_get_all_with_status(status):  # create ticket
-    user = IdentityHelper.get_logged_in_userId()
-    if user_controller.get_user_type(user) == UserType.driver.value:
+    user_id = IdentityHelper.get_logged_in_userId()
+    if user_controller.get_user_type(user_id) == UserType.driver.value:
         if "milestoneType" not in request.args:
             make_response(json.dumps({"error" : "Missing required query parameter 'milestoneType'"}, 400))
         
@@ -118,19 +118,25 @@ def ticket_edit(ticket_id):  # create ticket
     return make_response(json.dumps(response))
 
 
-
 @ticket_bp.route("/edits/<ticket_id>", methods=["GET"])
 @auth_required()
 def ticket_get_edits(ticket_id):
 
-    data = ticket_controller.get_ticket_edits(ticket_id)
-    print(data)
+    data = ticket_controller._get_ticket_edits(ticket_id)
 
     if data is None:
         abort(404)
 
     return make_response(json.dumps(data, cls=AlchemyEncoder))
 
+@ticket_bp.route("/<ticket_id>", methods=["DELETE"])
+@auth_required()
+def ticket_delete(ticket_id):
+    delete_performed = ticket_controller._delete_base_ticket(ticket_id)
+    if not delete_performed:
+        abort(403)
+
+    return "Valid delete occured"
 
 
 @ticket_bp.route("/", methods=["GET"])

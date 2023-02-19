@@ -229,8 +229,6 @@ with app.app_context():
                     }
                 )
 
-                print("Created Ticket")
-
     def list_diff(li1, li2):
         '''
         Returns a list which is the set difference between 2 lists.

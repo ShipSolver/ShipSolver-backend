@@ -2,7 +2,6 @@ authlib==1.2.0
 boto3==1.26.73
 botocore==1.29.73
 celery==5.2.3
-Faker==13.7.0
 Flask==2.0.2
 Flask_Cors==3.0.10
 multilingual_pdf2text==1.1.0

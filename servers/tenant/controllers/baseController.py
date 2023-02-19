@@ -75,7 +75,7 @@ class BaseController:
 
         objs = (
             session.query(self.model)
-            .filter(*convert_dict_to_alchemy_filters(filters))
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
             .all()
         )
 

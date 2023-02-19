@@ -218,6 +218,7 @@ class TicketController(BaseTimeSeriesController):
         self.creation_milestone_controller = CreationMilestonesController()
         self.inventory_milestone_controller = InventoryMilestonesController()
         self.assigned_milestones_controller = AssignmentMilestonesController()
+        self.user_controller = UserController()
 
     def _create_base_event(self, args_dict):
 
@@ -257,16 +258,11 @@ class TicketController(BaseTimeSeriesController):
         args_dict.pop("ticketStatus", None)
         args_dict.pop("user", None)
 
-        print("NEW TICKET EVENT:")
-        pprint(args_dict)
         args_dict[self.model.non_prim_identifying_column_name] = ticket_id
 
         obj = self.model(**args_dict)
         self.session.add(obj)
         self.session.commit()
-
-        print("\n TIME:", obj.timestamp)
-
         
         if new_ticket_creation:
             self.creation_milestone_controller._create(
@@ -288,7 +284,17 @@ class TicketController(BaseTimeSeriesController):
                 )
         return obj
     
-    def get_ticket_edits(self, ticket_id):
+    def _delete_base_ticket(self, ticket_id, actioner_user_id):
+        user_type = self.user_controller.get_user_type(actioner_user_id)
+        
+        if user_type != UserType.manager:
+            return False
+        
+        self._delete(filters={"ticketId" : ticket_id})
+        return True
+
+    
+    def _get_ticket_edits(self, ticket_id):
         data = self._get_event_objects_by_latest(
             filters={
                 TicketEvents.non_prim_identifying_column_name : ticket_id

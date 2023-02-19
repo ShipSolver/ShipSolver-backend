@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, "..")  # import parent folder
 
-from controllers.controllerMapper import CustomerController
+import controllers as Controllers
 from models.models import Users
 from flask_cognito_lib.decorators import auth_required
 from utils import (
@@ -15,8 +15,8 @@ from utils import (
 
 customer_bp = Blueprint("customer_bp", __name__, url_prefix="customer")
 
-
-customer_controller = CustomerController()
+# Dependencies
+customer_controller = Controllers.user_controller
 
 
 @customer_bp.route("/", methods=["POST"])

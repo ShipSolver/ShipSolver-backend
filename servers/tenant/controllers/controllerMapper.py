@@ -11,6 +11,13 @@ from models.models import *
 class UserController(BaseController):
     def __init__(self):
         super().__init__(Users)
+    
+    def get_user_type(self, userId):
+        user = alchemyConverter(self._get(filters={
+            "userId" : userId
+        }))[0]
+        print(user)
+        return user["userType"]
 
 
 class CustomerController(BaseController):
@@ -24,27 +31,19 @@ class TicketStatusController(BaseController):
         self.ticket_controller = BaseTimeSeriesController(TicketEvents)
 
     def _get_tickets_with_status(self, status, filters: dict, limit):
-        tickets = [] 
+        tickets = []
 
-        ticketIds = (
-            self.session.query(TicketStatus.ticketId)
+        subq = (
+            self._get_session().query(TicketStatus.ticketId)
             .filter(TicketStatus.currentStatus == status)
-            .limit(limit)
-            .all()
+            .subquery()
         )
 
-        for i, tid_tup in enumerate(ticketIds):
+        q = self._get_session().query(TicketEvents).join(
+            subq, TicketEvents.ticketId == subq.c.ticketId
+        )
 
-            filters_cpy = filters.copy()
-            filters_cpy["ticketId"] = tid_tup[0]
-
-            ticket = self.ticket_controller._get_latest_event_objects(filters=filters_cpy)
-            if len(ticket) > 0:
-                tickets.append(ticket[0])
-
-            if i == limit:
-                break
-
+        tickets = self.ticket_controller._get_latest_event_object(filters=filters, queryObj=q)
 
         return tickets
 
@@ -290,7 +289,7 @@ class TicketController(BaseTimeSeriesController):
         return obj
     
     def get_ticket_edits(self, ticket_id):
-        data = self._get_latest_event_objects(
+        data = self._get_event_objects_by_latest(
             filters={
                 TicketEvents.non_prim_identifying_column_name : ticket_id
             }
@@ -329,7 +328,3 @@ class TicketController(BaseTimeSeriesController):
             latest = ticket_dict
         return updates_arr
 
-        
-class DocumentController(BaseController):
-    def __init__(self):
-        super().__init__(Documents)

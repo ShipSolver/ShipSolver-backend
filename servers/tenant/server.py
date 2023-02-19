@@ -9,6 +9,9 @@ from blueprints.simple.milestones import milestone_bp
 from blueprints.simple.driver import driver_bp
 # from blueprints.simple.document import document_bp
 
+# Module import to create global controller instances
+import controllers
+
 
 from flask_cors import CORS
 from flask_cognito_lib import CognitoAuth

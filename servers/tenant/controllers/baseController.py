@@ -20,6 +20,8 @@ class BaseController:
         self.model = model
         self.session = session
         self.primary_key = inspect(self.model).primary_key[0].name
+        self.get_controller_by_model = None
+        self.get_controller_by_model_name = None
 
     # def __new__(cls, *args, **kwargs):
     #     if cls is BaseController:
@@ -115,6 +117,10 @@ class BaseController:
     
     def _get_session(self):
         return self.session
+    
+    def _set_model_map_methods(self, by_model_method, by_name_method):
+        self.get_controller_by_model = by_model_method
+        self.get_controller_by_model_name = by_name_method
 
 
 class BaseTimeSeriesController(BaseController):

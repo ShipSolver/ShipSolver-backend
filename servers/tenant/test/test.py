@@ -36,6 +36,8 @@ from controllers.controllerMapper import (
     Delivery_Milestone_Status,
     Incomplete_Delivery_Milestone_Status,
 )
+# Do not delete controllers import. IT calls __init__.py which is important
+import controllers as Controllers
 from utils import alchemyConverter
 from utils import AlchemyEncoder
 from const.milestones import *

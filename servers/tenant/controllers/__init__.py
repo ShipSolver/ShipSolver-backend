@@ -31,6 +31,7 @@ _all_controllers = [
 def _build_model_to_cntrl_map():
     for controller in _all_controllers:
         _model_to_cntrl_map[controller.model] = controller
+        controller._set_model_map_methods(get_controller_by_model, get_controller_by_model_name)
 
 def get_controller_by_model(model):
     return _model_to_cntrl_map[model]

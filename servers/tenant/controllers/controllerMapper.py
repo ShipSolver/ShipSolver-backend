@@ -33,15 +33,16 @@ class TicketStatusController(BaseController):
         tickets = []
         subq_filter = [TicketStatus.currentStatus == status]
 
-        if "filterAssignedTo" in filters:
-            filter_assigned_to = filters.pop("filterAssignedTo")
-            subq_filter.append(filter_assigned_to["assignedToAttr"] == filter_assigned_to["userId"])
+        if "ticketStatusAssignedTo" in filters:
+            subq_filter.append(TicketStatus.assignedTo == filters["ticketStatusAssignedTo"])
 
         subq = (
-            self._get_session().query(TicketStatus.ticketId)
+            self._get_session().query(TicketStatus.ticketId, TicketStatus.assignedTo)
             .filter(*subq_filter)
             .subquery()
         )
+
+        filters.pop("ticketStatusAssignedTo")
 
         q = self._get_session().query(TicketEvents).join(
             subq, TicketEvents.ticketId == subq.c.ticketId
@@ -67,16 +68,8 @@ class MilestoneController(BaseController):
             if "newStatus" in args_dict:
                 updt[TicketStatus.currentStatus.name] = args_dict["newStatus"]
             
-            if "requestedUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["requestedUserId"]
-            elif "approvedByUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["approvedByUserId"]
-            elif "assignedToUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["assignedToUserId"]
-            elif "assigneeUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["assigneeUserId"]
-            elif "completingUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["completingUserId"]
+            if self.get_assigned_to_attr().name in args_dict:
+                updt[TicketStatus.assignedTo.name] = args_dict[self.get_assigned_to_attr().name]
             
             self.ticket_status._modify(
                 filters=fltrs,
@@ -262,10 +255,8 @@ class TicketController(BaseTimeSeriesController):
             args_dict["newStatus"] = Generic_Milestone_Status(Creation_Milestone_Status.unassigned_pickup.value)
             fields["currentStatus"] = Generic_Milestone_Status(Creation_Milestone_Status.unassigned_pickup.value)
 
-        if "assignedTo" in args_dict:
-            fields["assignedTo"] = args_dict["assignedTo"]
-        elif "userId" in args_dict:
-            fields["assignedTo"] = args_dict["userId"]
+        if "ticketStatusAssignedTo" in args_dict:
+            fields["assignedTo"] = args_dict["ticketStatusAssignedTo"]
 
         new_ticket_creation = "ticketId" not in args_dict
         if not new_ticket_creation:
@@ -285,6 +276,7 @@ class TicketController(BaseTimeSeriesController):
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
         args_dict.pop("ticketStatus", None)
+        args_dict.pop("ticketStatusAssignedTo", None)
         args_dict.pop("user", None)
 
         print("NEW TICKET EVENT:")

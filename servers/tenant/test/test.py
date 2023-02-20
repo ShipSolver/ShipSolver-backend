@@ -36,6 +36,8 @@ from controllers.controllerMapper import (
     Delivery_Milestone_Status,
     Incomplete_Delivery_Milestone_Status,
 )
+# Do not delete controllers import. IT calls __init__.py which is important
+import controllers as Controllers
 from utils import alchemyConverter
 from utils import AlchemyEncoder
 from const.milestones import *
@@ -60,12 +62,12 @@ app = Flask(__name__)
 with app.app_context():
 
     # Controllers
-    creationMilestonesController = CreationMilestonesController()
-    pickupMilestonesController = PickupMilestonesController()
-    inventoryMilestonesController = InventoryMilestonesController()
-    assignmentMilestonesController = AssignmentMilestonesController()
-    deliveryMilestonesController = DeliveryMilestonesController()
-    incompleteDeliveryMilestonesController = IncompleteDeliveryMilestonesController()
+    creationMilestonesController = Controllers.creation_milestones_controller
+    pickupMilestonesController = Controllers.pickup_milestones_controller
+    inventoryMilestonesController = Controllers.inventory_milestones_controller
+    assignmentMilestonesController = Controllers.assignment_milestones_controller
+    deliveryMilestonesController = Controllers.delivery_milestones_controller
+    incompleteDeliveryMilestonesController = Controllers.incomplete_delivery_milestones_controller
 
     maxReprocess = 4
 
@@ -97,7 +99,7 @@ with app.app_context():
         @param scale -> desired number of users to exist in table
         '''
 
-        user_controller = UserController()
+        user_controller = Controllers.user_controller
 
         n = len(session.query(Users).all())
 
@@ -138,7 +140,7 @@ with app.app_context():
         @param scale -> desired number of customers to exist in table
         '''
 
-        customer_controller = CustomerController()
+        customer_controller = Controllers.customer_controller
 
         n = len(session.query(Customers).all())
 
@@ -162,7 +164,7 @@ with app.app_context():
         @param customers -> list of customers found in customer table
         '''
 
-        ticket_events_controller = TicketController()
+        ticket_events_controller = Controllers.ticket_controller
 
         n = len(
             session.query(TicketEvents)

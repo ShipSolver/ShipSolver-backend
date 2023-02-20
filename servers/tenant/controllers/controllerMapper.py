@@ -16,7 +16,6 @@ class UserController(BaseController):
         user = alchemyConverter(self._get(filters={
             "userId" : userId
         }))[0]
-        print(user)
         return user["userType"]
 
 
@@ -32,10 +31,15 @@ class TicketStatusController(BaseController):
 
     def _get_tickets_with_status(self, status, filters: dict, limit):
         tickets = []
+        subq_filter = [TicketStatus.currentStatus == status]
+
+        if "ticketStatusAssignedTo" in filters:
+            subq_filter.append(TicketStatus.assignedTo == filters["ticketStatusAssignedTo"])
+            filters.pop("ticketStatusAssignedTo")
 
         subq = (
-            self._get_session().query(TicketStatus.ticketId)
-            .filter(TicketStatus.currentStatus == status)
+            self._get_session().query(TicketStatus.ticketId, TicketStatus.assignedTo)
+            .filter(*subq_filter)
             .subquery()
         )
 
@@ -63,16 +67,8 @@ class MilestoneController(BaseController):
             if "newStatus" in args_dict:
                 updt[TicketStatus.currentStatus.name] = args_dict["newStatus"]
             
-            if "requestedUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["requestedUserId"]
-            elif "approvedByUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["approvedByUserId"]
-            elif "assignedToUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["assignedToUserId"]
-            elif "assigneeUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["assigneeUserId"]
-            elif "completingUserId" in args_dict:
-                updt[TicketStatus.assignedTo.name] = args_dict["completingUserId"]
+            if self.get_assigned_to_attr().name in args_dict:
+                updt[TicketStatus.assignedTo.name] = args_dict[self.get_assigned_to_attr().name]
             
             self.ticket_status._modify(
                 filters=fltrs,
@@ -80,6 +76,13 @@ class MilestoneController(BaseController):
             )
 
         return super()._create(args_dict)
+    
+    def get_assigned_to_attr(self):
+        '''
+        Abstract Class Function
+        Must be implemented by inheriting class.
+        '''
+        raise NotImplementedError
 
 
 """ MILESTONES """
@@ -97,6 +100,9 @@ class CreationMilestonesController(MilestoneController):
                     "timestamp": milestone["createdAt"]
                 })
         return string_milestones
+    
+    def get_assigned_to_attr(self):
+        return CreationMilestones.createdByUserId
          
 
 class PickupMilestonesController(MilestoneController):
@@ -132,6 +138,9 @@ class PickupMilestonesController(MilestoneController):
                     "timestamp": milestone["timestamp"]
                 })
         return string_milestones
+    
+    def get_assigned_to_attr(self):
+        return PickupMilestones.requestedUserId
 
 class InventoryMilestonesController(MilestoneController):
     def __init__(self):
@@ -162,6 +171,9 @@ class InventoryMilestonesController(MilestoneController):
                 #     })
                 # TODO fix schema and add remaining inventory milestones
         return string_milestones
+    
+    def get_assigned_to_attr(self):
+        return InventoryMilestones.approvedByUserId
 
 class AssignmentMilestonesController(MilestoneController):
     def __init__(self):
@@ -181,6 +193,9 @@ class AssignmentMilestonesController(MilestoneController):
                         "timestamp": milestone["timestamp"]
                     })
         return string_milestones
+    
+    def get_assigned_to_attr(self):
+        return AssignmentMilestones.assignedToUserId
 
 class IncompleteDeliveryMilestonesController(MilestoneController):
     def __init__(self):
@@ -194,6 +209,9 @@ class IncompleteDeliveryMilestonesController(MilestoneController):
                     "timestamp": milestone["timestamp"]
                 })
         return string_milestones
+    
+    def get_assigned_to_attr(self):
+        return IncompleteDeliveryMilestones.assigneeUserId
          
 class DeliveryMilestonesController(MilestoneController):
     def __init__(self):
@@ -207,6 +225,9 @@ class DeliveryMilestonesController(MilestoneController):
                     "timestamp": milestone["timestamp"]
                 })
         return string_milestones
+    
+    def get_assigned_to_attr(self):
+        return DeliveryMilestones.completingUserId
 
 """"""
 
@@ -233,10 +254,8 @@ class TicketController(BaseTimeSeriesController):
             args_dict["newStatus"] = Generic_Milestone_Status(Creation_Milestone_Status.unassigned_pickup.value)
             fields["currentStatus"] = Generic_Milestone_Status(Creation_Milestone_Status.unassigned_pickup.value)
 
-        if "assignedTo" in args_dict:
-            fields["assignedTo"] = args_dict["assignedTo"]
-        elif "userId" in args_dict:
-            fields["assignedTo"] = args_dict["userId"]
+        if "ticketStatusAssignedTo" in args_dict:
+            fields["assignedTo"] = args_dict["ticketStatusAssignedTo"]
 
         new_ticket_creation = "ticketId" not in args_dict
         if not new_ticket_creation:
@@ -256,8 +275,10 @@ class TicketController(BaseTimeSeriesController):
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
         args_dict.pop("ticketStatus", None)
+        args_dict.pop("ticketStatusAssignedTo", None)
         args_dict.pop("user", None)
 
+        print("NEW TICKET EVENT:")
         args_dict[self.model.non_prim_identifying_column_name] = ticket_id
 
         obj = self.model(**args_dict)

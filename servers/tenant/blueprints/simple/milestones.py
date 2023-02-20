@@ -20,6 +20,7 @@ from models.models import (
     IncompleteDeliveryMilestones,
     DeliveryMilestones,
 )
+from helpers import model_helpers
 
 # Dependencies
 milestones_controllers_list = {
@@ -73,8 +74,10 @@ def milestone_get(ticket_id):  # create ticket
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
 # @auth_required()
 def milestone_post(milestone_type):  # create ticket
-    milestone_class = getattr(sys.modules[__name__], milestone_type)
-    milestone_controller = class_to_cntrl_map[milestone_class]
+    milestone_class = model_helpers.get_model_by_name(milestone_type)
+    milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
+    if not milestone_controller:
+        return make_response(json.dumps({'error': f"milestone_type '{milestone_type}' not recognized."}), 400)
     
     request_dict = json.loads(request.data)['data']
     if "ticketId" not in request_dict:

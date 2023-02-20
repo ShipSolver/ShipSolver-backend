@@ -32,15 +32,17 @@ PIECES_SEPERATOR = ",+-"
 @ticket_bp.route("/status/<status>", methods=["GET"])
 @auth_required()
 def ticket_get_all_with_status(status):  # create ticket
-    user_id = IdentityHelper.get_logged_in_userId()
-    if user_controller.get_user_type(user_id) == UserType.driver.value:
-        if "milestoneType" not in request.args:
-            make_response(json.dumps({"error" : "Missing required query parameter 'milestoneType'"}, 400))
-        
-        pass
-
-    limit = 5000 if "limit" not in request.args else request.args["limit"]
+    user = IdentityHelper.get_logged_in_userId()
     ticket_sql_filters = get_clean_filters_dict(request.args)
+
+    # Build & Modify Filters Arguments
+    # Check if we are on driver app. If so, we need to filter for tickets assigned to driver.
+    if user_controller.get_user_type(user) == UserType.driver.value:
+        ticket_sql_filters["ticketStatusAssignedTo"] = user
+
+    limit = 5000 if "limit" not in ticket_sql_filters else ticket_sql_filters["limit"]
+    
+    # Make call to get tickets
     tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
 
     res = {"tickets": alchemyConverter(tickets), "count": len(tickets)}

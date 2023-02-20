@@ -31,13 +31,18 @@ _all_controllers = [
 def _build_model_to_cntrl_map():
     for controller in _all_controllers:
         _model_to_cntrl_map[controller.model] = controller
+        controller._set_model_map_methods(get_controller_by_model, get_controller_by_model_name)
 
 def get_controller_by_model(model):
-    return _model_to_cntrl_map[model]
+    if model and model in _model_to_cntrl_map:
+        return _model_to_cntrl_map[model]
+    return None
 
 def get_controller_by_model_name(model_name: str):
     model = model_helpers.get_model_by_name(model_name)
-    return _model_to_cntrl_map[model]
+    if model and model in _model_to_cntrl_map:
+        return _model_to_cntrl_map[model]
+    return None
 
 _build_model_to_cntrl_map()
 

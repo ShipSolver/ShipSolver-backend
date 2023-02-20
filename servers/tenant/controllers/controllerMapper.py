@@ -35,14 +35,13 @@ class TicketStatusController(BaseController):
 
         if "ticketStatusAssignedTo" in filters:
             subq_filter.append(TicketStatus.assignedTo == filters["ticketStatusAssignedTo"])
+            filters.pop("ticketStatusAssignedTo")
 
         subq = (
             self._get_session().query(TicketStatus.ticketId, TicketStatus.assignedTo)
             .filter(*subq_filter)
             .subquery()
         )
-
-        filters.pop("ticketStatusAssignedTo")
 
         q = self._get_session().query(TicketEvents).join(
             subq, TicketEvents.ticketId == subq.c.ticketId

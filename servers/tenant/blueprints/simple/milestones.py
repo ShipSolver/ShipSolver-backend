@@ -1,5 +1,6 @@
 import json
 import datetime
+import time
 from typing import Generic
 from flask import request, Blueprint, make_response, jsonify
 from utils import alchemyConverter, AlchemyEncoder
@@ -21,6 +22,7 @@ from models.models import (
     DeliveryMilestones,
 )
 from helpers import model_helpers
+from helpers.identity_helpers import IdentityHelper
 
 # Dependencies
 milestones_controllers_list = {
@@ -49,7 +51,7 @@ milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
 
 
 @milestone_bp.route("/<ticket_id>", methods=["GET"])
-# @auth_required()
+@auth_required()
 def milestone_get(ticket_id):  # create ticket
 
     filters = {
@@ -57,7 +59,7 @@ def milestone_get(ticket_id):  # create ticket
     }
     all_milestones = []
     for milestone_controller in milestones_controllers_list:
-        data = milestone_controller._get(filters, 1000)
+        data = milestone_controller._get(filters, limit=1000)
         milestones = alchemyConverter(data)
         for milestone in milestones:
             for status in "oldStatus", "newStatus":
@@ -72,7 +74,7 @@ def milestone_get(ticket_id):  # create ticket
 
 
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
-# @auth_required()
+@auth_required()
 def milestone_post(milestone_type):  # create ticket
     milestone_class = model_helpers.get_model_by_name(milestone_type)
     milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
@@ -116,16 +118,13 @@ def milestone_post(milestone_type):  # create ticket
     if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
         update_dict["assignedTo"] = request_dict["assignedToUserId"]
     
-    if milestone_class == PickupMilestones:
-         if request_dict["newStatus"] == Generic_Milestone_Status.requested_pickup.value:
-            update_dict["requesterUserId"] = request_dict["assignedToassignedToUserId"]
-         if request_dict["newStatus"] == Generic_Milestone_Status.declined_pickup.value:
-            update_dict["requesterUserId"] = None
-
-    if milestone_class == IncompleteDeliveryMilestones or milestone_class == DeliveryMilestones:
-        update_dict["requesterUserId"] = None
+    if milestone_class == InventoryMilestones:
+        update_dict["assignedTo"] = None
+        request_dict["approvedByUserId"] = IdentityHelper.get_logged_in_userId()
+        print(request_dict)
     
-    ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)    
+    ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
+    time.sleep(4) # yes it's ugly. But it fixes async issue
     milestone_controller._create(request_dict)
 
     return make_response("success")

@@ -1,4 +1,5 @@
 import os
+import ssl
 from flask import Flask, Blueprint, jsonify, session
 from flask_session import Session
 # from config import app
@@ -18,6 +19,8 @@ from flask_cognito_lib import CognitoAuth
 # from models.__init__ import engine, Base
 # from models.models import INDEXES
 from dotenv import load_dotenv
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 load_dotenv(".env", override=True)
 

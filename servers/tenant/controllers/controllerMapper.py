@@ -47,7 +47,7 @@ class TicketStatusController(BaseController):
             subq, TicketEvents.ticketId == subq.c.ticketId
         )
 
-        tickets = self.ticket_controller._get_latest_event_object(filters=filters, queryObj=q)
+        tickets = self.ticket_controller._get_latest_event_object(filters=filters, queryObj=q, distinct=TicketEvents.ticketId)
 
         return tickets
 

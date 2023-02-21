@@ -269,8 +269,7 @@ class TicketController(BaseTimeSeriesController):
         else:
             ticket_id = self.ticket_status_controller._create(fields).ticketId
 
-        if "timestamp" not in args_dict:
-            args_dict["timestamp"] = int(time.time())
+        args_dict["timestamp"] = int(time.time())
 
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)

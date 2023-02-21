@@ -10,7 +10,6 @@ import sys
 from datetime import datetime
 sys.path.insert(0, "..")  # import parent folder
 
-from models.models import TicketStatus
 from models.__init__ import session
 from utils import convert_dict_to_alchemy_filters
 
@@ -40,6 +39,11 @@ class BaseController:
         for args_dict in args_arr:
             assert isinstance(args_dict, dict)
 
+            if "timestamp" in vars(self.model):
+                args_dict["timestamp"] = int(time.time())
+            if "createdaAt" in vars(self.model):
+                args_dict["createdaAt"] = int(time.time())
+
             obj = self.model(**args_dict)
             self.session.add(obj)
             prim_ids.append(getattr(obj, self.primary_key))
@@ -52,6 +56,11 @@ class BaseController:
     def _create(self, args_dict):  # this does not create objs (need to commit)
 
         assert isinstance(args_dict, dict)
+        
+        if "timestamp" in vars(self.model):
+            args_dict["timestamp"] = int(time.time())
+        if "createdaAt" in vars(self.model):
+            args_dict["createdaAt"] = int(time.time())
 
         obj = self.model(**args_dict)
         self.session.add(obj)
@@ -141,17 +150,26 @@ class BaseTimeSeriesController(BaseController):
     def _create_base_event(self, args_dict):
         pass
 
-    def _get_latest_event_object(self, page=1, number_of_res=1, filters={}, queryObj=None):
+    def _get_latest_event_object(self, page=1, number_of_res=1, filters={}, queryObj=None, distinct=None):
 
         if not queryObj:
             queryObj = self.session.query(self.model, func.max(self.model.timestamp))
 
-        latest_objs = (
-            queryObj
-            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
-            .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
-            .all()
-        )
+        if distinct is not None:
+            latest_objs = (
+                queryObj
+                .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+                .distinct(distinct)
+                .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
+                .all()
+            )
+        else: 
+            latest_objs = (
+                queryObj
+                .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+                .order_by(getattr(self.model, self.model.non_prim_identifying_column_name).desc(), self.model.timestamp.desc())
+                .all()
+            )
 
         return latest_objs
     

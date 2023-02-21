@@ -47,7 +47,7 @@ class TicketStatusController(BaseController):
             subq, TicketEvents.ticketId == subq.c.ticketId
         )
 
-        tickets = self.ticket_controller._get_latest_event_object(filters=filters, queryObj=q)
+        tickets = self.ticket_controller._get_latest_event_object(filters=filters, queryObj=q, distinct=TicketEvents.ticketId)
 
         return tickets
 
@@ -269,8 +269,7 @@ class TicketController(BaseTimeSeriesController):
         else:
             ticket_id = self.ticket_status_controller._create(fields).ticketId
 
-        if "timestamp" not in args_dict:
-            args_dict["timestamp"] = int(time.time())
+        args_dict["timestamp"] = int(time.time())
 
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)
@@ -337,17 +336,17 @@ class TicketController(BaseTimeSeriesController):
 
             updates = {}
             for k in ticket_dict:
-                if k not in latest or latest[k]!= ticket_dict[k]:
-                    updates[k] = ticket_dict[k]
+                if k not in ticket_dict or latest[k]!= ticket_dict[k]:
+                    updates[k] = latest[k]
 
                 if k == "user":
-                    updates["userId"] = ticket_dict[k]["userId"]
-                    updates["firstName"] = ticket_dict[k]["firstName"]
-                    if "lastName" in ticket_dict[k]:
-                        updates["lastName"] = ticket_dict[k]["lastName"]
+                    updates["userId"] = latest[k]["userId"]
+                    updates["firstName"] = latest[k]["firstName"]
+                    if "lastName" in latest[k]:
+                        updates["lastName"] = latest[k]["lastName"]
 
                 if k == "timestamp": # if two edits are made at the same second
-                    updates[k] = ticket_dict[k]
+                    updates[k] = latest[k]
 
             updates.pop(self.primary_key)
             updates_arr.append(updates)

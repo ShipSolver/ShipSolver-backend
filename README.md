@@ -2,18 +2,19 @@
 
 ```
 
+cd root_directory;
+python3 -m venv venv; // if not already exists
+source venv/bin/activate;
 cd servers/tenant;
-python3 -m venv venv; # if not already exists
-source venv/bin/activate
 pip3 install -r requirements.txt
-
 cd postgres;
 docker-compose up -d;
 cd ../;
-cd test/;
-python3 test.py; # load data
-cd ..;
 python3 server.py
+
+# start frontend
+# login with user
+
 ```
 
 

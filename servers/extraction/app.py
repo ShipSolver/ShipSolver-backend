@@ -25,7 +25,7 @@ def work(folder_path):
     )
     pdf2text = PDF2Text(document=pdf_document)
     content = pdf2text.extract()
-
+    print(f"content: {content}")
     ml_page_text = list(content)[0]["text"]
     pp_text = read_pdfplumber(pdf_file)
     for i in range(14):

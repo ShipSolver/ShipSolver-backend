@@ -4,7 +4,7 @@ read -p "Continue? [Y/N] >  " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-source ./venv/bin/activate
+source servers/venv/bin/activate
 cd ./servers/tenant
 python3 server.py & PID=$!
 sleep 4

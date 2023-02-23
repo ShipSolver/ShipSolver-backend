@@ -82,7 +82,7 @@ class BaseController:
 
     # delete an object
     # primary_key_val is the value of the primary key
-    def _delete(self, filters={}):
+    def _delete(self, filters):
 
         objs = (
             session.query(self.model)

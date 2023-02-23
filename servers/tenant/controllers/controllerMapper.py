@@ -30,7 +30,6 @@ class TicketStatusController(BaseController):
         self.ticket_controller = BaseTimeSeriesController(TicketEvents)
 
     def _get_tickets_with_status(self, status, filters: dict, limit):
-        tickets = []
         subq_filter = [TicketStatus.currentStatus == status]
 
         if "ticketStatusAssignedTo" in filters:

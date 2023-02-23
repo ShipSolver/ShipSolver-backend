@@ -60,7 +60,7 @@ def do_all_work(tasks_to_run):
 
 
 @client.task
-def work(pdf_folder, documentStatusId):
+def work(pdf_folder, documentStatusId, UPLOAD_FOLDER):
     document_controller = DocumentController()
     pdf_file = f"{pdf_folder}.pdf"
     OBJECT = f"documents{pdf_file.replace(UPLOAD_FOLDER_CELERY, '')}"

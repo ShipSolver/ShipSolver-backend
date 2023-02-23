@@ -33,10 +33,6 @@ def document_post():
         return res
 
     file = request.files["file"]
-    UPLOAD_FOLDER = os.path.join(os.getcwd(), "tenant/uploads")
-    print(f"UPLOAD DIR: {UPLOAD_FOLDER}")
-    if not os.path.exists(UPLOAD_FOLDER):
-        os.mkdir(UPLOAD_FOLDER)
     if file.filename == "":
         res = jsonify({"message": "No file selected for uploading"})
         res.status_code = 400
@@ -46,7 +42,7 @@ def document_post():
         response = {"documentStatusId": document_status.documentStatusId}
         resp = jsonify(response)
         resp.status_code = 202
-        tasks_to_run = fan_out(file, document_status.documentStatusId, UPLOAD_FOLDER)  # split up tasks
+        tasks_to_run = fan_out(file, document_status.documentStatusId)  # split up tasks
         do_all_work(tasks_to_run)  # run ocr pipeline for each task
         document_status = document_status_controller._modify({"documentStatusId": document_status.documentStatusId}, {"numPages": len(tasks_to_run)})
         return resp

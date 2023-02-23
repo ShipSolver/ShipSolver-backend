@@ -19,6 +19,7 @@ def work(folder_path):
     pdf_uuid = folder_path.split("/")[-1]
     pdf_file = f"{folder_path}/{pdf_uuid}.pdf"
     print(f"Working on {pdf_file}...")
+    print(f"path exists: {os.path.exists(pdf_file)}")
     pdf_document = Document(
         document_path=pdf_file,
         language='eng'

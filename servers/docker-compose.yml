@@ -1,0 +1,53 @@
+version: '3'
+services:
+  host-injector:
+    container_name: host_c
+    volumes:
+      - '/var/run/docker.sock:/tmp/docker.sock'
+      - '/etc/hosts:/tmp/hosts'
+    image: dvdarias/docker-hoster
+  redis:
+    hostname: redis.wlp.com
+    image: redis:latest
+    container_name: rd01
+    ports:
+      - "6379:6379"
+    volumes:
+      - "redis:/data"
+  worker:
+    hostname: celery.wlp.com
+    depends_on:
+      - "redis"
+    build:
+      context: .
+      dockerfile: celery.Dockerfile
+    volumes:
+      - .:/opt/metadata-extraction
+    command: celery -A config.client worker --loglevel=info -f celery.logs -Ofair -c 2
+    tty: true
+    env_file:
+      - tenant/.env
+  flower:
+    hostname: flower.wlp.com
+    image: mher/flower
+    container_name: flower01
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - FLOWER_PORT=8888
+    ports:
+      - "8888:8888"
+  postgres:
+    container_name: postgres_c
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    env_file:
+      - env/postgres.env
+    environment:
+      POSTGRES_DB: tenant_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  redis:
+  pgdata:

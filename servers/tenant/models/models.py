@@ -130,6 +130,7 @@ class Documents(Base):
     documentStatusId = Column(Integer, nullable=False)
     success = Column(Boolean, nullable=False)
     timestamp = Column(Integer, default=int(time.time()))
+    customerName = Column(String, nullable=False)
     barcodeNumber = Column(String, nullable=False)
     houseReferenceNumber = Column(String, nullable=False)
     orderS3Link = Column(String, nullable=False)

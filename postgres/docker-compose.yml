@@ -6,7 +6,7 @@ services:
     ports:
       - 5432:5432
     env_file:
-      - env/postgres.env
+      - ../servers/env/postgres.env
     environment:
       POSTGRES_DB: tenant_db
       POSTGRES_HOST_AUTH_METHOD: trust

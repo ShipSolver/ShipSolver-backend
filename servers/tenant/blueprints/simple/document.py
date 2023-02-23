@@ -21,7 +21,6 @@ document_bp = Blueprint("document_bp", __name__, url_prefix="document")
 
 FAILURE = -1
 SUCCESS = 0
-UPLOAD_FOLDER = "/opt/metadata-extraction/uploads"
 document_status_controller = DocumentStatusController()
 document_controller = DocumentController()
 
@@ -34,7 +33,10 @@ def document_post():
         return res
 
     file = request.files["file"]
-
+    UPLOAD_FOLDER = os.path.join(os.getcwd(), "tenant/uploads")
+    print(f"UPLOAD DIR: {UPLOAD_FOLDER}")
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.mkdir(UPLOAD_FOLDER)
     if file.filename == "":
         res = jsonify({"message": "No file selected for uploading"})
         res.status_code = 400
@@ -44,7 +46,7 @@ def document_post():
         response = {"documentStatusId": document_status.documentStatusId}
         resp = jsonify(response)
         resp.status_code = 202
-        tasks_to_run = fan_out(file, document_status.documentStatusId)  # split up tasks
+        tasks_to_run = fan_out(file, document_status.documentStatusId, UPLOAD_FOLDER)  # split up tasks
         do_all_work(tasks_to_run)  # run ocr pipeline for each task
         document_status = document_status_controller._modify({"documentStatusId": document_status.documentStatusId}, {"numPages": len(tasks_to_run)})
         return resp
@@ -66,7 +68,9 @@ def document_get(document_id):
     if len(documents) == num_pages:
         res = {"status": "COMPLETE", "progress": 100, "documents": documents}
     else:
-        res = {"status": "PENDING", "progress": 100*len(documents) // num_pages, "documents": []}
+        progress = 100*len(documents) // num_pages
+        print(f"progress: {progress}")
+        res = {"status": "PENDING", "progress": progress, "documents": []}
     res = jsonify(res)
     res.status_code = 200
     return res

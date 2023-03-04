@@ -6,7 +6,9 @@ from flask import make_response, request, jsonify, session, Blueprint, abort
 from flask_cors import cross_origin
 from helpers.identity_helpers import IdentityHelper
 import controllers as Controllers
-
+import boto3
+from botocore.client import Config
+import os
 import sys
 
 sys.path.insert(0, "..")  # import parent folder
@@ -28,6 +30,13 @@ ticket_status_controller = Controllers.ticket_status_controller
 user_controller = Controllers.user_controller
 
 PIECES_SEPERATOR = ",+-"
+TENANT = "test-tenant2"
+BUCKET = f"{TENANT}-bucket"
+aws_access_key_id = os.getenv("aws_access_key_id")
+aws_secret_access_key = os.getenv("aws_secret_access_key")
+s3 = boto3.resource('s3', region_name='us-east-2', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
+bucket = s3.Bucket(BUCKET)
+s3_client = boto3.client('s3', region_name='us-east-2', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
 
 @ticket_bp.route("/status/<status>", methods=["GET"])
 @auth_required()
@@ -86,13 +95,18 @@ def ticket_post():  # create ticket
     print("Creating ticket from the following JSON:")
     ticket_dict = json.loads(request.data)
     ticket_dict = json.loads(ticket_dict["data"])
-
     # remove ticketId and ticketEventId if present
     ticket_dict.pop(ticket_controller.primary_key, None)
     ticket_dict.pop(TicketEvents.non_prim_identifying_column_name, None)
 
     #join pieces into single string 
     ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
+    if not ticket_dict["isPickup"]:
+        ticket_dict["isPickup"] = False
+    if "noSignatureRequired" not in ticket_dict:
+        ticket_dict["noSignatureRequired"] = False
+    if "tailgateAuthorized" not in ticket_dict:
+        ticket_dict["tailgateAuthorized"] = False
     ticket_dict["userId"] = IdentityHelper.get_logged_in_userId()
     ticket_event = ticket_controller._create_base_event(ticket_dict)
 
@@ -187,8 +201,16 @@ def ticket_get(ticket_id):
         }
     )
     res = alchemyConverter(data)
-
     if len(res) > 0:
+        view_url = ""
+        if res[0]["orderS3Link"] != "":
+             s3Path = '/'.join(res[0]["orderS3Link"].split("/")[3:]) 
+             view_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': BUCKET, 'Key': s3Path},
+                ExpiresIn=3600
+            )
+        res[0]["orderS3Link"] = view_url
         return make_response(json.dumps(res[0], cls=AlchemyEncoder))
     else:
         abort(404)

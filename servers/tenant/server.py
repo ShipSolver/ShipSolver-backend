@@ -19,7 +19,7 @@ from flask_cognito_lib import CognitoAuth
 from flask_caching import Cache
 
 # from models.__init__ import engine, Base
-from models import session, Session as sqlAlchemySession
+import models
 import atexit
 from dotenv import load_dotenv
 
@@ -65,15 +65,20 @@ parent.register_blueprint(document_bp)
 
 @app.errorhandler(IllegalStateChangeError)
 def handle_sqlAlch_isce_exception(e):   
-    session.rollback()
-    session.close()
-    session = sqlAlchemySession()
+    models.session.rollback()
+    models.session.close()
+    models.session = models.Session()
     Controllers.recreate_singleton_objects()
+    return jsonify(
+        exception_type=e.__class__.__name__,
+        exception_string="Illegal state change error"
+    ), 500
+    
 
 def atExitHandler():
     print("Running Exit Handler")
-    session.commit()
-    session.close()
+    models.session.commit()
+    models.session.close()
 
 if __name__ == "__main__":
 

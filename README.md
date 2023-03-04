@@ -15,6 +15,7 @@ python3 server.py
 # start frontend
 # login with user
 
+# place env file in dev-tools
 ```
 
 

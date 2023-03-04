@@ -1,19 +1,19 @@
 # HOW TO START SERVER
 
 ```
+# in root
 
-cd root_directory;
-python3 -m venv venv; // if not already exists
-source venv/bin/activate;
-cd servers/tenant;
-pip3 install -r requirements.txt
-cd postgres;
-docker-compose up -d;
-cd ../;
-python3 server.py
+export PYTHONPATH=.
+# have a venv in /servers
+# pip install requirements in tenant
 
-# start frontend
-# login with user
+docker-compose up -d # in /servers
+
+# change line in models/__init__.py  postgres_c -> localhost (dont commit this change)
+
+./load_data.sh # load fixtures
+
+python3 tenant/server.py # start server
 
 ```
 

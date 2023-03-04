@@ -203,7 +203,7 @@ def ticket_get(ticket_id):
     res = alchemyConverter(data)
     if len(res) > 0:
         view_url = ""
-        if res[0]["orderS3Link"] != "":
+        if res[0]["orderS3Link"] and res[0]["orderS3Link"] != "s3link":
              s3Path = '/'.join(res[0]["orderS3Link"].split("/")[3:]) 
              view_url = s3_client.generate_presigned_url(
                 'get_object',

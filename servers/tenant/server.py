@@ -9,6 +9,7 @@ from blueprints.simple.users import user_bp
 from blueprints.simple.milestones import milestone_bp
 from blueprints.simple.driver import driver_bp
 from blueprints.simple.document import document_bp
+from sqlalchemy.exc import IllegalStateChangeError
 
 # Module import to create global controller instances
 import controllers as Controllers
@@ -18,7 +19,8 @@ from flask_cognito_lib import CognitoAuth
 from flask_caching import Cache
 
 # from models.__init__ import engine, Base
-# from models.models import INDEXES
+from models import session, Session as sqlAlchemySession
+import atexit
 from dotenv import load_dotenv
 
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -61,9 +63,24 @@ parent.register_blueprint(document_bp)
 #         exception_string=str(e)
 #     ), 500
 
+@app.errorhandler(IllegalStateChangeError)
+def handle_sqlAlch_isce_exception(e):   
+    session.rollback()
+    session.close()
+    session = sqlAlchemySession()
+    Controllers.recreate_singleton_objects()
+
+def atExitHandler():
+    print("Running Exit Handler")
+    session.commit()
+    session.close()
+
 if __name__ == "__main__":
 
     print("REGISTERING BLUEPRINT")
     app.register_blueprint(parent)
+
+    # Register exit handler to cleanly close sql alchemy session
+    atexit.register(atExitHandler)
 
     app.run(debug=True, host="0.0.0.0", port=6767)

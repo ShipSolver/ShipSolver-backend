@@ -25,9 +25,9 @@ SUCCESS = 0
 PIECES_SEPERATOR = ",+-"
 UPLOAD_FOLDER = "tenant/uploads"
 UPLOAD_FOLDER_CELERY = "uploads"
-s3 = boto3.resource('s3', region_name='ca-central-1', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
+s3 = boto3.resource('s3', region_name='us-east-2', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
 bucket = s3.Bucket(BUCKET)
-s3_client = boto3.client('s3', region_name='ca-central-1', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
+s3_client = boto3.client('s3', region_name='us-east-2', aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, config=Config(signature_version='s3v4'))
 
 def fan_out(file, documentStatusId):
     if not os.path.exists(UPLOAD_FOLDER):

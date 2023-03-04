@@ -23,7 +23,7 @@ services:
       dockerfile: celery.Dockerfile
     volumes:
       - .:/opt/metadata-extraction
-    command: celery -A config.client worker --loglevel=info -f celery.logs -Ofair -c 2
+    command: celery -A config.client worker --loglevel=info -f celery.logs -Ofair -c 1
     tty: true
     env_file:
       - tenant/.env

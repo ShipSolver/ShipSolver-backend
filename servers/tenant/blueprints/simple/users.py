@@ -60,5 +60,6 @@ def user_modify():
 #@auth_required()
 def user_delete():
     userId = request.args.get("userId")
-    user_controller._delete(userId)
+    filters = {}
+    user_controller._delete(userId, filters)
     return "success"

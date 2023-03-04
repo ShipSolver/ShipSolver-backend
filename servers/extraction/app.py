@@ -19,13 +19,14 @@ def work(folder_path):
     pdf_uuid = folder_path.split("/")[-1]
     pdf_file = f"{folder_path}/{pdf_uuid}.pdf"
     print(f"Working on {pdf_file}...")
+    print(f"path exists: {os.path.exists(pdf_file)}")
     pdf_document = Document(
         document_path=pdf_file,
         language='eng'
     )
     pdf2text = PDF2Text(document=pdf_document)
     content = pdf2text.extract()
-
+    print(f"content: {content}")
     ml_page_text = list(content)[0]["text"]
     pp_text = read_pdfplumber(pdf_file)
     for i in range(14):

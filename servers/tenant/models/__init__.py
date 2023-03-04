@@ -2,6 +2,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+load_dotenv("tenant/.env", override=True)
 
 db_port = os.getenv("DB_PORT", "5432")
 db_name = os.getenv("DB_NAME", "tenant_db")

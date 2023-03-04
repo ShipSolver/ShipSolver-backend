@@ -21,7 +21,6 @@ document_bp = Blueprint("document_bp", __name__, url_prefix="document")
 
 FAILURE = -1
 SUCCESS = 0
-UPLOAD_FOLDER = "/opt/metadata-extraction/uploads"
 document_status_controller = DocumentStatusController()
 document_controller = DocumentController()
 
@@ -34,7 +33,6 @@ def document_post():
         return res
 
     file = request.files["file"]
-
     if file.filename == "":
         res = jsonify({"message": "No file selected for uploading"})
         res.status_code = 400
@@ -66,7 +64,9 @@ def document_get(document_id):
     if len(documents) == num_pages:
         res = {"status": "COMPLETE", "progress": 100, "documents": documents}
     else:
-        res = {"status": "PENDING", "progress": 100*len(documents) // num_pages, "documents": []}
+        progress = 100*len(documents) // num_pages
+        print(f"progress: {progress}")
+        res = {"status": "PENDING", "progress": progress, "documents": []}
     res = jsonify(res)
     res.status_code = 200
     return res

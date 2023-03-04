@@ -4,8 +4,10 @@ RUN apt -y install libpq-dev
 COPY tenant/requirements.txt .
 RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
-run pip3 install psycopg2
+RUN pip3 install psycopg2
+RUN rm -rf flask-cognito-lib || true
 RUN git -C /root clone https://github.com/ShipSolver/flask-cognito-lib.git
+COPY token_svc.py /root/flask-cognito-lib/src/flask_cognito_lib/services/token_svc.py
 RUN pip3 install -e /root/flask-cognito-lib
 WORKDIR /opt/metadata-extraction
 ENV PYTHONPATH .

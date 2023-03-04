@@ -23,22 +23,10 @@ services:
       dockerfile: celery.Dockerfile
     volumes:
       - .:/opt/metadata-extraction
-    command: celery -A config.client worker --loglevel=info -f celery.logs -Ofair -c 2
+    command: celery -A config.client worker --loglevel=info -f celery.logs -Ofair -c 1
     tty: true
-  app:
-    hostname: app.wlp.com
-    depends_on:
-      - "redis"
-    build:
-      context: .
-      dockerfile: app.Dockerfile
-    volumes:
-      - .:/opt/metadata-extraction
-    container_name: app01
-    ports:
-      - "6767:6767"
-    command: python3 tenant/server.py
-    tty: true
+    env_file:
+      - tenant/.env
   flower:
     hostname: flower.wlp.com
     image: mher/flower
@@ -48,5 +36,18 @@ services:
       - FLOWER_PORT=8888
     ports:
       - "8888:8888"
+  postgres:
+    container_name: postgres_c
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    env_file:
+      - env/postgres.env
+    environment:
+      POSTGRES_DB: tenant_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    volumes:
+      - pgdata:/var/lib/postgresql/data
 volumes:
   redis:
+  pgdata:

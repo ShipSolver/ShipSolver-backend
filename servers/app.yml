@@ -1,0 +1,16 @@
+  app:
+    hostname: app.wlp.com
+    depends_on:
+      - "redis"
+    build:
+      context: .
+      dockerfile: app.Dockerfile
+    volumes:
+      - .:/opt/metadata-extraction
+    container_name: app01
+    ports:
+      - "6767:6767"
+    command: python3 tenant/server.py
+    env_file:
+      - tenant/.env
+    tty: true

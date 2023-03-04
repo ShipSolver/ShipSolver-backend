@@ -2,13 +2,14 @@ import os
 import ssl
 from flask import Flask, Blueprint, jsonify, session
 from flask_session import Session
-# from config import app
+from config import app
 from blueprints.event_driven.ticket import ticket_bp
 from blueprints.simple.customers import customer_bp
 from blueprints.simple.users import user_bp
 from blueprints.simple.milestones import milestone_bp
 from blueprints.simple.driver import driver_bp
-# from blueprints.simple.document import document_bp
+from blueprints.simple.document import document_bp
+from sqlalchemy.exc import IllegalStateChangeError
 
 # Module import to create global controller instances
 import controllers as Controllers
@@ -18,14 +19,13 @@ from flask_cognito_lib import CognitoAuth
 from flask_caching import Cache
 
 # from models.__init__ import engine, Base
-# from models.models import INDEXES
+from models import session, Session as sqlAlchemySession
+import atexit
 from dotenv import load_dotenv
 
 ssl._create_default_https_context = ssl._create_unverified_context
 
-load_dotenv(".env", override=True)
-
-app = Flask(__name__)
+load_dotenv("tenant/.env", override=True)
 
 cache_config = {
     "DEBUG": True,          # some Flask specific configs
@@ -51,21 +51,36 @@ parent.register_blueprint(customer_bp)
 parent.register_blueprint(user_bp)
 parent.register_blueprint(milestone_bp)
 parent.register_blueprint(driver_bp)
-# parent.register_blueprint(document_bp)
+parent.register_blueprint(document_bp)
 
-@app.errorhandler(Exception)
-def handle_exception(e):
-    print('\033[91m' + "===> An Exception Occured") # red color
-    print(e)
-    print('\033[0m') # end color
-    return jsonify(
-        exception_type=e.__class__.__name__,
-        exception_string=str(e)
-    ), 500
+# @app.errorhandler(Exception)
+# def handle_exception(e):
+#     print('\033[91m' + "===> An Exception Occurred") # red color
+#     print(e)
+#     print('\033[0m') # end color
+#     return jsonify(
+#         exception_type=e.__class__.__name__,
+#         exception_string=str(e)
+#     ), 500
+
+@app.errorhandler(IllegalStateChangeError)
+def handle_sqlAlch_isce_exception(e):   
+    session.rollback()
+    session.close()
+    session = sqlAlchemySession()
+    Controllers.recreate_singleton_objects()
+
+def atExitHandler():
+    print("Running Exit Handler")
+    session.commit()
+    session.close()
 
 if __name__ == "__main__":
 
     print("REGISTERING BLUEPRINT")
     app.register_blueprint(parent)
+
+    # Register exit handler to cleanly close sql alchemy session
+    atexit.register(atExitHandler)
 
     app.run(debug=True, host="0.0.0.0", port=6767)

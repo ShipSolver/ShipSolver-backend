@@ -5,3 +5,8 @@ __pycache__/
 **/.env
 tmp
 flask_session/
+**/uploads/
+text/
+.idea
+data/
+**/*.logs

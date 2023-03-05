@@ -45,7 +45,7 @@ from const.milestones import *
 faker = Faker()
 
 ############# SET YOUR USER ID HERE #############
-MANAGER_USER = ""
+MANAGER_USER = "72a12790-5559-46df-a364-1d00a8a44f26"
 
 if not MANAGER_USER:
     print("SET YOUR MANAGER USER ID IN TEST.PY LINE 46")

@@ -43,8 +43,8 @@ class_to_cntrl_map = {
 }
 ticket_status_controller = Controllers.ticket_status_controller
 
-old_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
-new_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
+old_status_exemptions = set([CreationMilestones])
+new_status_exemptions = set([CreationMilestones])
 
 
 milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
@@ -93,12 +93,7 @@ def milestone_post(milestone_type):  # create ticket
     if milestone_class in old_status_exemptions: 
         request_dict["oldStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
     else:
-        if "oldStatus" not in request_dict:
-            message = 'oldStatus is required'
-            print(message)
-            res = jsonify({'message': message})
-            res.status_code = 400
-            return res
+        request_dict["oldStatus"] = milestone_controller.get_prev_status(ticket_id = request_dict["ticketId"])
     if milestone_class in new_status_exemptions:
         request_dict["newStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
     else:

@@ -21,7 +21,7 @@ user_bp = Blueprint("user_bp", __name__, url_prefix="user")
 user_controller = Controllers.user_controller
 
 @user_bp.route("/<user_id>", methods=["GET"])
-##@auth_required()
+@auth_required()
 def user_get(user_id):  # create ticket
     data = user_controller._get(
         filters={
@@ -45,7 +45,7 @@ def user_post():
 
 
 @user_bp.route("", methods=["PUT"])
-##@auth_required()
+@auth_required()
 def user_modify():
 
     userId = request.form["userId"]
@@ -57,7 +57,7 @@ def user_modify():
 
 
 @user_bp.route("/", methods=["DELETE"])
-#@auth_required()
+@auth_required()
 def user_delete():
     userId = request.args.get("userId")
     filters = {}

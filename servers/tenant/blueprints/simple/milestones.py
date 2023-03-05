@@ -51,7 +51,7 @@ milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
 
 
 @milestone_bp.route("/<ticket_id>", methods=["GET"])
-# @auth_required()
+@auth_required()
 def get_all_milestones_for_ticket(ticket_id):  # create ticket
 
     filters = {
@@ -75,7 +75,7 @@ def get_all_milestones_for_ticket(ticket_id):  # create ticket
 
 
 @milestone_bp.route("/<milestone_type>/<ticket_id>", methods=["GET"])
-# @auth_required()
+@auth_required()
 def milestones_get(milestone_type, ticket_id): 
     milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
     if not milestone_controller:
@@ -85,7 +85,6 @@ def milestones_get(milestone_type, ticket_id):
         "ticketId" : ticket_id
     }
 
-    print(ticket_id, milestone_type)
     data = milestone_controller._get(filters, limit=1000)
     milestones = alchemyConverter(data)
     milestone_res_objects = milestone_controller.convert_to_desc(milestones)
@@ -95,7 +94,7 @@ def milestones_get(milestone_type, ticket_id):
 
 
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
-# @auth_required()
+@auth_required()
 def milestone_post(milestone_type):  # create ticket
     milestone_class = model_helpers.get_model_by_name(milestone_type)
     milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
@@ -130,11 +129,12 @@ def milestone_post(milestone_type):  # create ticket
             res.status_code = 400
             return res
 
-    # state verification
+
+    # TODO: state verification using transition graph
+    # 
     # paths_possible = stateTable[request_dict["oldStatus"]]
     # if request_dict["newStatus"] not in paths_possible[]
 
-    # ticketId = request_dict["ticketId"]
     update_dict = {"currentStatus": request_dict["newStatus"]}
     if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
         update_dict["assignedTo"] = request_dict["assignedToUserId"]
@@ -161,11 +161,9 @@ def milestone_post(milestone_type):  # create ticket
         '''
         
         if "POD.jpeg" not in request_dict["pictures"] or "Picture1.jpeg" not in request_dict["pictures"]:
-            # print(request_dict["pictures"]["Picture1.jpeg"])
             res = jsonify({"message": "Missing files for upload"})
             res.status_code = 400
             return res
-
     
     ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
     time.sleep(4) # yes it's ugly. But it fixes async issue

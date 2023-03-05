@@ -22,11 +22,6 @@ class BaseController:
         self.get_controller_by_model = None
         self.get_controller_by_model_name = None
 
-    # def __new__(cls, *args, **kwargs):
-    #     if cls is BaseController:
-    #         raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
-    #     return object.__new__(cls, *args, **kwargs)
-
     # create objects in bulk
     # args_arr is an array of args_dicts
     # args_dict is the input to models
@@ -137,11 +132,6 @@ class BaseTimeSeriesController(BaseController):
         super().__init__(model=model)
 
         self.model = model  # redudant
-
-    # def __new__(cls, *args, **kwargs):
-    #     if cls is BaseTimeSeriesController:
-    #         raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
-    #     return object.__new__(cls, *args, **kwargs)
 
     """
     Definition: create an inital object. "args_dict" is the input to models

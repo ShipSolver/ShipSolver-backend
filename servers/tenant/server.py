@@ -53,15 +53,6 @@ parent.register_blueprint(milestone_bp)
 parent.register_blueprint(driver_bp)
 parent.register_blueprint(document_bp)
 
-# @app.errorhandler(Exception)
-# def handle_exception(e):
-#     print('\033[91m' + "===> An Exception Occurred") # red color
-#     print(e)
-#     print('\033[0m') # end color
-#     return jsonify(
-#         exception_type=e.__class__.__name__,
-#         exception_string=str(e)
-#     ), 500
 
 @app.errorhandler(IllegalStateChangeError)
 def handle_sqlAlch_isce_exception(e):   

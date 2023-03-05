@@ -94,7 +94,11 @@ class MilestoneController(BaseController):
         if ticket_stat:
             return ticket_stat[0].currentStatus
         return None
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> main
     def get_assigned_to_attr(self):
         '''
         Abstract Class Function
@@ -121,6 +125,13 @@ class CreationMilestonesController(MilestoneController):
                     "timestamp": milestone["createdAt"]
                 })
         return string_milestones
+    
+    # Note - Creation Milestones Type has no "oldStatus" attribute. This should change to support PickupMilestones -> Creation Milestones state change
+    def get_prev_status(self, ticket_id=None):
+        # if next_status == Creation_Milestone_Status.unassigned_pickup:
+        #     ticket_stat = self.ticket_status._get(filters={"ticketId" : ticket_id})
+        #     return ticket_stat.currentStatus
+        return None
     
     def get_assigned_to_attr(self):
         return CreationMilestones.createdByUserId
@@ -222,7 +233,11 @@ class AssignmentMilestonesController(MilestoneController):
                 args_dict["assignedByUserId"] = prev_milestone[0].assignedByUserId
                 args_dict["assignedToUserId"] = prev_milestone[0].assignedToUserId
         return super()._create(args_dict)
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> main
     def get_assigned_to_attr(self):
         return AssignmentMilestones.assignedToUserId
 

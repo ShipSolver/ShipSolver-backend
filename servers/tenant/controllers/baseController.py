@@ -1,6 +1,7 @@
 import json
 import random
 import time
+from flask import g
 from sqlalchemy import create_engine
 import inspect as insp
 from sqlalchemy.inspection import inspect
@@ -10,18 +11,36 @@ import sys
 from datetime import datetime
 sys.path.insert(0, "..")  # import parent folder
 
-from models.__init__ import session
+from models.__init__ import session, Session, engine
 from utils import convert_dict_to_alchemy_filters
 
 
-class BaseController:
+class BaseController(object):
     def __init__(self, model):
         self.model = model
-        self.session = session
         self.primary_key = inspect(self.model).primary_key[0].name
         self.get_controller_by_model = None
         self.get_controller_by_model_name = None
 
+<<<<<<< HEAD
+=======
+    @property
+    def session(self):
+        if session:
+            return session
+        
+        if 'sql_session' not in g:
+            engine.dispose(False)
+            g.sql_session = Session()
+
+        return g.sql_session
+
+    # def __new__(cls, *args, **kwargs):
+    #     if cls is BaseController:
+    #         raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
+    #     return object.__new__(cls, *args, **kwargs)
+
+>>>>>>> main
     # create objects in bulk
     # args_arr is an array of args_dicts
     # args_dict is the input to models

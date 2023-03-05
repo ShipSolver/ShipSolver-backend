@@ -43,8 +43,8 @@ class_to_cntrl_map = {
 }
 ticket_status_controller = Controllers.ticket_status_controller
 
-old_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
-new_status_exemptions = set([DeliveryMilestones, IncompleteDeliveryMilestones, CreationMilestones])
+old_status_exemptions = set([CreationMilestones])
+new_status_exemptions = set([CreationMilestones])
 
 
 milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
@@ -113,12 +113,7 @@ def milestone_post(milestone_type):  # create ticket
     if milestone_class in old_status_exemptions: 
         request_dict["oldStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
     else:
-        if "oldStatus" not in request_dict:
-            message = 'oldStatus is required'
-            print(message)
-            res = jsonify({'message': message})
-            res.status_code = 400
-            return res
+        request_dict["oldStatus"] = milestone_controller.get_prev_status(ticket_id = request_dict["ticketId"])
     if milestone_class in new_status_exemptions:
         request_dict["newStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
     else:
@@ -137,6 +132,7 @@ def milestone_post(milestone_type):  # create ticket
 
     update_dict = {"currentStatus": request_dict["newStatus"]}
     if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
+        assert "assignedToUserId" in request_dict, "Cannot change status to assigned without an assignedToUserId"
         update_dict["assignedTo"] = request_dict["assignedToUserId"]
     
     elif milestone_class == InventoryMilestones:
@@ -157,10 +153,19 @@ def milestone_post(milestone_type):  # create ticket
                     "Picture2.jpeg" : picturedata,
                     "Picture3.jpeg" : picturedata
                 }
-            } 
+            }
         '''
-        
-        if "POD.jpeg" not in request_dict["pictures"] or "Picture1.jpeg" not in request_dict["pictures"]:
+    
+        if (
+            (
+                DeliveryMilestones.FileTypes.PODLink.value not in request_dict["pictures"]
+                or request_dict["pictures"][DeliveryMilestones.FileTypes.PODLink.value] is None
+            )
+            or (
+                DeliveryMilestones.FileTypes.picture1Link.value not in request_dict["pictures"]
+                or request_dict["pictures"][DeliveryMilestones.FileTypes.picture1Link.value] is None
+            )
+        ):
             res = jsonify({"message": "Missing files for upload"})
             res.status_code = 400
             return res

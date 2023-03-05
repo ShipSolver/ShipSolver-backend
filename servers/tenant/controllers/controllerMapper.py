@@ -9,7 +9,7 @@ from models.models import *
 import uuid
 import base64
 from controllers.S3Controller import S3Controller
-
+FileTypes = DeliveryMilestones.FileTypes
 
 class DocumentController(BaseController):
     def __init__(self):
@@ -89,6 +89,12 @@ class MilestoneController(BaseController):
 
         return super()._create(args_dict)
     
+    def get_prev_status(self, ticket_id):
+        ticket_stat = self.ticket_status._get(filters={"ticketId" : ticket_id})
+        if ticket_stat:
+            return ticket_stat[0].currentStatus
+        return None
+
     def get_assigned_to_attr(self):
         '''
         Abstract Class Function
@@ -100,6 +106,13 @@ class CreationMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(CreationMilestones)
     
+    # Note - Creation Milestones Type has no "oldStatus" attribute. This should change to support PickupMilestones -> Creation Milestones state change
+    def get_prev_status(self, ticket_id=None):
+        # if next_status == Creation_Milestone_Status.unassigned_pickup:
+        #     ticket_stat = self.ticket_status._get(filters={"ticketId" : ticket_id})
+        #     return ticket_stat.currentStatus
+        return None
+
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
@@ -202,6 +215,14 @@ class AssignmentMilestonesController(MilestoneController):
                     })
         return string_milestones
     
+    def _create(self, args_dict):
+        if args_dict["newStatus"] == Assignment_Milestone_Status.in_transit:
+            prev_milestone = self._get(filters={"ticketId" : args_dict["ticketId"]}, ordered=True, limit=1)
+            if prev_milestone:
+                args_dict["assignedByUserId"] = prev_milestone[0].assignedByUserId
+                args_dict["assignedToUserId"] = prev_milestone[0].assignedToUserId
+        return super()._create(args_dict)
+
     def get_assigned_to_attr(self):
         return AssignmentMilestones.assignedToUserId
 
@@ -228,13 +249,13 @@ class DeliveryMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(DeliveryMilestones)
 
-    def _upload_file(self, ticketId, temp_milestone_id, args_dict, file_type):
+    def _upload_file(self, ticketId, temp_milestone_id, args_dict, file_type:DeliveryMilestones.FileTypes):
         s3_base_path = "deliverymilestones"
-        file_link = f"{s3_base_path}_{ticketId}_{temp_milestone_id}_{file_type}" 
+        file_link = f"{s3_base_path}_{ticketId}_{temp_milestone_id}_{file_type.value}" 
         with open(file_link, "wb") as f:
-            f.write(base64.b64decode(args_dict["pictures"][file_type]))
+            f.write(base64.b64decode(args_dict["pictures"][file_type.value]))
 
-        self.s3controller._upload_file(file_link,  file_link)
+        self.s3controller._upload_file(file_link,  file_link.replace("_", "/"))
         os.remove(file_link)
         return file_link
 
@@ -248,15 +269,24 @@ class DeliveryMilestonesController(MilestoneController):
 
         # parallelize this ?
         
-        args_dict["PODLink"] = self._upload_file(ticketId, temp_milestone_id, args_dict, "POD.jpeg")
-        args_dict["picture1Link"] = self._upload_file(ticketId, temp_milestone_id, args_dict, "Picture1.jpeg")
-
-        if "Picture2.jpeg" in args_dict["pictures"] or args_dict["pictures"]["Picture2.jpeg"] is not None:
-            args_dict["picture2Link"] = self._upload_file(ticketId, temp_milestone_id, args_dict, "Picture2.jpeg")
+        args_dict[FileTypes.PODLink.name] = self._upload_file(ticketId, temp_milestone_id, args_dict, FileTypes.PODLink)
         
-        if "Picture3.jpeg" in args_dict["pictures"] or args_dict["pictures"]["Picture3.jpeg"] is not None:
-            args_dict["picture3Link"] = self._upload_file(ticketId, temp_milestone_id, args_dict, "Picture3.jpeg")
+        args_dict[FileTypes.picture1Link.name] = self._upload_file(ticketId, temp_milestone_id, args_dict, FileTypes.picture1Link)
 
+        if (
+            FileTypes.picture2Link.value in args_dict["pictures"] 
+            and args_dict["pictures"][FileTypes.picture2Link.value] is not None
+        ):
+            args_dict[FileTypes.picture2Link.name] = self._upload_file(
+                ticketId, temp_milestone_id, args_dict, FileTypes.picture2Link)
+
+        if (
+            FileTypes.picture3Link.value in args_dict["pictures"] 
+            and args_dict["pictures"][FileTypes.picture3Link.value] is not None
+        ):
+            args_dict[FileTypes.picture3Link.name] = self._upload_file(
+                ticketId, temp_milestone_id, args_dict, FileTypes.picture3Link)
+        
         args_dict.pop("pictures")
 
         
@@ -268,17 +298,27 @@ class DeliveryMilestonesController(MilestoneController):
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
-                presigned_pic1_link = self.s3controller._generate_presigned_url(milestone["picture1Link"])
-                presigned_pic2_link = self.s3controller._generate_presigned_url(milestone["picture2Link"])
-                presigned_pic3_link = self.s3controller._generate_presigned_url(milestone["picture3Link"])
+
+                presigned_pod_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.PODLink.name])
+                
+                presigned_pic1_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.picture1Link.name])
+                
+                presigned_pic2_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.picture2Link.name])
+                
+                presigned_pic3_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.picture3Link.name])
 
                 string_milestones.append(
                     {
                         "description":  f"Delivery completed by {milestone['completingUser']['username']}",
                         "timestamp": milestone["timestamp"],
-                        "Picture1": presigned_pic1_link, 
-                        "Picture2": presigned_pic2_link,
-                        "Picture3": presigned_pic3_link
+                        FileTypes.PODLink.value : presigned_pod_link, 
+                        FileTypes.picture1Link.value : presigned_pic1_link, 
+                        FileTypes.picture2Link.value : presigned_pic2_link,
+                        FileTypes.picture3Link.value : presigned_pic3_link
                     }
                 )
 

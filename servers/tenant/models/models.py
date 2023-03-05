@@ -314,6 +314,13 @@ class IncompleteDeliveryMilestones(Base):
 
 
 class DeliveryMilestones(Base):
+
+    class FileTypes(enum):
+        PODLink = "POD.jpeg"
+        picture1Link = "Picture1.jpeg"
+        picture2Link = "Picture2.jpeg"
+        picture3Link = "Picture3.jpeg"
+
     __tablename__ = "deliverymilestones"
 
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)

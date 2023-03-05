@@ -90,22 +90,27 @@ class BaseController:
 
         self.session.commit()
 
-    def _get(self, filters, queryObj = None, limit=5000):
+    def _get(self, filters, queryObj = None, limit=5000, ordered=False):
         if not filters:
             filters = {}
-        
+
         if not queryObj:
             queryObj = self.session.query(self.model)
 
-        objects = (
+        objects = ((
+            queryObj
+            .filter(*convert_dict_to_alchemy_filters(self.model, filters))
+            .order_by(self.model.timestamp.desc())
+            .limit(limit)
+            .all()
+        ) if ordered else (
             queryObj
             .filter(*convert_dict_to_alchemy_filters(self.model, filters))
             .limit(limit)
             .all()
-        )
+        ))
 
         return objects
-
 
     def _get_count(self, filters):
         if not filters:

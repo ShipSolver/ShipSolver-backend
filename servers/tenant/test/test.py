@@ -13,6 +13,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import sys
+import base64 
+from dotenv import load_dotenv
+env_set = load_dotenv("../.env", override=True)
 
 sys.path.insert(0, "..")  # import parent folder
 
@@ -45,7 +48,7 @@ from const.milestones import *
 faker = Faker()
 
 ############# SET YOUR USER ID HERE #############
-MANAGER_USER = ""
+MANAGER_USER = "d0a897d4-9658-4e21-8efb-bf27c7fb1d81"
 
 if not MANAGER_USER:
     print("SET YOUR MANAGER USER ID IN TEST.PY LINE 46")
@@ -288,16 +291,28 @@ with app.app_context():
                     }
             
             elif milestone_type == "Delivery_Milestone_Status":
+                delivery_images_directory = "delivery_images"
+
+
+                # Load fake images in
+                with open(f"{delivery_images_directory}/{DeliveryMilestones.FileTypes.PODLink.value}", "rb") as f:
+                    pod_data = base64.b64encode(f.read()).decode('utf-8')
+
+                # Load fake images in
+                with open(f"{delivery_images_directory}/{DeliveryMilestones.FileTypes.picture1Link.value}", "rb") as f:
+                    pic1_data = base64.b64encode(f.read()).decode('utf-8')
+
                 data = {
                     "ticketId" : ticket,
                     "newStatus" : curr_state,
                     "oldStatus" : prev_state,
                     "completingUserId" : curr_driver,
-                    "PODLink" : "https://www.youtube.com/watch?v=xvFZjo5PgG0",
-                    "picture1Link" : "https://images.unsplash.com/flagged/photo-1572392640988-ba48d1a74457?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=464&q=80",
-                    "picture2Link" : "https://images.unsplash.com/photo-1515405295579-ba7b45403062?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80",
-                    "picture3Link" : "https://images.unsplash.com/photo-1657817142233-8689b78b7f9f?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=415&q=80"
+                    "pictures": {
+                        "POD.jpeg": pod_data,
+                        "Picture1.jpeg": pic1_data,
+                        "Picture3.jpeg": pic1_data
                     }
+                }
             
             elif milestone_type == "Incomplete_Delivery_Milestone_Status":
                 due_to_end_shift = random.choice([True, False])
@@ -309,11 +324,11 @@ with app.app_context():
                     "assigneeUserId" : curr_driver,
                     "reasonForIncomplete" : incomplete_reason,
                     "dueToEndedShift" : due_to_end_shift
-                    }
+                }
 
             else:
                 raise Exception(f"Logic for milsetone type {milestone_type} not found")
-            
+
             functionMapping[milestone_type](data)
             prev_state = curr_state
     

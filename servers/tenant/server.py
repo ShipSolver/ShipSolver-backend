@@ -1,6 +1,6 @@
 import os
 import ssl
-from flask import Flask, Blueprint, jsonify, session
+from flask import Flask, Blueprint, jsonify, session, g
 from flask_session import Session
 from config import app
 from blueprints.event_driven.ticket import ticket_bp
@@ -10,6 +10,7 @@ from blueprints.simple.milestones import milestone_bp
 from blueprints.simple.driver import driver_bp
 from blueprints.simple.document import document_bp
 from sqlalchemy.exc import IllegalStateChangeError
+from sqlalchemy.orm import close_all_sessions
 
 # Module import to create global controller instances
 import controllers as Controllers
@@ -64,20 +65,45 @@ parent.register_blueprint(document_bp)
 #     ), 500
 
 @app.errorhandler(IllegalStateChangeError)
-def handle_sqlAlch_isce_exception(e):   
-    models.session.rollback()
-    models.session.close()
-    models.session = models.Session()
-    Controllers.recreate_singleton_objects()
+def handle_sqlAlch_isce_exception(e: IllegalStateChangeError):
+    sql_session = models.session
+    if 'sql_session' in g:
+            sql_session = g.sql_session
+    if sql_session:
+        sql_session.rollback()
+        sql_session.close()
+    models.engine.dispose()
+    raise(e)
     return jsonify(
         exception_type=e.__class__.__name__,
-        exception_string="Illegal state change error"
+        exception_string="Invalid State Change Error"
     ), 500
+
+@app.teardown_appcontext
+def teardown_db(exception):
+    print("App Context Dispose")
+    sql_session = g.pop('sql_session', None)
+
+    if sql_session is not None:
+        sql_session.commit()
+        sql_session.close()
+        models.engine.dispose()
 
 def atExitHandler():
     print("Running Exit Handler")
+    if models.session:
+        models.session.commit()
+        models.session.close()
+    close_all_sessions()
+    models.engine.dispose()
+
+def startupCleanupHandler():
+    print("Running Startup Cleanup Handler")
     models.session.commit()
     models.session.close()
+    # Will not be using the global sql_alchemy session beyond this point. Set to null.
+    models.session = None
+    models.engine.dispose()
 
 if __name__ == "__main__":
 
@@ -86,5 +112,6 @@ if __name__ == "__main__":
 
     # Register exit handler to cleanly close sql alchemy session
     atexit.register(atExitHandler)
+    startupCleanupHandler()
 
     app.run(debug=True, host="0.0.0.0", port=6767)

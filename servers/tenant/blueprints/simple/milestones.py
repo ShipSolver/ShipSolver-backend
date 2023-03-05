@@ -81,45 +81,46 @@ def milestone_post(milestone_type):  # create ticket
     if not milestone_controller:
         return make_response(json.dumps({'error': f"milestone_type '{milestone_type}' not recognized."}), 400)
     
-    request_dict = json.loads(request.data)['data']
-    if "ticketId" not in request_dict:
-        message = 'ticketId is required'
-        print(message)
-        res = jsonify({'message': message})
-        res.status_code = 400
-        return res
-
-    # status checking 
-    if milestone_class in old_status_exemptions: 
-        request_dict["oldStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
-    else:
-        request_dict["oldStatus"] = milestone_controller.get_prev_status(ticket_id = request_dict["ticketId"])
-    if milestone_class in new_status_exemptions:
-        request_dict["newStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
-    else:
-        if "newStatus" not in request_dict:     
-            message = 'newStatus is required'
+    request_dicts = json.loads(request.data)['data']
+    request_dicts = request_dicts if isinstance(request_dicts, list) else [request_dicts]
+    for request_dict in request_dicts:
+        if "ticketId" not in request_dict:
+            message = 'ticketId is required'
             print(message)
             res = jsonify({'message': message})
             res.status_code = 400
             return res
 
-    # state verification
-    # paths_possible = stateTable[request_dict["oldStatus"]]
-    # if request_dict["newStatus"] not in paths_possible[]
+        # status checking 
+        if milestone_class in old_status_exemptions: 
+            request_dict["oldStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
+        else:
+            request_dict["oldStatus"] = milestone_controller.get_prev_status(ticket_id = request_dict["ticketId"])
+        if milestone_class in new_status_exemptions:
+            request_dict["newStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
+        else:
+            if "newStatus" not in request_dict:     
+                message = 'newStatus is required'
+                print(message)
+                res = jsonify({'message': message})
+                res.status_code = 400
+                return res
 
-    # ticketId = request_dict["ticketId"]
-    update_dict = {"currentStatus": request_dict["newStatus"]}
-    if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
-        update_dict["assignedTo"] = request_dict["assignedToUserId"]
-    
-    if milestone_class == InventoryMilestones:
-        update_dict["assignedTo"] = None
-        request_dict["approvedByUserId"] = IdentityHelper.get_logged_in_userId()
-        print(request_dict)
-    
-    ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
-    time.sleep(4) # yes it's ugly. But it fixes async issue
-    milestone_controller._create(request_dict)
+        # state verification
+        # paths_possible = stateTable[request_dict["oldStatus"]]
+        # if request_dict["newStatus"] not in paths_possible[]
+
+        # ticketId = request_dict["ticketId"]
+        update_dict = {"currentStatus": request_dict["newStatus"]}
+        if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
+            update_dict["assignedTo"] = request_dict["assignedToUserId"]
+        
+        if milestone_class == InventoryMilestones:
+            update_dict["assignedTo"] = None
+            request_dict["approvedByUserId"] = IdentityHelper.get_logged_in_userId()
+            print(request_dict)
+        
+        ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
+        milestone_controller._create(request_dict)
 
     return make_response("success")

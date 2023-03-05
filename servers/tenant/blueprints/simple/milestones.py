@@ -51,8 +51,8 @@ milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
 
 
 @milestone_bp.route("/<ticket_id>", methods=["GET"])
-@auth_required()
-def milestone_get(ticket_id):  # create ticket
+# @auth_required()
+def get_all_milestones_for_ticket(ticket_id):  # create ticket
 
     filters = {
         "ticketId" : ticket_id
@@ -73,8 +73,45 @@ def milestone_get(ticket_id):  # create ticket
     return make_response(json.dumps(all_milestones, cls=AlchemyEncoder))
 
 
+
+@milestone_bp.route("/<milestone_type>/<ticket_id>", methods=["GET"])
+# @auth_required()
+def milestones_get(milestone_type, ticket_id): 
+    milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
+    if not milestone_controller:
+        return make_response(json.dumps({'error': f"milestone_type '{milestone_type}' not recognized."}), 400)
+    
+    filters = {
+        "ticketId" : ticket_id
+    }
+    data = milestone_controller._get(filters, limit=1000)
+    milestones = alchemyConverter(data)
+    milestone_res_objects = milestone_controller.convert_to_desc(milestones)
+    
+    return make_response(json.dumps(milestone_res_objects, cls=AlchemyEncoder))
+    
+
+
+''' 
+Sample payload request:
+payload = {
+    "data": {
+        "ticketId" : 1,
+        "newStatus": "completed_delivery",
+        "oldStatus": "in_transit",
+        "completingUserId": "0088a8aa-0e5f-4924-a9d5-68ef3cba8cd1",
+        "pictures": {
+            "POD.jpeg": picturedata,
+            "Picture1.jpeg ": picturedata,
+            "Picture2.jpeg" : picturedata,
+            "Picture3.jpeg" : picturedata
+        }
+    }
+}
+
+'''
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
-@auth_required()
+# @auth_required()
 def milestone_post(milestone_type):  # create ticket
     milestone_class = model_helpers.get_model_by_name(milestone_type)
     milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
@@ -118,10 +155,20 @@ def milestone_post(milestone_type):  # create ticket
     if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
         update_dict["assignedTo"] = request_dict["assignedToUserId"]
     
-    if milestone_class == InventoryMilestones:
+    elif milestone_class == InventoryMilestones:
         update_dict["assignedTo"] = None
         request_dict["approvedByUserId"] = IdentityHelper.get_logged_in_userId()
-        print(request_dict)
+    
+    elif milestone_class == DeliveryMilestones:
+    
+        if "POD.jpeg" not in request_dict["pictures"] or "Picture1.jpeg" not in request_dict["pictures"]:
+
+            # print(request_dict["pictures"]["Picture1.jpeg"])
+            res = jsonify({"message": "Missing files for upload"})
+            res.status_code = 400
+            return res
+
+                
     
     ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
     time.sleep(4) # yes it's ugly. But it fixes async issue

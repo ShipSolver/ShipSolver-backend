@@ -335,9 +335,9 @@ class DeliveryMilestones(Base):
     )
     
     PODLink = Column(String, nullable=False)
-    picture1Link = Column(String, nullable=False)
-    picture2Link = Column(String, nullable=False)
-    picture3Link = Column(String, nullable=False)
+    picture1Link = Column(String, nullable=False) # this pod is mandatory
+    picture2Link = Column(String, nullable=True)
+    picture3Link = Column(String, nullable=True)
 
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 

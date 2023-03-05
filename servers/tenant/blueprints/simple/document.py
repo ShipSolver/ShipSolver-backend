@@ -6,7 +6,7 @@ import traceback
 
 from celery_client import client, logger, fan_out, do_all_work
 from tenant.models.models import DocumentStatus, Documents
-from tenant.controllers.DocumentController import DocumentController, DocumentStatusController
+from tenant.controllers.controllerMapper import DocumentController, DocumentStatusController
 import PyPDF2
 import extraction.app as ex
 from celery import group

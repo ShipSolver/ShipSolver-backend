@@ -15,6 +15,7 @@ docker-compose up -d # in /servers
 
 python3 tenant/server.py # start server
 
+# place env file in dev-tools
 ```
 
 

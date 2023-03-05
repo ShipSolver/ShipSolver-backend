@@ -223,14 +223,13 @@ class IncompleteDeliveryMilestonesController(MilestoneController):
          
 class DeliveryMilestonesController(MilestoneController):
     
-
     s3controller = S3Controller()
 
     def __init__(self):
         super().__init__(DeliveryMilestones)
 
     def _upload_file(self, ticketId, temp_milestone_id, args_dict, file_type):
-        s3_base_path = "deliverymilestones_"
+        s3_base_path = "deliverymilestones"
         file_link = f"{s3_base_path}_{ticketId}_{temp_milestone_id}_{file_type}" 
         with open(file_link, "wb") as f:
             f.write(base64.b64decode(args_dict["pictures"][file_type]))
@@ -275,7 +274,7 @@ class DeliveryMilestonesController(MilestoneController):
 
                 string_milestones.append(
                     {
-                        "description":  f"Delivery completed by {milestone['assigneeUser']['username']}",
+                        "description":  f"Delivery completed by {milestone['completingUser']['username']}",
                         "timestamp": milestone["timestamp"],
                         "Picture1": presigned_pic1_link, 
                         "Picture2": presigned_pic2_link,

@@ -84,32 +84,16 @@ def milestones_get(milestone_type, ticket_id):
     filters = {
         "ticketId" : ticket_id
     }
+
+    print(ticket_id, milestone_type)
     data = milestone_controller._get(filters, limit=1000)
     milestones = alchemyConverter(data)
     milestone_res_objects = milestone_controller.convert_to_desc(milestones)
     
+    print(milestone_res_objects)
     return make_response(json.dumps(milestone_res_objects, cls=AlchemyEncoder))
-    
 
 
-''' 
-Sample payload request:
-payload = {
-    "data": {
-        "ticketId" : 1,
-        "newStatus": "completed_delivery",
-        "oldStatus": "in_transit",
-        "completingUserId": "0088a8aa-0e5f-4924-a9d5-68ef3cba8cd1",
-        "pictures": {
-            "POD.jpeg": picturedata,
-            "Picture1.jpeg ": picturedata,
-            "Picture2.jpeg" : picturedata,
-            "Picture3.jpeg" : picturedata
-        }
-    }
-}
-
-'''
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
 # @auth_required()
 def milestone_post(milestone_type):  # create ticket
@@ -160,15 +144,28 @@ def milestone_post(milestone_type):  # create ticket
         request_dict["approvedByUserId"] = IdentityHelper.get_logged_in_userId()
     
     elif milestone_class == DeliveryMilestones:
-    
+        '''
+        Sample Data Payload: 
+            "data": {
+                "ticketId" : 1,
+                "newStatus": "completed_delivery",
+                "oldStatus": "in_transit",
+                "completingUserId": "0088a8aa-0e5f-4924-a9d5-68ef3cba8cd1",
+                "pictures": {
+                    "POD.jpeg": picturedata,
+                    "Picture1.jpeg": picturedata,
+                    "Picture2.jpeg" : picturedata,
+                    "Picture3.jpeg" : picturedata
+                }
+            } 
+        '''
+        
         if "POD.jpeg" not in request_dict["pictures"] or "Picture1.jpeg" not in request_dict["pictures"]:
-
             # print(request_dict["pictures"]["Picture1.jpeg"])
             res = jsonify({"message": "Missing files for upload"})
             res.status_code = 400
             return res
 
-                
     
     ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
     time.sleep(4) # yes it's ugly. But it fixes async issue

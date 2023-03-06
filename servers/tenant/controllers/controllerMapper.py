@@ -310,18 +310,17 @@ class DeliveryMilestonesController(MilestoneController):
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
-
                 presigned_pod_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.PODLink.name].replace("_", "/"))
+                    milestone[FileTypes.PODLink.name].replace("_", "/") if milestone[FileTypes.PODLink.name] else None)
                 
                 presigned_pic1_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.picture1Link.name].replace("_", "/"))
+                    milestone[FileTypes.picture1Link.name].replace("_", "/") if milestone[FileTypes.picture1Link.name] else None)
                 
                 presigned_pic2_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.picture2Link.name].replace("_", "/"))
+                    milestone[FileTypes.picture2Link.name].replace("_", "/") if milestone[FileTypes.picture2Link.name] else None)
                 
                 presigned_pic3_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.picture3Link.name].replace("_", "/"))
+                    milestone[FileTypes.picture3Link.name].replace("_", "/") if milestone[FileTypes.picture3Link.name] else None)
 
                 string_milestones.append(
                     {

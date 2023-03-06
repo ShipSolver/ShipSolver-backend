@@ -93,7 +93,7 @@ def milestones_get(milestone_type, ticket_id):
 
 
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
-@auth_required()
+# @auth_required()
 def milestone_post(milestone_type):  # create ticket
     milestone_class = model_helpers.get_model_by_name(milestone_type)
     milestone_controller = Controllers.get_controller_by_model_name(milestone_type)

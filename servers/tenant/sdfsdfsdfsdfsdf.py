@@ -9,7 +9,7 @@ with open("pikachuuuu.jpeg", "rb") as f:
 payload = {
     "data": {
         "ticketId" : 1,
-        "newStatus": "assigned",
+        "newStatus": "completed_delivery",
         "oldStatus": "in_transit",
         "completingUserId": "0088a8aa-0e5f-4924-a9d5-68ef3cba8cd1",
         "pictures": {
@@ -30,7 +30,7 @@ headers = {
 
 # Make POST request
 response = requests.post(
-    "http://localhost:6767/api/milestones/AssignmentMilestones",
+    "http://localhost:6767/api/milestones/DeliveryMilestones",
     json=payload,
     headers=headers
 )

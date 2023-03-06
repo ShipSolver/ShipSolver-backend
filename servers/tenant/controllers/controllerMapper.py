@@ -9,6 +9,7 @@ from models.models import *
 import uuid
 import base64
 from controllers.S3Controller import S3Controller
+from helpers.identity_helpers import IdentityHelper
 FileTypes = DeliveryMilestones.FileTypes
 
 class DocumentController(BaseController):
@@ -277,10 +278,8 @@ class DeliveryMilestonesController(MilestoneController):
         # create temporary files 
         temp_milestone_id = str(uuid.uuid4())
         ticketId = args_dict["ticketId"]
-            
 
         # parallelize this ?
-        
         args_dict[FileTypes.PODLink.name] = self._upload_file(ticketId, temp_milestone_id, args_dict, FileTypes.PODLink)
         
         args_dict[FileTypes.picture1Link.name] = self._upload_file(ticketId, temp_milestone_id, args_dict, FileTypes.picture1Link)
@@ -301,6 +300,7 @@ class DeliveryMilestonesController(MilestoneController):
         
         args_dict.pop("pictures")
 
+        args_dict["completingUserId"] = IdentityHelper.get_logged_in_userId()
         
         print("Successfully uploaded milestones files to S3")
 

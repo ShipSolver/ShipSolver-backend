@@ -92,6 +92,7 @@ def milestones_get(milestone_type, ticket_id):
     return make_response(json.dumps(milestone_res_objects, cls=AlchemyEncoder))
 
 
+# NOTE: This is some frankenstein Code. Break it up and refactor it.
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
 @auth_required()
 def milestone_post(milestone_type):  # create ticket
@@ -116,6 +117,7 @@ def milestone_post(milestone_type):  # create ticket
             request_dict["oldStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
         else:
             request_dict["oldStatus"] = milestone_controller.get_prev_status(ticket_id = request_dict["ticketId"])
+            
         if milestone_class in new_status_exemptions:
             request_dict["newStatus"] = str(milestone_class.oldStatus.default).split("'")[1]
         else:
@@ -126,7 +128,6 @@ def milestone_post(milestone_type):  # create ticket
         # 
         # paths_possible = stateTable[request_dict["oldStatus"]]
         # if request_dict["newStatus"] not in paths_possible[]
-
         update_dict = {"currentStatus": request_dict["newStatus"]}
         if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
             assert "assignedToUserId" in request_dict, "Cannot change status to assigned without an assignedToUserId"
@@ -165,7 +166,10 @@ def milestone_post(milestone_type):  # create ticket
                 res = jsonify({"message": "Missing files for upload"})
                 res.status_code = 400
                 return res
-
+        
+        elif milestone_class == IncompleteDeliveryMilestones:
+            request_dict["assigneeUserId"] = IdentityHelper.get_logged_in_userId()
+        
         ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
         milestone_controller._create(request_dict)
 

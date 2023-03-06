@@ -54,7 +54,18 @@ def ticket_get_all_with_status(status):  # create ticket
     # Make call to get tickets
     tickets = ticket_status_controller._get_tickets_with_status(status, ticket_sql_filters, limit)
 
+    
     res = {"tickets": alchemyConverter(tickets), "count": len(tickets)}
+    for ticket in res["tickets"]:
+        view_url = ""
+        if ticket["orderS3Link"] and ticket["orderS3Link"] != "s3link":
+             s3Path = '/'.join(ticket["orderS3Link"].split("/")[3:]) 
+             view_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': BUCKET, 'Key': s3Path},
+                ExpiresIn=3600
+            )
+        ticket["orderS3Link"] = view_url
 
     return make_response(json.dumps(res, cls=AlchemyEncoder))
 
@@ -101,8 +112,7 @@ def ticket_post():  # create ticket
 
     #join pieces into single string 
     ticket_dict["pieces"] =  PIECES_SEPERATOR.join(ticket_dict["pieces"])
-    if not ticket_dict["isPickup"]:
-        ticket_dict["isPickup"] = False
+    ticket_dict["isPickup"] = False
     if "noSignatureRequired" not in ticket_dict:
         ticket_dict["noSignatureRequired"] = False
     if "tailgateAuthorized" not in ticket_dict:

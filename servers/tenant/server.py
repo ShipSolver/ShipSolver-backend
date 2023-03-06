@@ -50,9 +50,10 @@ parent.register_blueprint(document_bp)
 
 @app.errorhandler(Exception)
 def handle_sqlAlch_isce_exception(e: Exception):
+    print("Exception Occured")
     sql_session = models.session
     if 'sql_session' in g:
-            sql_session = g.sql_session
+        sql_session = g.sql_session
     if sql_session:
         sql_session.rollback()
         sql_session.close()

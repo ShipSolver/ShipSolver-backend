@@ -287,6 +287,8 @@ class DeliveryMilestonesController(MilestoneController):
         ):
             args_dict[FileTypes.picture2Link.name] = self._upload_file(
                 ticketId, temp_milestone_id, args_dict, FileTypes.picture2Link)
+        else:
+            args_dict[FileTypes.picture2Link.name] = ""
 
         if (
             FileTypes.picture3Link.value in args_dict["pictures"] 
@@ -294,6 +296,8 @@ class DeliveryMilestonesController(MilestoneController):
         ):
             args_dict[FileTypes.picture3Link.name] = self._upload_file(
                 ticketId, temp_milestone_id, args_dict, FileTypes.picture3Link)
+        else:
+            args_dict[FileTypes.picture3Link.name] = ""
         
         args_dict.pop("pictures")
         

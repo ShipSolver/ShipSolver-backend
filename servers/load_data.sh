@@ -5,7 +5,7 @@ read -p "Continue? [Y/N] >  " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-source ../venv/bin/activate
+source venv/bin/activate
 export PYTHONPATH=.
 python3 tenant/server.py & PID=$!
 sleep 4

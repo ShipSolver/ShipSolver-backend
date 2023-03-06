@@ -28,9 +28,5 @@ marshmallow-sqlalchemy==0.24.1
 flask-session
 Faker==17.0.0
 redis
-<<<<<<< HEAD
 flask-cognito-auth==1.1.0
 # -e git+ssh://git@github.com/ShipSolver/flask-cognito-lib.git@main#egg=flask_cognito_lib
-=======
--e git+ssh://git@github.com/ShipSolver/flask-cognito-lib.git@main#egg=flask_cognito_lib
->>>>>>> main

@@ -314,6 +314,13 @@ class IncompleteDeliveryMilestones(Base):
 
 
 class DeliveryMilestones(Base):
+
+    class FileTypes(enum):
+        PODLink = "POD.jpeg"
+        picture1Link = "Picture1.jpeg"
+        picture2Link = "Picture2.jpeg"
+        picture3Link = "Picture3.jpeg"
+
     __tablename__ = "deliverymilestones"
 
     milestoneId = Column(Integer, primary_key=True, autoincrement=True)
@@ -335,9 +342,9 @@ class DeliveryMilestones(Base):
     )
     
     PODLink = Column(String, nullable=False)
-    picture1Link = Column(String, nullable=False)
-    picture2Link = Column(String, nullable=False)
-    picture3Link = Column(String, nullable=False)
+    picture1Link = Column(String, nullable=False) # this pod is mandatory
+    picture2Link = Column(String, nullable=True)
+    picture3Link = Column(String, nullable=True)
 
     timestamp = Column(Integer, nullable=False, default=int(time.time()))
 

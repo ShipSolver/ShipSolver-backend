@@ -52,7 +52,7 @@ milestone_bp = Blueprint(f"milestones_bp", __name__, url_prefix="milestones")
 
 @milestone_bp.route("/<ticket_id>", methods=["GET"])
 @auth_required()
-def milestone_get(ticket_id):  # create ticket
+def get_all_milestones_for_ticket(ticket_id):  # create ticket
 
     filters = {
         "ticketId" : ticket_id
@@ -73,6 +73,25 @@ def milestone_get(ticket_id):  # create ticket
     return make_response(json.dumps(all_milestones, cls=AlchemyEncoder))
 
 
+
+@milestone_bp.route("/<milestone_type>/<ticket_id>", methods=["GET"])
+@auth_required()
+def milestones_get(milestone_type, ticket_id): 
+    milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
+    if not milestone_controller:
+        return make_response(json.dumps({'error': f"milestone_type '{milestone_type}' not recognized."}), 400)
+    
+    filters = {
+        "ticketId" : ticket_id
+    }
+
+    data = milestone_controller._get(filters, limit=1000)
+    milestones = alchemyConverter(data)
+    milestone_res_objects = milestone_controller.convert_to_desc(milestones)
+    
+    return make_response(json.dumps(milestone_res_objects, cls=AlchemyEncoder))
+
+
 @milestone_bp.route("/<milestone_type>", methods=["POST"])
 @auth_required()
 def milestone_post(milestone_type):  # create ticket
@@ -80,10 +99,11 @@ def milestone_post(milestone_type):  # create ticket
     milestone_controller = Controllers.get_controller_by_model_name(milestone_type)
     if not milestone_controller:
         return make_response(json.dumps({'error': f"milestone_type '{milestone_type}' not recognized."}), 400)
-    
+
     request_dicts = json.loads(request.data)['data']
     request_dicts = request_dicts if isinstance(request_dicts, list) else [request_dicts]
     for request_dict in request_dicts:
+
         if "ticketId" not in request_dict:
             message = 'ticketId is required'
             print(message)
@@ -101,24 +121,49 @@ def milestone_post(milestone_type):  # create ticket
         else:
             if "newStatus" not in request_dict:     
                 message = 'newStatus is required'
-                print(message)
-                res = jsonify({'message': message})
-                res.status_code = 400
-                return res
 
-        # state verification
+        # TODO: state verification using transition graph
+        # 
         # paths_possible = stateTable[request_dict["oldStatus"]]
         # if request_dict["newStatus"] not in paths_possible[]
 
-        # ticketId = request_dict["ticketId"]
         update_dict = {"currentStatus": request_dict["newStatus"]}
         if milestone_class == AssignmentMilestones and request_dict["newStatus"] == Generic_Milestone_Status.assigned.value:
+            assert "assignedToUserId" in request_dict, "Cannot change status to assigned without an assignedToUserId"
             update_dict["assignedTo"] = request_dict["assignedToUserId"]
         
-        if milestone_class == InventoryMilestones:
+        elif milestone_class == InventoryMilestones:
             update_dict["assignedTo"] = None
             request_dict["approvedByUserId"] = IdentityHelper.get_logged_in_userId()
-            print(request_dict)
+        
+        elif milestone_class == DeliveryMilestones:
+            '''
+            Sample Data Payload: 
+                "data": {
+                    "ticketId" : 1,
+                    "newStatus": "completed_delivery",
+                    "pictures": {
+                        "POD.jpeg": picturedata,
+                        "Picture1.jpeg": picturedata,
+                        "Picture2.jpeg" : picturedata,
+                        "Picture3.jpeg" : picturedata
+                    }
+                }
+            '''
+        
+            if (
+                (
+                    DeliveryMilestones.FileTypes.PODLink.value not in request_dict["pictures"]
+                    or request_dict["pictures"][DeliveryMilestones.FileTypes.PODLink.value] is None
+                )
+                or (
+                    DeliveryMilestones.FileTypes.picture1Link.value not in request_dict["pictures"]
+                    or request_dict["pictures"][DeliveryMilestones.FileTypes.picture1Link.value] is None
+                )
+            ):
+                res = jsonify({"message": "Missing files for upload"})
+                res.status_code = 400
+                return res
         
         ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
         milestone_controller._create(request_dict)

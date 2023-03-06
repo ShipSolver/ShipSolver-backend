@@ -109,7 +109,7 @@ class BaseController(object):
     def _get(self, filters, queryObj = None, limit=5000, ordered=False):
         if not filters:
             filters = {}
-        
+
         if not queryObj:
             queryObj = self.session.query(self.model)
 
@@ -127,7 +127,6 @@ class BaseController(object):
         ))
 
         return objects
-
 
     def _get_count(self, filters):
         if not filters:
@@ -154,11 +153,6 @@ class BaseTimeSeriesController(BaseController):
         super().__init__(model=model)
 
         self.model = model  # redudant
-
-    # def __new__(cls, *args, **kwargs):
-    #     if cls is BaseTimeSeriesController:
-    #         raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
-    #     return object.__new__(cls, *args, **kwargs)
 
     """
     Definition: create an inital object. "args_dict" is the input to models

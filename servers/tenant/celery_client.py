@@ -9,7 +9,7 @@ import extraction.app as ex
 import extraction.extract as ext
 from celery import group
 
-from tenant.controllers.DocumentController import DocumentController
+from tenant.controllers.controllerMapper import DocumentController
 import boto3
 from botocore.client import Config
 

@@ -10,8 +10,10 @@ export PYTHONPATH=.
 python3 tenant/server.py & PID=$!
 sleep 4
 kill $PID
+echo "\n\n\n\n\SERVER SCRIPT STOPS\n\n\n\n\n"
 cd ../dev-tools
 python3 sync-users.py
+echo "\n\n\n\n\nSYNC USERS SCRIPT STOPS\n\n\n\n\n"
 cd ../servers/tenant/test
 python3 test.py
 fi

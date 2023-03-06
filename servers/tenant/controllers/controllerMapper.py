@@ -6,6 +6,19 @@ from controllers.baseController import (
 )
 from utils import alchemyConverter
 from models.models import *
+import uuid
+import base64
+from controllers.S3Controller import S3Controller
+from helpers.identity_helpers import IdentityHelper
+FileTypes = DeliveryMilestones.FileTypes
+
+class DocumentController(BaseController):
+    def __init__(self):
+        super().__init__(Documents)
+
+class DocumentStatusController(BaseController):
+    def __init__(self):
+        super().__init__(DocumentStatus)
 
 
 class UserController(BaseController):
@@ -13,10 +26,15 @@ class UserController(BaseController):
         super().__init__(Users)
     
     def get_user_type(self, userId):
-        user = alchemyConverter(self._get(filters={
+
+        
+        user_arr = alchemyConverter(self._get(filters={
             "userId" : userId
-        }))[0]
-        return user["userType"]
+        }))
+
+        assert len(user_arr) > 0, f"NO USER WITH {userId} IS FOUND"
+
+        return user_arr[0]["userType"]
 
 
 class CustomerController(BaseController):
@@ -50,6 +68,7 @@ class TicketStatusController(BaseController):
 
         return tickets
 
+""" MILESTONES """
 
 class MilestoneController(BaseController):
     def __init__(self, model):
@@ -89,14 +108,17 @@ class MilestoneController(BaseController):
         '''
         raise NotImplementedError
 
-
-""" MILESTONES """
-
-
 class CreationMilestonesController(MilestoneController):
     def __init__(self):
         super().__init__(CreationMilestones)
     
+    # Note - Creation Milestones Type has no "oldStatus" attribute. This should change to support PickupMilestones -> Creation Milestones state change
+    def get_prev_status(self, ticket_id=None):
+        # if next_status == Creation_Milestone_Status.unassigned_pickup:
+        #     ticket_stat = self.ticket_status._get(filters={"ticketId" : ticket_id})
+        #     return ticket_stat.currentStatus
+        return None
+
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
@@ -234,16 +256,83 @@ class IncompleteDeliveryMilestonesController(MilestoneController):
         return IncompleteDeliveryMilestones.assigneeUserId
          
 class DeliveryMilestonesController(MilestoneController):
+    
+    s3controller = S3Controller()
+
     def __init__(self):
         super().__init__(DeliveryMilestones)
+
+    def _upload_file(self, ticketId, temp_milestone_id, args_dict, file_type:DeliveryMilestones.FileTypes):
+        s3_base_path = "deliverymilestones"
+        file_link = f"{s3_base_path}_{ticketId}_{temp_milestone_id}_{file_type.value}" 
+        with open(file_link, "wb") as f:
+            f.write(base64.b64decode(args_dict["pictures"][file_type.value]))
+
+        self.s3controller._upload_file(file_link,  file_link.replace("_", "/"))
+        os.remove(file_link)
+        return file_link
+
+
+    def _create(self, args_dict):
+        
+        # create temporary files 
+        temp_milestone_id = str(uuid.uuid4())
+        ticketId = args_dict["ticketId"]
+
+        # parallelize this ?
+        args_dict[FileTypes.PODLink.name] = self._upload_file(ticketId, temp_milestone_id, args_dict, FileTypes.PODLink)
+        
+        args_dict[FileTypes.picture1Link.name] = self._upload_file(ticketId, temp_milestone_id, args_dict, FileTypes.picture1Link)
+
+        if (
+            FileTypes.picture2Link.value in args_dict["pictures"] 
+            and args_dict["pictures"][FileTypes.picture2Link.value] is not None
+        ):
+            args_dict[FileTypes.picture2Link.name] = self._upload_file(
+                ticketId, temp_milestone_id, args_dict, FileTypes.picture2Link)
+
+        if (
+            FileTypes.picture3Link.value in args_dict["pictures"] 
+            and args_dict["pictures"][FileTypes.picture3Link.value] is not None
+        ):
+            args_dict[FileTypes.picture3Link.name] = self._upload_file(
+                ticketId, temp_milestone_id, args_dict, FileTypes.picture3Link)
+        
+        args_dict.pop("pictures")
+
+        args_dict["completingUserId"] = IdentityHelper.get_logged_in_userId()
+        
+        print("Successfully uploaded milestones files to S3")
+
+        return super()._create(args_dict)
+            
 
     def convert_to_desc(self, milestones):
         string_milestones = []
         for milestone in milestones:
-                string_milestones.append({
-                    "description":  f"Delivery completed by {milestone['assigneeUser']['username']}",
-                    "timestamp": milestone["timestamp"]
-                })
+                presigned_pod_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.PODLink.name].replace("_", "/") if milestone[FileTypes.PODLink.name] else None)
+                
+                presigned_pic1_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.picture1Link.name].replace("_", "/") if milestone[FileTypes.picture1Link.name] else None)
+                
+                presigned_pic2_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.picture2Link.name].replace("_", "/") if milestone[FileTypes.picture2Link.name] else None)
+                
+                presigned_pic3_link = self.s3controller._generate_presigned_url(
+                    milestone[FileTypes.picture3Link.name].replace("_", "/") if milestone[FileTypes.picture3Link.name] else None)
+
+                string_milestones.append(
+                    {
+                        "description":  f"Delivery completed by {milestone['completingUser']['username']}",
+                        "timestamp": milestone["timestamp"],
+                        FileTypes.PODLink.value : presigned_pod_link, 
+                        FileTypes.picture1Link.value : presigned_pic1_link, 
+                        FileTypes.picture2Link.value : presigned_pic2_link,
+                        FileTypes.picture3Link.value : presigned_pic3_link
+                    }
+                )
+
         return string_milestones
     
     def get_assigned_to_attr(self):

@@ -150,7 +150,8 @@ def milestone_post(milestone_type):  # create ticket
                     }
                 }
             '''
-        
+            
+            request_dict["completingUserId"] = IdentityHelper.get_logged_in_userId()
             if (
                 (
                     DeliveryMilestones.FileTypes.PODLink.value not in request_dict["pictures"]

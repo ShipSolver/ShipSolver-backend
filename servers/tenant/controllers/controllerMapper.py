@@ -9,7 +9,6 @@ from models.models import *
 import uuid
 import base64
 from controllers.S3Controller import S3Controller
-from helpers.identity_helpers import IdentityHelper
 FileTypes = DeliveryMilestones.FileTypes
 
 class DocumentController(BaseController):
@@ -299,8 +298,6 @@ class DeliveryMilestonesController(MilestoneController):
                 ticketId, temp_milestone_id, args_dict, FileTypes.picture3Link)
         
         args_dict.pop("pictures")
-
-        args_dict["completingUserId"] = IdentityHelper.get_logged_in_userId()
         
         print("Successfully uploaded milestones files to S3")
 

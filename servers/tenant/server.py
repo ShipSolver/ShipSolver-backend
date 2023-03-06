@@ -17,7 +17,6 @@ import controllers as Controllers
 
 from flask_cors import CORS
 from flask_cognito_lib import CognitoAuth
-from flask_caching import Cache
 
 # from models.__init__ import engine, Base
 import models
@@ -28,12 +27,6 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 load_dotenv("tenant/.env", override=True)
 
-cache_config = {
-    "DEBUG": True,          # some Flask specific configs
-    "CACHE_TYPE": "SimpleCache",  # Flask-Caching related configs
-    "CACHE_DEFAULT_TIMEOUT": 300
-}
-cache = Cache(app)
 
 app.config["AWS_REGION"] = os.environ["AWS_REGION"]
 app.config["AWS_COGNITO_USER_POOL_ID"] = os.environ["AWS_COGNITO_USER_POOL_ID"]

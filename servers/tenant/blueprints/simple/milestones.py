@@ -165,7 +165,7 @@ def milestone_post(milestone_type):  # create ticket
                 res = jsonify({"message": "Missing files for upload"})
                 res.status_code = 400
                 return res
-        
+
         ticket_status_controller._modify({"ticketId": request_dict["ticketId"]}, update_dict)
         milestone_controller._create(request_dict)
 

@@ -25,8 +25,6 @@ class UserController(BaseController):
         super().__init__(Users)
     
     def get_user_type(self, userId):
-
-        
         user_arr = alchemyConverter(self._get(filters={
             "userId" : userId
         }))
@@ -84,7 +82,7 @@ class MilestoneController(BaseController):
             if "newStatus" in args_dict:
                 updt[TicketStatus.currentStatus.name] = args_dict["newStatus"]
             
-            if self.get_assigned_to_attr().name in args_dict:
+            if self.get_assigned_to_attr() and self.get_assigned_to_attr().name in args_dict:
                 updt[TicketStatus.assignedTo.name] = args_dict[self.get_assigned_to_attr().name]
             
             self.ticket_status._modify(
@@ -206,7 +204,7 @@ class InventoryMilestonesController(MilestoneController):
         return string_milestones
     
     def get_assigned_to_attr(self):
-        return InventoryMilestones.approvedByUserId
+        return None
 
 class AssignmentMilestonesController(MilestoneController):
     def __init__(self):

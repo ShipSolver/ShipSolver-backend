@@ -25,10 +25,15 @@ class UserController(BaseController):
         super().__init__(Users)
     
     def get_user_type(self, userId):
-        user = alchemyConverter(self._get(filters={
+
+        
+        user_arr = alchemyConverter(self._get(filters={
             "userId" : userId
-        }))[0]
-        return user["userType"]
+        }))
+
+        assert len(user_arr) > 0, f"NO USER WITH {userId} IS FOUND"
+
+        return user_arr[0]["userType"]
 
 
 class CustomerController(BaseController):
@@ -94,11 +99,7 @@ class MilestoneController(BaseController):
         if ticket_stat:
             return ticket_stat[0].currentStatus
         return None
-<<<<<<< HEAD
-
-=======
     
->>>>>>> main
     def get_assigned_to_attr(self):
         '''
         Abstract Class Function
@@ -233,11 +234,7 @@ class AssignmentMilestonesController(MilestoneController):
                 args_dict["assignedByUserId"] = prev_milestone[0].assignedByUserId
                 args_dict["assignedToUserId"] = prev_milestone[0].assignedToUserId
         return super()._create(args_dict)
-<<<<<<< HEAD
-
-=======
     
->>>>>>> main
     def get_assigned_to_attr(self):
         return AssignmentMilestones.assignedToUserId
 
@@ -315,16 +312,16 @@ class DeliveryMilestonesController(MilestoneController):
         for milestone in milestones:
 
                 presigned_pod_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.PODLink.name])
+                    milestone[FileTypes.PODLink.name].replace("_", "/"))
                 
                 presigned_pic1_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.picture1Link.name])
+                    milestone[FileTypes.picture1Link.name].replace("_", "/"))
                 
                 presigned_pic2_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.picture2Link.name])
+                    milestone[FileTypes.picture2Link.name].replace("_", "/"))
                 
                 presigned_pic3_link = self.s3controller._generate_presigned_url(
-                    milestone[FileTypes.picture3Link.name])
+                    milestone[FileTypes.picture3Link.name].replace("_", "/"))
 
                 string_milestones.append(
                     {

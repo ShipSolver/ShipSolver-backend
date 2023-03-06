@@ -89,7 +89,6 @@ def milestones_get(milestone_type, ticket_id):
     milestones = alchemyConverter(data)
     milestone_res_objects = milestone_controller.convert_to_desc(milestones)
     
-    print(milestone_res_objects)
     return make_response(json.dumps(milestone_res_objects, cls=AlchemyEncoder))
 
 

@@ -22,8 +22,6 @@ class BaseController(object):
         self.get_controller_by_model = None
         self.get_controller_by_model_name = None
 
-<<<<<<< HEAD
-=======
     @property
     def session(self):
         if session:
@@ -40,7 +38,6 @@ class BaseController(object):
     #         raise TypeError(f"Only children of '{cls.__name__}' may be instantiated")
     #     return object.__new__(cls, *args, **kwargs)
 
->>>>>>> main
     # create objects in bulk
     # args_arr is an array of args_dicts
     # args_dict is the input to models

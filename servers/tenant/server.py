@@ -55,8 +55,8 @@ parent.register_blueprint(driver_bp)
 parent.register_blueprint(document_bp)
 
 
-@app.errorhandler(IllegalStateChangeError)
-def handle_sqlAlch_isce_exception(e: IllegalStateChangeError):
+@app.errorhandler(Exception)
+def handle_sqlAlch_isce_exception(e: Exception):
     sql_session = models.session
     if 'sql_session' in g:
             sql_session = g.sql_session

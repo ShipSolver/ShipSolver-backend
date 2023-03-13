@@ -51,9 +51,9 @@ class BaseController(object):
             assert isinstance(args_dict, dict)
 
             if "timestamp" in vars(self.model):
-                args_dict["timestamp"] = int(time.time())
+                args_dict["timestamp"] = int(time.time()*1000)
             if "createdaAt" in vars(self.model):
-                args_dict["createdaAt"] = int(time.time())
+                args_dict["createdaAt"] = int(time.time()*1000)
 
             obj = self.model(**args_dict)
             self.session.add(obj)
@@ -69,9 +69,9 @@ class BaseController(object):
         assert isinstance(args_dict, dict)
         
         if "timestamp" in vars(self.model):
-            args_dict["timestamp"] = int(time.time())
+            args_dict["timestamp"] = int(time.time()*1000)
         if "createdaAt" in vars(self.model):
-            args_dict["createdaAt"] = int(time.time())
+            args_dict["createdaAt"] = int(time.time()*1000)
 
         obj = self.model(**args_dict)
         self.session.add(obj)

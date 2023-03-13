@@ -377,7 +377,7 @@ class TicketController(BaseTimeSeriesController):
         else:
             ticket_id = self.ticket_status_controller._create(fields).ticketId
 
-        args_dict["timestamp"] = int(time.time())
+        args_dict["timestamp"] = int(time.time()*1000)
 
         new_status = args_dict["newStatus"]
         args_dict.pop("newStatus", None)

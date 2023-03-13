@@ -110,8 +110,8 @@ class Users(Base):
     firstName = Column(String, nullable=False)
     lastName = Column(String, nullable=False)
     email = Column(String, nullable=False)
-    createdAt = Column(Integer, nullable=False, default=int(time.time()))
-    modifiedAt = Column(Integer, nullable=False, default=int(time.time()))
+    createdAt = Column(Integer, nullable=False, default=int(time.time()*1000))
+    modifiedAt = Column(Integer, nullable=False, default=int(time.time()*1000))
 
     def __repr__(self):
         return f"< Users:: userId: {self.userId}>"
@@ -129,7 +129,7 @@ class Documents(Base):
     documentId = Column(Integer, primary_key=True, nullable=False)
     documentStatusId = Column(Integer, nullable=False)
     success = Column(Boolean, nullable=False)
-    timestamp = Column(Integer, default=int(time.time()))
+    timestamp = Column(Integer, default=int(time.time()*1000))
     customerName = Column(String, nullable=False)
     barcodeNumber = Column(String, nullable=False)
     houseReferenceNumber = Column(String, nullable=False)
@@ -172,7 +172,7 @@ class TicketEvents(Base):
     non_prim_identifying_column_name = "ticketId"
     ticketEventId = Column(Integer, primary_key=True, autoincrement=True)
     ticketId = Column(Integer, ForeignKey(TicketStatus.ticketId))
-    timestamp = Column(Integer, default=int(time.time()))
+    timestamp = Column(Integer, default=int(time.time()*1000))
     userId = Column(String, ForeignKey(Users.userId), nullable=False, index=True)
 
     # TODO: forgein key customer ID
@@ -220,7 +220,7 @@ class CreationMilestones(Base):
     createdByUserId = Column(
         String, ForeignKey(Users.userId), nullable=False, index=True
     )
-    createdAt = Column(Integer, nullable=False, default=int(time.time()))
+    createdAt = Column(Integer, nullable=False, default=int(time.time()*1000))
     createdByUser = relationship("Users")
 
 
@@ -241,7 +241,7 @@ class PickupMilestones(Base):
 
     oldStatus = Column(GenericMilestonesType, nullable=False)
     newStatus = Column(Enum(Pickup_Milestone_Status), nullable=False)
-    timestamp = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()*1000))
 
     requesterUser = relationship("Users", foreign_keys=[requesterUserId])
     requestedUser = relationship("Users", foreign_keys=[requestedUserId])
@@ -261,7 +261,7 @@ class InventoryMilestones(Base):
 
     oldStatus = Column(GenericMilestonesType, nullable=False)
     newStatus = Column(Enum(Inventory_Milestone_Status), nullable=False)
-    timestamp = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()*1000))
 
     approvedByUser = relationship("Users")
 
@@ -282,7 +282,7 @@ class AssignmentMilestones(Base):
 
     oldStatus = Column(GenericMilestonesType, nullable=False)
     newStatus = Column(Enum(Assignment_Milestone_Status), nullable=False)
-    timestamp = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()*1000))
 
     requesterUser = relationship("Users", foreign_keys=[assignedByUserId])
     requestedUser = relationship("Users", foreign_keys=[assignedToUserId])
@@ -308,7 +308,7 @@ class IncompleteDeliveryMilestones(Base):
     )
     reasonForIncomplete = Column(String, nullable=False)
     dueToEndedShift = Column(Boolean, default=False)
-    timestamp = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()*1000))
 
     assigneeUser = relationship("Users")
 
@@ -346,7 +346,7 @@ class DeliveryMilestones(Base):
     picture2Link = Column(String, nullable=True)
     picture3Link = Column(String, nullable=True)
 
-    timestamp = Column(Integer, nullable=False, default=int(time.time()))
+    timestamp = Column(Integer, nullable=False, default=int(time.time()*1000))
 
     completingUser = relationship("Users")
 
